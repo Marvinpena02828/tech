@@ -1,3 +1,5 @@
+// app/(private)/layout.tsx - SIMPLIFIED VERSION
+
 import type { Metadata } from "next";
 import Script from "next/script";
 import {
@@ -15,401 +17,62 @@ import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
 import { createClient } from "@/lib/supabase/server";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const poppins = Poppins({ variable: "--font-poppins", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"], weight: ["700", "900"] });
+const neuropol = localFont({ src: "../../public/fonts/Neuropol.otf", variable: "--font-neuropol", display: "swap", weight: "400" });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
-  subsets: ["latin"],
-  weight: ["700", "900"],
-});
-
-const neuropol = localFont({
-  src: "../../public/fonts/Neuropol.otf",
-  variable: "--font-neuropol",
-  display: "swap",
-  weight: "400",
-});
-
-// Fetch logos from Supabase
 async function getLogos() {
   try {
-    console.log("🔍 Starting getLogos fetch...");
-    
     const supabase = await createClient();
+    const { data } = await supabase.from("logos").select("logo_type, url");
     
-    // Fetch all logos from database
-    const { data, error } = await supabase
-      .from("logos")
-      .select("logo_type, url")
-      .not("url", "is", null); // Only fetch rows with URLs
-
-    console.log("📊 Supabase response:", { data, error });
-
-    if (error) {
-      console.error("❌ Supabase error:", error);
-      return {
-        main: "",
-        mobile: "",
-        favicon: "",
-      };
-    }
-
-    if (!data || data.length === 0) {
-      console.warn("⚠️ No logos found in database");
-      return {
-        main: "",
-        mobile: "",
-        favicon: "",
-      };
-    }
-
-    // Build logo map
-    const logoMap = {
-      main: "",
-      mobile: "",
-      favicon: "",
-    };
-
-    data.forEach((logo: any) => {
-      console.log(`✅ Processing logo: ${logo.logo_type} = ${logo.url}`);
-      
-      if (logo.logo_type === "main") {
-        logoMap.main = logo.url || "";
-      } else if (logo.logo_type === "mobile") {
-        logoMap.mobile = logo.url || "";
-      } else if (logo.logo_type === "favicon") {
-        logoMap.favicon = logo.url || "";
+    const logoMap: Record<string, string> = { main: "", mobile: "", favicon: "" };
+    
+    data?.forEach((logo: any) => {
+      if (logo.url) {
+        logoMap[logo.logo_type] = logo.url;
       }
     });
-
-    console.log("✨ Final logoMap:", logoMap);
+    
     return logoMap;
   } catch (error) {
-    console.error("💥 Error in getLogos:", error);
-    return {
-      main: "",
-      mobile: "",
-      favicon: "",
-    };
+    return { main: "", mobile: "", favicon: "" };
   }
 }
 
 export const metadata: Metadata = {
-  title: {
-    default:
-      "AyyanTech – Innovative Electronics & Smart Tech Accessories | ayyantech.net",
-    template: "%s | AyyanTech",
-  },
-  description:
-    "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide. Visit ayyantech.net.",
+  title: { default: "AyyanTech – Innovative Electronics & Smart Tech Accessories | ayyantech.net", template: "%s | AyyanTech" },
+  description: "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide. Visit ayyantech.net.",
   metadataBase: new URL("https://ayyantech.net"),
-  keywords: [
-    "AyyanTech",
-    "ayyantech",
-    "ayyantech.net",
-    "Ayyan Technology",
-    "Ayyan Innovations",
-    "B2B electronics supplier",
-    "smartphone accessories wholesale",
-    "tech accessories",
-    "electronics wholesale",
-    "smart tech solutions",
-    "innovative electronics",
-  ],
-  openGraph: {
-    title: "AyyanTech – Innovative Electronics & Smart Tech Accessories",
-    description:
-      "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
-    url: "https://ayyantech.net",
-    siteName: "AyyanTech",
-    images: [
-      {
-        url: "/Ayyan Logo(1).png",
-        width: 1200,
-        height: 630,
-        alt: "AyyanTech – Innovative Electronics & Smart Tech Accessories",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "AyyanTech – Innovative Electronics & Smart Tech Accessories",
-    description:
-      "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
-    images: ["/Ayyan Logo(1).png"],
-    site: "@AyyanInnov12181",
-  },
-  alternates: {
-    canonical: "https://ayyantech.net",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  verification: {
-    google: "YOUR_GOOGLE_SITE_VERIFICATION_CODE",
-  },
-  other: {
-    "msvalidate.01": "YOUR_BING_VERIFICATION_CODE",
-  },
-  manifest: "/manifest.json",
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const logos = await getLogos();
 
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <head>
-        {/* Favicon from CMS */}
-        {logos.favicon && (
-          <link rel="icon" href={logos.favicon} type="image/x-icon" />
-        )}
-
-        {/* Organization Schema - JSON-LD Structured Data */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "AyyanTech",
-              alternateName: [
-                "Ayyan Technology",
-                "Ayyan Innovations",
-                "ayyantech",
-              ],
-              url: "https://ayyantech.net",
-              logo: logos.main || "/Ayyan Logo(1).png",
-              description:
-                "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics since 2015.",
-              foundingDate: "2015",
-              sameAs: [
-                "https://www.facebook.com/share/17GuPDVnXE/",
-                "https://www.instagram.com/ayyan.innovations/",
-                "https://www.linkedin.com/company/ayyan-innovations/",
-                "https://www.youtube.com/@AyyanInnovations",
-                "https://www.tiktok.com/@ayyaninnovations",
-                "https://x.com/AyyanInnov12181",
-                "https://snapchat.com/t/RSuD7Sx3",
-              ],
-              contactPoint: {
-                "@type": "ContactPoint",
-                contactType: "customer service",
-                url: "https://ayyantech.net/contact",
-              },
-            }),
-          }}
-        />
-        {/* WebSite Schema with SearchAction */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              name: "AyyanTech",
-              alternateName: "ayyantech",
-              url: "https://ayyantech.net",
-              potentialAction: {
-                "@type": "SearchAction",
-                target: {
-                  "@type": "EntryPoint",
-                  urlTemplate:
-                    "https://ayyantech.net/products?search={search_term_string}",
-                },
-                "query-input": "required name=search_term_string",
-              },
-            }),
-          }}
-        />
-        {/* BreadcrumbList Schema */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                {
-                  "@type": "ListItem",
-                  position: 1,
-                  name: "AyyanTech Home",
-                  item: "https://ayyantech.net",
-                },
-              ],
-            }),
-          }}
-        />
-        {/* Hide Google Translate UI elements */}
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-          /* Hide Google Translate toolbar/banner - all variants */
-          .goog-te-banner-frame,
-          .goog-te-banner-frame.skiptranslate,
-          iframe.goog-te-banner-frame,
-          #goog-gt-tt,
-          .goog-tooltip,
-          .goog-tooltip-card,
-          .goog-te-balloon-frame,
-          div#goog-gt-tt,
-          .goog-te-ftab-float {
-            display: none !important;
-            visibility: hidden !important;
-          }
-          /* Prevent body from being pushed down */
-          body {
-            top: 0px !important;
-            position: static !important;
-          }
-          /* Hide Google Translate widget container */
-          #google_translate_element {
-            position: fixed;
-            top: -9999px;
-            left: -9999px;
-            opacity: 0;
-            pointer-events: none;
-          }
-          /* Hide Google Translate branding */
-          .goog-te-gadget {
-            color: transparent !important;
-          }
-          .goog-te-gadget > span {
-            display: none !important;
-          }
-          .goog-te-gadget > div {
-            display: none !important;
-          }
-          /* Keep only the select element */
-          .goog-te-combo {
-            display: block !important;
-          }
-        `,
-          }}
-        />
+        {logos.favicon && <link rel="icon" href={logos.favicon} type="image/x-icon" />}
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${montserrat.variable} ${neuropol.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${montserrat.variable} ${neuropol.variable} antialiased`}>
         <Providers>
-          {/* Pass logos to Header */}
           <Header logos={logos} />
           {children}
           <Footer />
           <FloatingContactButtons />
         </Providers>
-
-        {/* Google Translate Element - Hidden but functional */}
         <div id="google_translate_element" />
-
-        {/* Google Translate Init */}
         <Script id="google-translate-init" strategy="afterInteractive">
           {`
             function googleTranslateElementInit() {
-              new google.translate.TranslateElement(
-                {
-                  pageLanguage: 'en',
-                  includedLanguages: 'en,zh-CN,ar,ru,de,ro,es,fr',
-                  layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                  autoDisplay: false
-                },
-                'google_translate_element'
-              );
+              new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,zh-CN,ar,ru,de,ro,es,fr', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false }, 'google_translate_element');
             }
-
-            (function suppressGoogleTranslateBanner() {
-              function removeBanner() {
-                // Hide the banner iframe
-                var els = document.querySelectorAll(
-                  '.goog-te-banner-frame, iframe.goog-te-banner-frame, #goog-gt-tt, .goog-tooltip, .goog-te-balloon-frame'
-                );
-                els.forEach(function(el) {
-                  el.style.setProperty('display', 'none', 'important');
-                });
-
-                // Hide the injected skiptranslate wrapper div (contains the banner iframe)
-                var wrappers = document.querySelectorAll('body > .skiptranslate');
-                wrappers.forEach(function(el) {
-                  el.style.setProperty('display', 'none', 'important');
-                });
-
-                // Reset body.top that Google sets to ~40px
-                if (document.body) {
-                  document.body.style.setProperty('top', '0px', 'important');
-                }
-              }
-
-              // Intercept body.style.top so Google Translate can never shift the page down
-              try {
-                var _bodyStyleTop = '';
-                var nativeStyleDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'style');
-                Object.defineProperty(document.body, 'style', {
-                  get: function() { return nativeStyleDescriptor.get.call(this); },
-                  set: function(val) { nativeStyleDescriptor.set.call(this, val); this.style.top = '0px'; }
-                });
-              } catch(e) {}
-
-              // MutationObserver for dynamic injection
-              var observer = new MutationObserver(removeBanner);
-              observer.observe(document.documentElement, {
-                childList: true,
-                subtree: true,
-                attributes: true,
-                attributeFilter: ['style', 'class']
-              });
-
-              // Interval as a safety net (clears after 30s to avoid overhead)
-              var count = 0;
-              var interval = setInterval(function() {
-                removeBanner();
-                count++;
-                if (count > 300) clearInterval(interval);
-              }, 100);
-
-              removeBanner();
-            })();
           `}
         </Script>
-
-        {/* Google Translate Script */}
-        <Script
-          src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
-          strategy="afterInteractive"
-        />
+        <Script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" strategy="afterInteractive" />
       </body>
     </html>
   );
