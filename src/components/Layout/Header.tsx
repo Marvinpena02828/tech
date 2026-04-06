@@ -1,7 +1,6 @@
 "use client";
-
 import Link from "next/link";
-import { ChevronDown, Menu, X, Search, Globe } from "lucide-react";
+import { ChevronDown, Menu, X, Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import ProductsMegaMenu from "../ProductsMegaMenu";
 import SearchDialog from "../SearchDialog";
@@ -11,8 +10,6 @@ import { Category } from "@/lib/types";
 
 interface LogosProps {
   main?: string;
-  mobile?: string;
-  favicon?: string;
 }
 
 export default function Header({ logos }: { logos?: LogosProps }) {
@@ -22,49 +19,19 @@ export default function Header({ logos }: { logos?: LogosProps }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
-  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showHeader, setShowHeader] = useState(true);
   const menuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const megaMenuRef = useRef<HTMLDivElement | null>(null);
-  const languageDropdownRef = useRef<HTMLDivElement | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
   const currentPath = usePathname();
-  const mainLogo = logos?.main;
+  const mainLogo = logos?.main || "";
 
   const isPathActive = (href: string): boolean => {
     if (href === "/") return currentPath === "/";
     return currentPath.startsWith(href);
   };
-
-  const changeLanguage = (languageCode: string, languageName: string) => {
-    setSelectedLanguage(languageName);
-    setIsLanguageDropdownOpen(false);
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("preferredLanguage", languageCode);
-      localStorage.setItem("preferredLanguageName", languageName);
-
-      const setCookie = (name: string, value: string, days: number) => {
-        const expires = new Date();
-        expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-        document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
-      };
-
-      const languageValue = languageCode === "en" ? "/auto/en" : `/auto/${languageCode}`;
-      setCookie("googtrans", languageValue, 365);
-      window.location.reload();
-    }
-  };
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedLanguageName = localStorage.getItem("preferredLanguageName");
-      if (savedLanguageName) setSelectedLanguage(savedLanguageName);
-    }
-  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -94,13 +61,6 @@ export default function Header({ logos }: { logos?: LogosProps }) {
         setIsMegaMenuOpen(false);
       }
     }
-    if (languageDropdownRef.current && !languageDropdownRef.current.contains(e.target as Node)) {
-      setIsLanguageDropdownOpen(false);
-    }
-  };
-
-  const handleEscapeKey = (e: KeyboardEvent) => {
-    if (e.key === "Escape" && isMegaMenuOpen) setIsMegaMenuOpen(false);
   };
 
   useEffect(() => {
@@ -121,35 +81,23 @@ export default function Header({ logos }: { logos?: LogosProps }) {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscapeKey);
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscapeKey);
       if (menuTimeoutRef.current) clearTimeout(menuTimeoutRef.current);
     };
   }, [isMegaMenuOpen]);
 
   return (
     <>
-      <header
-        className={`w-full fixed top-0 left-0 right-0 z-40 bg-primary-blue h-16 md:h-20 lg:h-20 font-sans border-b transition-all duration-300 ${
-          isVisible ? "opacity-100" : "opacity-0"
-        } ${isScrolled ? "shadow-lg" : ""} ${showHeader ? "translate-y-0" : "-translate-y-full"} ${
-          currentPath.startsWith("/admin") ? "hidden" : ""
-        }`}
-      >
+      <header className={`w-full fixed top-0 left-0 right-0 z-40 bg-primary-blue h-16 md:h-20 lg:h-20 font-sans border-b transition-all duration-300 ${isVisible ? "opacity-100" : "opacity-0"} ${isScrolled ? "shadow-lg" : ""} ${showHeader ? "translate-y-0" : "-translate-y-full"} ${currentPath.startsWith("/admin") ? "hidden" : ""}`}>
         <div className="w-full flex items-center max-w-[1800px] mx-auto px-4 md:px-12 justify-between h-full">
-          <div
-            className={`flex items-center h-full shrink-0 transition-all duration-700 self-start delay-100 ${
-              isVisible ? "translate-x-0 opacity-100" : "-translate-x-8 opacity-0"
-            }`}
-          >
+          <div className={`flex items-center h-full shrink-0 transition-all duration-700 self-start delay-100 ${isVisible ? "translate-x-0 opacity-100" : "-translate-x-8 opacity-0"}`}>
             <Link href="/" className="flex items-center group h-full">
               {mainLogo ? (
-                <img src={mainLogo} alt="AyyanTech Logo" className="h-7 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" loading="eager" />
+                <img src={mainLogo} alt="AyyanTech" className="h-7 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" loading="eager" />
               ) : (
                 <div className="h-7 md:h-10 bg-white/20 rounded w-32 animate-pulse" />
               )}
@@ -171,25 +119,9 @@ export default function Header({ logos }: { logos?: LogosProps }) {
 
           <div className={`hidden h-full xl:flex flex-col justify-end gap-3 items-start space-x-3 shrink-0 transition-all duration-700 delay-500 ${isVisible ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}>
             <div className="flex items-end space-x-2 mt-1 pb-8">
-              <button onClick={() => setIsSearchOpen(true)} className="hover:bg-gray-100 rounded-full transition-colors" aria-label="Open search">
+              <button onClick={() => setIsSearchOpen(true)} className="hover:bg-gray-100 rounded-full transition-colors">
                 <Search size={25} className="text-white cursor-pointer hover:text-red-500 transition-all duration-300 hover:scale-110" />
               </button>
-              <div className="relative z-40" ref={languageDropdownRef}>
-                <button onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)} className="flex items-center space-x-2 hover:text-red-500 transition-all duration-300">
-                  <Globe className="text-white hover:text-red-500 transition-colors" />
-                  <span className="text-white cursor-pointer hover:text-red-500 transition-all duration-300">{selectedLanguage}</span>
-                  <ChevronDown className={`text-white transition-transform duration-300 ${isLanguageDropdownOpen ? "rotate-180" : ""}`} />
-                </button>
-                {isLanguageDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                    {["English", "中文", "العربية", "Русский", "Deutsch", "Română", "Español", "Français"].map((lang, i) => (
-                      <button key={i} onClick={() => changeLanguage(["en", "zh-CN", "ar", "ru", "de", "ro", "es", "fr"][i], lang)} className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${selectedLanguage === lang ? "bg-gray-50 font-semibold text-red-500" : "text-gray-700"}`}>
-                        {lang}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
@@ -262,7 +194,7 @@ export default function Header({ logos }: { logos?: LogosProps }) {
 
       <SearchDialog isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-      <div className={`w-full h-16 md:h-20 lg:h-20 ${currentPath.startsWith("/admin") ? "hidden" : ""}`} aria-hidden="true" />
+      <div className={`w-full h-16 md:h-20 lg:h-20 ${currentPath.startsWith("/admin") ? "hidden" : ""}`} />
     </>
   );
 }
