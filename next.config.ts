@@ -4,8 +4,8 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   compress: true,
-    dir: {
-    src: "./src",  // ← ADD THIS LINE
+  experimental: {
+    appDir: true,
   },
   images: {
     // Only optimize local images from /public directory
