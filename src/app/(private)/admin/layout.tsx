@@ -8,7 +8,7 @@ import {
   Montserrat,
 } from "next/font/google";
 import localFont from "next/font/local";
-import "./globals.css";
+import "../globals.css";
 import FloatingContactButtons from "@/components/FloatingContactButtons";
 import { Providers } from "@/components/Providers";
 import Header from "@/components/Layout/Header";
@@ -61,7 +61,7 @@ async function getLogos() {
     if (error) {
       console.error("Failed to fetch logos:", error);
       return {
-        main: "/Ayyan Logo(1).png", // fallback
+        main: "/Ayyan Logo(1).png",
         mobile: "/Ayyan Logo(1).png",
         favicon: "/favicon.ico",
       };
