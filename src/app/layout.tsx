@@ -19,26 +19,36 @@ const neuropol = localFont({ src: "../../public/fonts/Neuropol.otf", variable: "
 async function getLogos() {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("logos").select("*");
+    const { data, error } = await supabase
+      .from("logos")
+      .select("logo_type, url")
+      .not("url", "is", null);
     
+    console.log("🔍 getLogos query result:", { data, error });
+
     if (error) {
-      console.error("Supabase error:", error);
+      console.error("❌ Supabase error:", error);
       return { main: "", mobile: "", favicon: "" };
     }
 
     const logoMap: Record<string, string> = { main: "", mobile: "", favicon: "" };
-    if (data && Array.isArray(data)) {
-      data.forEach((logo: any) => {
-        if (logo.logo_type && logo.url) {
-          logoMap[logo.logo_type] = logo.url;
-        }
-      });
+    
+    if (!data || data.length === 0) {
+      console.warn("⚠️ No logos found in database");
+      return logoMap;
     }
 
-    console.log("Logos loaded:", logoMap);
+    data.forEach((logo: any) => {
+      console.log(`✅ Processing ${logo.logo_type}: ${logo.url}`);
+      if (logo.logo_type in logoMap && logo.url) {
+        logoMap[logo.logo_type] = logo.url;
+      }
+    });
+
+    console.log("✨ Final logos:", logoMap);
     return logoMap;
   } catch (error) {
-    console.error("getLogos error:", error);
+    console.error("💥 getLogos exception:", error);
     return { main: "", mobile: "", favicon: "" };
   }
 }
