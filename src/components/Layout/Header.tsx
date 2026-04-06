@@ -295,7 +295,7 @@ export default function Header({ logos }: HeaderProps) {
           >
             <Link href="/" className="flex items-center group">
               <AppImage
-                src={mainLogo}
+                src={mainLogo as string}
                 alt="AyyanTech Logo"
                 width={1250}
                 height={1250}
