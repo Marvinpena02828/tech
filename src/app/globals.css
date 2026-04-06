@@ -1,0 +1,575 @@
+@import "tailwindcss";
+
+@theme {
+  --font-metropolis: "Metropolis", sans-serif;
+  --font-Metropolis_medium: "Metropolis_medium", sans-serif;
+}
+
+/* Custom Font Declarations */
+@font-face {
+  font-family: "Arial";
+  src: url("/fonts/Arial_21.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Metropolis";
+  src: url("/fonts/metropolis.light.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Metropolis_medium";
+  src: url("/fonts/metropolis.medium.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Arial_bold";
+  src: url("/fonts/arialbd_2.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyriadPro";
+  src: url("/fonts/MYRIADPRO-REGULAR.OTF") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyriadPro";
+  src: url("/fonts/MYRIADPRO-BOLD.OTF") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyriadPro";
+  src: url("/fonts/MyriadPro-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyriadPro";
+  src: url("/fonts/MYRIADPRO-SEMIBOLD.OTF") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyriadPro Condensed";
+  src: url("/fonts/MYRIADPRO-COND.OTF") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyriadPro Condensed";
+  src: url("/fonts/MYRIADPRO-BOLDCOND.OTF") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neuropol";
+  src: url("/fonts/Neuropol.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("/fonts/SF-Pro-Display-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("/fonts/SF-Pro-Display-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("/fonts/SF-Pro-Display-Semibold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("/fonts/SF-Pro-Display-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Mukta Mahee";
+  src: url("/fonts/MuktaMahee.ttc") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Play";
+  src: url("/fonts/Play-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Play";
+  src: url("/fonts/Play-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* --font-sans: "Arial", sans-serif; */
+  --font-arial: "Arial", sans-serif;
+  --font-arial-bold: "Arial_bold", sans-serif;
+  --font-mukta: "Mukta Mahee", sans-serif;
+  --font-sf-pro: "SF Pro Display", sans-serif;
+  --font-neuropol: "Neuropol", sans-serif;
+  --font-myriad: "MyriadPro", sans-serif;
+  --font-myriad-condensed: "MyriadPro Condensed", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+  --font-play: "Play", sans-serif;
+
+  --color-primary-blue: #171847;
+}
+
+@layer utilities {
+  .container {
+    @apply w-full max-w-[1800px] mx-auto px-8 lg:px-12;
+  }
+
+  .slim-container {
+    @apply w-full max-w-[1400px] mx-auto px-8 lg:px-12;
+  }
+
+  .button-animation {
+    @apply bg-white border-2 border-[#232250] hover:bg-[#232250] text-black hover:text-white transition-colors;
+  }
+
+  .heading {
+    @apply text-2xl md:text-3xl lg:text-4xl font-poppins font-medium;
+  }
+}
+
+:root {
+  --background: #e8e8e8;
+  --foreground: #171717;
+  --primary-blue: #171847;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Floating Animation for Hero Products */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes float-fast {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: float-fast 3s ease-in-out infinite;
+}
+
+/* Letter Spacing Expand Animation */
+@keyframes tracking-expand {
+  0% {
+    letter-spacing: -0.05em;
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.6;
+  }
+  100% {
+    letter-spacing: 0.05em;
+    opacity: 1;
+  }
+}
+
+.animate-tracking-expand {
+  animation: tracking-expand 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+}
+
+/* Parallax Effect Helper */
+.parallax-container {
+  overflow: hidden;
+}
+
+.parallax-image {
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Glow Effect on Buttons */
+.btn-glow:hover {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+  transform: scale(1.05);
+}
+
+/* Navigation Link Glow Animation */
+@keyframes nav-glow {
+  0% {
+    text-shadow: none;
+  }
+  100% {
+    text-shadow:
+      0 0 10px rgba(35, 34, 80, 0.6),
+      0 0 20px rgba(35, 34, 80, 0.3);
+  }
+}
+
+.nav-link-hover:hover {
+  animation: nav-glow 0.3s ease-out forwards;
+  text-shadow:
+    0 0 10px rgba(35, 34, 80, 0.6),
+    0 0 20px rgba(35, 34, 80, 0.3);
+}
+
+/* Header Social Icons Fade In Scale Animation */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Modal Fade In Animation */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Modal Slide Up Animation */
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Smooth Easing for all transitions */
+* {
+  transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Hide Scrollbar for Mobile Carousels */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Smooth Horizontal Scrolling */
+.scrollbar-hide {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mega Menu Animations */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-fadeInScale {
+  animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 60s linear infinite;
+}
+
+/* Product Description Styling */
+.description-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1.8;
+}
+
+.description-content ul li {
+  margin-bottom: 12px;
+  text-align: justify;
+  color: #374151;
+  font-size: 15px;
+}
+
+.description-content ul li strong {
+  color: #111827;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+/* Google Translate - Hide all UI elements */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+.goog-te-gadget {
+  color: transparent !important;
+  font-size: 0 !important;
+}
+
+.goog-te-gadget img {
+  display: none !important;
+}
+
+.goog-te-gadget-simple {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+
+
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+/* Search Dialog Animation */
+@keyframes slide-down {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}

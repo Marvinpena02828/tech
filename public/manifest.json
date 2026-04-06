@@ -1,0 +1,21 @@
+{
+  "name": "AyyanTech - Innovative Electronics & Smart Tech Accessories",
+  "short_name": "AyyanTech",
+  "description": "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a40",
+  "icons": [
+    {
+      "src": "/Ayyan Logo(1).png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/Ayyan Logo(1).png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

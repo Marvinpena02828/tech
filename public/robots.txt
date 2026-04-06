@@ -1,0 +1,11 @@
+# AyyanTech - https://ayyantech.net
+# Robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /unauthorized/
+
+# Sitemap
+Sitemap: https://ayyantech.net/sitemap.xml

@@ -1,0 +1,42 @@
+{
+  "name": "ayyan-replica",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "node node_modules/next/dist/bin/next build",
+    "start": "node node_modules/next/dist/bin/next start",
+    "lint": "eslint",
+    "optimize-images": "node scripts/optimize-images.js",
+    "optimize-images:dry-run": "node scripts/optimize-images.js --dry-run",
+    "convert-to-avif": "node scripts/convert-to-avif.js",
+    "migrate-products": "node scripts/migrate-products.js"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.86.0",
+    "@tanstack/react-query": "^5.90.12",
+    "browser-image-compression": "^2.0.2",
+    "lucide-react": "^0.554.0",
+    "next": "^16.0.7",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-hook-form": "^7.68.0",
+    "react-hot-toast": "^2.6.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
+    "baseline-browser-mapping": "^2.10.10",
+    "eslint": "^9",
+    "eslint-config-next": "^16.0.7",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
