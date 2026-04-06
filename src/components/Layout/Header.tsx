@@ -81,7 +81,7 @@ export default function Header({ logos }: HeaderProps) {
   const currentPath = usePathname();
 
   // Use logos from CMS
-  const mainLogo = logos?.main;
+  const mainLogo = "https://kgrysyofpflzxlwlzmzj.supabase.co/storage/v1/object/public/logos/main/main-1775497943082.png";
   const mobileLogo = logos?.mobile;
 
   // Helper function to check if a path is active
