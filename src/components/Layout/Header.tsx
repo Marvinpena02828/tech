@@ -9,6 +9,16 @@ import { usePathname } from "next/navigation";
 import { getPublicCategories } from "@/app/(private)/admin/categories/models/categories-model";
 import { Category } from "@/lib/types";
 
+interface LogosProps {
+  main: string;
+  mobile: string;
+  favicon: string;
+}
+
+interface HeaderProps {
+  logos?: LogosProps;
+}
+
 export const socialLinks = [
   {
     name: "Facebook",
@@ -49,7 +59,7 @@ export const socialLinks = [
   { name: "X", href: "https://x.com/AyyanInnov12181", image: "/socials/X.png" },
 ];
 
-export default function Header() {
+export default function Header({ logos }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const [openParentCategory, setOpenParentCategory] = useState<string | null>(
@@ -69,6 +79,10 @@ export default function Header() {
   const [categories, setCategories] = useState<Category[]>([]);
 
   const currentPath = usePathname();
+
+  // Use logos from props, fallback to hardcoded paths
+  const mainLogo = logos?.main || "/Ayyan-with-empowering.png";
+  const mobileLogo = logos?.mobile || "/Ayyan-with-empowering.png";
 
   // Helper function to check if a path is active
   const isPathActive = (href: string): boolean => {
@@ -281,11 +295,12 @@ export default function Header() {
           >
             <Link href="/" className="flex items-center group">
               <AppImage
-                src="/Ayyan-with-empowering.png"
-                alt="Ayyuan Innovations Logo"
+                src={mainLogo}
+                alt="AyyanTech Logo"
                 width={1250}
                 height={1250}
                 className="h-7 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                priority
               />
             </Link>
           </div>
