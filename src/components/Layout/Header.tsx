@@ -80,9 +80,9 @@ export default function Header({ logos }: HeaderProps) {
 
   const currentPath = usePathname();
 
-  // Use logos from props, fallback to hardcoded paths
-  const mainLogo = logos?.main || "/Ayyan-with-empowering.png";
-  const mobileLogo = logos?.mobile || "/Ayyan-with-empowering.png";
+  // Use logos from CMS
+  const mainLogo = logos?.main;
+  const mobileLogo = logos?.mobile;
 
   // Helper function to check if a path is active
   const isPathActive = (href: string): boolean => {
