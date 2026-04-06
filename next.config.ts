@@ -1,11 +1,10 @@
 import type { NextConfig } from "next";
-
 const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   compress: true,
-  experimental: {
-    appDir: true,
+    dir: {
+    src: "./src",  // ← ADD THIS LINE
   },
   images: {
     // Only optimize local images from /public directory
@@ -66,5 +65,4 @@ const nextConfig: NextConfig = {
     ];
   },
 };
-
 export default nextConfig;
