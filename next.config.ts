@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   compress: true,
+    dir: {
+    src: "./src",  // ← ADD THIS LINE
+  },
   images: {
     // Only optimize local images from /public directory
     // External images (Google Drive, Supabase) are served unoptimized via AppImage
