@@ -81,7 +81,7 @@ export default function Header({ logos }: HeaderProps) {
   const currentPath = usePathname();
 
   // Use logos from CMS
-  const mainLogo = "https://kgrysyofpflzxlwlzmzj.supabase.co/storage/v1/object/public/logos/main/main-1775497943082.png";
+  const mainLogo = logos?.main;
   const mobileLogo = logos?.mobile;
 
   // Helper function to check if a path is active
@@ -270,6 +270,10 @@ export default function Header({ logos }: HeaderProps) {
                   alt="AyyanTech Logo"
                   className="h-7 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                   loading="eager"
+                  onError={(e) => {
+                    console.error("Logo failed to load:", mainLogo);
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
                 />
               ) : (
                 <div className="h-7 md:h-10 bg-white/20 rounded w-32 animate-pulse" />
