@@ -86,11 +86,9 @@ export default function Header({ logos }: HeaderProps) {
 
   // Helper function to check if a path is active
   const isPathActive = (href: string): boolean => {
-    // Exact match for home - only active on root path
     if (href === "/") {
       return currentPath === "/";
     }
-    // For other routes, check if current path starts with href
     return currentPath.startsWith(href);
   };
 
@@ -99,33 +97,24 @@ export default function Header({ logos }: HeaderProps) {
     setSelectedLanguage(languageName);
     setIsLanguageDropdownOpen(false);
 
-    // Store language preference
     if (typeof window !== "undefined") {
       localStorage.setItem("preferredLanguage", languageCode);
       localStorage.setItem("preferredLanguageName", languageName);
     }
 
-    // Set the Google Translate cookie
     const setCookie = (name: string, value: string, days: number) => {
       const expires = new Date();
       expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
       document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
     };
 
-    // Function to trigger language change using Google Translate's cookie method
     const triggerLanguageChange = () => {
       try {
-        // Set the googtrans cookie which Google Translate uses
         const languageValue =
           languageCode === "en" ? "/auto/en" : `/auto/${languageCode}`;
         setCookie("googtrans", languageValue, 365);
-
-        // Also set the alternate cookie format that some GT versions use
         setCookie("googtrans", `${languageValue}`, 365);
-
-        // Reload the page to apply the translation
         window.location.reload();
-
         return true;
       } catch (error) {
         console.error("Error changing language:", error);
@@ -133,7 +122,6 @@ export default function Header({ logos }: HeaderProps) {
       }
     };
 
-    // Trigger the language change
     triggerLanguageChange();
   };
 
@@ -147,9 +135,7 @@ export default function Header({ logos }: HeaderProps) {
         setSelectedLanguage(savedLanguageName);
       }
 
-      // Apply the saved language when Google Translate loads
       if (savedLanguageCode && savedLanguageCode !== "en") {
-        // Set the cookie on page load to maintain the selected language
         const setCookie = (name: string, value: string, days: number) => {
           const expires = new Date();
           expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
@@ -178,9 +164,7 @@ export default function Header({ logos }: HeaderProps) {
     fetchCategories();
   }, []);
 
-  // Open mega menu on hover
   const handleMenuHover = () => {
-    // Clear any existing timeout
     if (menuTimeoutRef.current) {
       clearTimeout(menuTimeoutRef.current);
       menuTimeoutRef.current = null;
@@ -188,14 +172,12 @@ export default function Header({ logos }: HeaderProps) {
     setIsMegaMenuOpen(true);
   };
 
-  // Close mega menu on hover leave with delay
   const handleMenuLeave = () => {
     menuTimeoutRef.current = setTimeout(() => {
       setIsMegaMenuOpen(false);
-    }, 100); // Reduced from 150ms to 100ms for faster response
+    }, 100);
   };
 
-  // Close mega menu when clicking outside
   const handleClickOutside = (e: MouseEvent) => {
     if (
       megaMenuRef.current &&
@@ -207,7 +189,6 @@ export default function Header({ logos }: HeaderProps) {
       }
     }
 
-    // Close language dropdown when clicking outside
     if (
       languageDropdownRef.current &&
       !languageDropdownRef.current.contains(e.target as Node)
@@ -216,7 +197,6 @@ export default function Header({ logos }: HeaderProps) {
     }
   };
 
-  // Close mega menu on Escape key
   const handleEscapeKey = (e: KeyboardEvent) => {
     if (e.key === "Escape" && isMegaMenuOpen) {
       setIsMegaMenuOpen(false);
@@ -224,33 +204,25 @@ export default function Header({ logos }: HeaderProps) {
   };
 
   useEffect(() => {
-    // Slide in animation on mount
     setIsVisible(true);
 
-    // Scroll detection for sticky header effect
     let lastScroll = 0;
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Add shadow when scrolled
       setIsScrolled(currentScrollY > 60);
 
-      // Close mega menu on scroll
       if (isMegaMenuOpen) {
         setIsMegaMenuOpen(false);
       }
 
-      // Determine scroll direction and show/hide header
       if (currentScrollY > lastScroll && currentScrollY > 100) {
-        // Scrolling down & past threshold - hide header
         setShowHeader(false);
       } else if (currentScrollY < lastScroll) {
-        // Scrolling up - show header
         setShowHeader(true);
       }
 
-      // Always show header at the very top
       if (currentScrollY < 10) {
         setShowHeader(true);
       }
@@ -258,7 +230,6 @@ export default function Header({ logos }: HeaderProps) {
       lastScroll = currentScrollY;
     };
 
-    // Add event listeners for click-outside and escape key
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscapeKey);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -267,7 +238,6 @@ export default function Header({ logos }: HeaderProps) {
       window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscapeKey);
-      // Cleanup timeout on unmount
       if (menuTimeoutRef.current) {
         clearTimeout(menuTimeoutRef.current);
       }
@@ -293,15 +263,17 @@ export default function Header({ logos }: HeaderProps) {
                 : "-translate-x-8 opacity-0"
             }`}
           >
-            <Link href="/" className="flex items-center group">
-              <AppImage
-                src={mainLogo as string}
-                alt="AyyanTech Logo"
-                width={1250}
-                height={1250}
-                className="h-7 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                priority
-              />
+            <Link href="/" className="flex items-center group h-full">
+              {mainLogo ? (
+                <img
+                  src={mainLogo}
+                  alt="AyyanTech Logo"
+                  className="h-7 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  loading="eager"
+                />
+              ) : (
+                <div className="h-7 md:h-10 bg-white/20 rounded w-32 animate-pulse" />
+              )}
             </Link>
           </div>
 
@@ -402,36 +374,6 @@ export default function Header({ logos }: HeaderProps) {
                 : "translate-x-8 opacity-0"
             }`}
           >
-            {/* Social Media Icons Container */}
-            {/* <div className="flex items-center gap-3">
-              {socialLinks.map((social, index) => (
-                <Link
-                  key={social.name}
-                  href={social.href}
-                  className="group relative inline-block"
-                  aria-label={social.name}
-                  title={social.name}
-                  style={{
-                    animation: isVisible
-                      ? `fadeInScale 0.5s ease-out ${0.6 + index * 0.1}s both`
-                      : "none",
-                  }}
-                >
-                  <div
-                    className={`flex items-center justify-center rounded-full transition-all duration-300 hover:scale-125 hover:shadow-xl w-8 h-8 overflow-hidden hover:bg-primary-blue`}
-                  >
-                    <AppImage
-                      src={social.image}
-                      alt={social.name}
-                      width={30}
-                      height={30}
-                      className={`object-cover transition-all duration-300 group-hover:scale-120 filter group-hover:brightness-0 group-hover:invert`}
-                    />
-                  </div>
-                </Link>
-              ))}
-            </div> */}
-
             {/* Search Icon */}
             <div className="flex items-end space-x-2 mt-1 pb-8">
               <button
@@ -576,8 +518,8 @@ export default function Header({ logos }: HeaderProps) {
         className={`h-[calc(100vh-64px)] w-[85vw] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 xl:hidden fixed  top-16  md:top-20 lg:top-24 left-0                   
     ${
       isMobileMenuOpen
-        ? "translate-x-0" /* visible */
-        : "-translate-x-full" /* CHANGED from translate-x-full */
+        ? "translate-x-0"
+        : "-translate-x-full"
     }
   `}
       >
