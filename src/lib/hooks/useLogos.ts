@@ -122,16 +122,24 @@ export function useLogos() {
   useEffect(() => {
     fetchLogos();
 
-    // Subscribe to changes
-    const subscription = supabase
-      .from("logos")
-      .on("*", () => {
-        fetchLogos();
-      })
+    // Subscribe to real-time changes (new Supabase API)
+    const channel = supabase
+      .channel("logos-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "logos",
+        },
+        () => {
+          fetchLogos();
+        }
+      )
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 
