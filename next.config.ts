@@ -1,21 +1,10 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   compress: true,
-  dir: {
-    src: "./src",
-  },
-  webpack: (config, { isServer }) => {
-    // Alias to make /src/app work as /app
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      "@/app": path.resolve(__dirname, "src/app"),
-    };
-    return config;
-  },
+  turbopack: {}, // Add this to use Turbopack instead of webpack
   images: {
     // Only optimize local images from /public directory
     // External images (Google Drive, Supabase) are served unoptimized via AppImage
