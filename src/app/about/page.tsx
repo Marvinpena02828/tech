@@ -5,7 +5,7 @@ import GlobalMarketing from "@/app/about/components/GlobalMarketing";
 import ProductCategory from "@/components/ProductCategory";
 import CompanyProfile from "@/app/about/components/CompanyProfile";
 import Image from "next/image";
-import GuaranteedQuality from "@/app/about/components/GuaranteedQuality"; // Updated path
+import Certificates from "@/components/Certificates"; // Already updated to CMS-driven
 import { isSectionVisible } from "../(private)/admin/settings/models/section-settings-model";
 import { getMarketingPhotos } from "../(private)/admin/about-marketing/models/marketing-photos-model";
 import { transformImageToProxy } from "@/lib/utils/image-proxy";
@@ -69,8 +69,8 @@ export default async function AboutPage() {
         <CompanyProfile />
         <CompanyAchievements />
         <TimelineSection />
-        {/* Updated: Using CMS-driven GuaranteedQuality component */}
-        <GuaranteedQuality />
+        {/* Now CMS-driven: fetches from database */}
+        <Certificates heading="Guaranteed Quality" />
 
         <ProductCategory showDesktopNavigation={true} />
         {showGlobalMarketing && <GlobalMarketing />}
