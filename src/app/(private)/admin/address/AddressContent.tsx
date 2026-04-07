@@ -1,6 +1,7 @@
 "use client";
 
 import { Address } from "@/types/address";
+import { Company } from "@/types/company";
 import { useState } from "react";
 import {
   createAddress,
@@ -13,15 +14,23 @@ import { useRouter } from "next/navigation";
 
 interface AddressContentProps {
   addresses: Address[];
+  companies: Company[];
 }
 
-export default function AddressContent({ addresses }: AddressContentProps) {
+export default function AddressContent({
+  addresses,
+  companies,
+}: AddressContentProps) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Address | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(
+    companies.length > 0 ? companies[0].id : 0
+  );
 
   const [formData, setFormData] = useState({
+    company_id: companies.length > 0 ? companies[0].id : undefined,
     title: "",
     address_line1: "",
     address_line2: "",
@@ -30,14 +39,20 @@ export default function AddressContent({ addresses }: AddressContentProps) {
     postal_code: "",
     country: "",
     map_link: "",
-    display_order: addresses.length + 1,
+    display_order: 0,
     is_active: true,
   });
+
+  // Filter addresses by selected company
+  const filteredAddresses = addresses.filter(
+    (addr) => addr.company_id === selectedCompanyId
+  );
 
   const handleOpenModal = (item?: Address) => {
     if (item) {
       setEditingItem(item);
       setFormData({
+        company_id: item.company_id,
         title: item.title,
         address_line1: item.address_line1,
         address_line2: item.address_line2 || "",
@@ -52,6 +67,7 @@ export default function AddressContent({ addresses }: AddressContentProps) {
     } else {
       setEditingItem(null);
       setFormData({
+        company_id: selectedCompanyId,
         title: "",
         address_line1: "",
         address_line2: "",
@@ -60,7 +76,7 @@ export default function AddressContent({ addresses }: AddressContentProps) {
         postal_code: "",
         country: "",
         map_link: "",
-        display_order: addresses.length + 1,
+        display_order: filteredAddresses.length + 1,
         is_active: true,
       });
     }
@@ -101,18 +117,36 @@ export default function AddressContent({ addresses }: AddressContentProps) {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this address?")) return;
 
-    const result = await deleteAddress(id);
-    if (result.success) {
-      router.refresh();
-    } else {
-      alert(result.error || "Failed to delete address");
+    setIsSubmitting(true);
+    try {
+      const result = await deleteAddress(id);
+      if (result.success) {
+        router.refresh();
+      } else {
+        alert(result.error || "Failed to delete address");
+      }
+    } catch (error) {
+      console.error("Error deleting address:", error);
+      alert("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    const result = await toggleAddressStatus(id, !currentStatus);
-    if (result.success) {
-      router.refresh();
+    setIsSubmitting(true);
+    try {
+      const result = await toggleAddressStatus(id, !currentStatus);
+      if (result.success) {
+        router.refresh();
+      } else {
+        alert(result.error || "Failed to toggle status");
+      }
+    } catch (error) {
+      console.error("Error toggling status:", error);
+      alert("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -120,7 +154,7 @@ export default function AddressContent({ addresses }: AddressContentProps) {
     <div className="p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               Address Management
@@ -131,29 +165,59 @@ export default function AddressContent({ addresses }: AddressContentProps) {
           </div>
           <button
             onClick={() => handleOpenModal()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            disabled={isSubmitting || companies.length === 0}
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Add Address
           </button>
         </div>
+
+        {/* Company Selector */}
+        <div className="bg-white rounded-lg border p-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Filter by Company
+          </label>
+          <select
+            value={selectedCompanyId}
+            onChange={(e) => setSelectedCompanyId(Number(e.target.value))}
+            className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Address List */}
       <div className="space-y-4">
-        {addresses.length === 0 ? (
+        {companies.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
             <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No addresses found</p>
+            <p className="text-gray-500">No companies found</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Please create a company first in Company Management
+            </p>
+          </div>
+        ) : filteredAddresses.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+            <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">
+              No addresses found for{" "}
+              {companies.find((c) => c.id === selectedCompanyId)?.name}
+            </p>
             <button
               onClick={() => handleOpenModal()}
-              className="mt-4 text-blue-600 hover:text-blue-700"
+              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
             >
               Add your first address
             </button>
           </div>
         ) : (
-          addresses.map((address) => (
+          filteredAddresses.map((address) => (
             <div
               key={address.id}
               className={`bg-white rounded-lg border p-6 ${
@@ -217,7 +281,8 @@ export default function AddressContent({ addresses }: AddressContentProps) {
                     onClick={() =>
                       handleToggleStatus(address.id, address.is_active)
                     }
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    disabled={isSubmitting}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title={address.is_active ? "Deactivate" : "Activate"}
                   >
                     {address.is_active ? (
@@ -228,14 +293,16 @@ export default function AddressContent({ addresses }: AddressContentProps) {
                   </button>
                   <button
                     onClick={() => handleOpenModal(address)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    disabled={isSubmitting}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Edit"
                   >
                     <Edit className="w-5 h-5 text-blue-600" />
                   </button>
                   <button
                     onClick={() => handleDelete(address.id)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    disabled={isSubmitting}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete"
                   >
                     <Trash2 className="w-5 h-5 text-red-600" />
@@ -256,6 +323,30 @@ export default function AddressContent({ addresses }: AddressContentProps) {
                 {editingItem ? "Edit Address" : "Add Address"}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Company *
+                  </label>
+                  <select
+                    required
+                    value={formData.company_id || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        company_id: Number(e.target.value),
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select a company</option>
+                    {companies.map((company) => (
+                      <option key={company.id} value={company.id}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Title *
