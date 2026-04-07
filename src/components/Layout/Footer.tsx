@@ -6,6 +6,11 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getPublicCategories } from "@/app/(private)/admin/categories/models/categories-model";
 import { Category } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
+
+interface CompanyInfo {
+  description: string;
+}
 
 const socialLinks = [
   {
@@ -56,6 +61,32 @@ export default function Footer() {
   const [message, setMessage] = useState("");
   const currentPath = usePathname();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
+    description: "Since 2015, we've been crafting innovative, durable and functional tech accessories. With roots in China, we deliver quality worldwide built for everyday life.",
+  });
+
+  // Fetch company info from Supabase
+  useEffect(() => {
+    const fetchCompanyInfo = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("company_info")
+          .select("description")
+          .single();
+
+        if (error) {
+          console.error("Error fetching company info:", error);
+        } else if (data) {
+          setCompanyInfo(data);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchCompanyInfo();
+  }, []);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -115,9 +146,7 @@ export default function Footer() {
               className="h-auto w-24 md:w-50  object-contain -mt-6"
             />
             <p className="text-sm leading-5 text-white font-arial mb-6">
-              Since 2015, we’ve been crafting innovative, durable and functional
-              tech accessories. With roots in China, we deliver quality
-              worldwide built for everyday life.
+              {companyInfo.description}
             </p>
           </div>
 
