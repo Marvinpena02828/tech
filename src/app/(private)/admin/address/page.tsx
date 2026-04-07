@@ -1,13 +1,14 @@
 import { getAllAddresses } from "@/actions/address";
+import { getAllCompanies } from "@/actions/company";
 import AddressContent from "./AddressContent";
-
-export const metadata = {
-  title: "Address Management | Admin",
-  description: "Manage company addresses",
-};
 
 export default async function AddressPage() {
   const addresses = await getAllAddresses();
+  const companies = await getAllCompanies();
 
-  return <AddressContent addresses={addresses} />;
+  return (
+    <div>
+      <AddressContent addresses={addresses} companies={companies} />
+    </div>
+  );
 }
