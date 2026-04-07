@@ -85,7 +85,7 @@ export default async function ContactPage() {
             })}
             <p>
               <span className="font-semibold text-base">Email:</span>{" "}
-              sales@ayyantech.net
+              sales@mytechon.net
             </p>
           </div>
         </div>
