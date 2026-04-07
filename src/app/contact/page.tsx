@@ -38,7 +38,7 @@ export default async function ContactPage() {
 
           {/* Right Column - Addresses */}
           <div className="space-y-3 flex-1 text-center">
-            <h1 className="heading">Ayyan Innovations</h1>
+            <h1 className="heading">Mytechon Innovations</h1>
             {addresses.map((address, idx) => {
               return (
                 <div key={address.id}>
