@@ -44,15 +44,19 @@ export default function ContactInfoContent({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ContactInfo | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contactList, setContactList] = useState(contactInfos);
 
-  const [formData, setFormData] = useState({
+  // Initialize form data properly
+  const getDefaultFormData = () => ({
     icon_name: "Mail",
     title: "",
     label: "",
     link: "",
-    display_order: contactInfos.length + 1,
+    display_order: Math.max(...contactList.map(c => c.display_order), 0) + 1,
     is_active: true,
   });
+
+  const [formData, setFormData] = useState(getDefaultFormData());
 
   const handleOpenModal = (item?: ContactInfo) => {
     if (item) {
@@ -67,14 +71,7 @@ export default function ContactInfoContent({
       });
     } else {
       setEditingItem(null);
-      setFormData({
-        icon_name: "Mail",
-        title: "",
-        label: "",
-        link: "",
-        display_order: contactInfos.length + 1,
-        is_active: true,
-      });
+      setFormData(getDefaultFormData());
     }
     setIsModalOpen(true);
   };
@@ -82,6 +79,7 @@ export default function ContactInfoContent({
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingItem(null);
+    setFormData(getDefaultFormData());
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,20 +111,36 @@ export default function ContactInfoContent({
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this contact info?")) return;
 
-    const result = await deleteContactInfo(id);
-    if (result.success) {
-      router.refresh();
-    } else {
-      alert(result.error || "Failed to delete contact info");
+    setIsSubmitting(true);
+    try {
+      const result = await deleteContactInfo(id);
+      if (result.success) {
+        router.refresh();
+      } else {
+        alert(result.error || "Failed to delete contact info");
+      }
+    } catch (error) {
+      console.error("Error deleting contact info:", error);
+      alert("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    const result = await toggleContactInfoStatus(id, !currentStatus);
-    if (result.success) {
-      router.refresh();
-    } else {
-      alert(result.error || "Failed to toggle status");
+    setIsSubmitting(true);
+    try {
+      const result = await toggleContactInfoStatus(id, !currentStatus);
+      if (result.success) {
+        router.refresh();
+      } else {
+        alert(result.error || "Failed to toggle status");
+      }
+    } catch (error) {
+      console.error("Error toggling status:", error);
+      alert("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -143,7 +157,8 @@ export default function ContactInfoContent({
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          disabled={isSubmitting}
+          className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
           <Plus size={20} />
           Add Contact Info
@@ -179,7 +194,7 @@ export default function ContactInfoContent({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {contactInfos.map((item) => {
+            {contactList.map((item) => {
               const IconComponent = iconMap[item.icon_name] || Mail;
               return (
                 <tr key={item.id} className="hover:bg-gray-50">
@@ -214,7 +229,8 @@ export default function ContactInfoContent({
                       onClick={() =>
                         handleToggleStatus(item.id, item.is_active)
                       }
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                      disabled={isSubmitting}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
                         item.is_active
                           ? "bg-green-100 text-green-800"
                           : "bg-gray-100 text-gray-800"
@@ -235,13 +251,15 @@ export default function ContactInfoContent({
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleOpenModal(item)}
-                        className="text-blue-600 hover:text-blue-900"
+                        disabled={isSubmitting}
+                        className="text-blue-600 hover:text-blue-900 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="text-red-600 hover:text-red-900"
+                        disabled={isSubmitting}
+                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -253,12 +271,13 @@ export default function ContactInfoContent({
           </tbody>
         </table>
 
-        {contactInfos.length === 0 && (
+        {contactList.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500">No contact information found</p>
             <button
               onClick={() => handleOpenModal()}
-              className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
+              disabled={isSubmitting}
+              className="mt-4 text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Add your first contact info
             </button>
@@ -369,8 +388,9 @@ export default function ContactInfoContent({
                     setFormData({ ...formData, is_active: e.target.checked })
                   }
                   className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                  id="is_active"
                 />
-                <label className="ml-2 block text-sm text-gray-900">
+                <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
                   Active
                 </label>
               </div>
