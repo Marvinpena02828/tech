@@ -4,7 +4,7 @@ import FeatureSection from "../components/FeatureSection";
 import PopularProductLineup from "@/components/PopularProductLineup";
 import ProductCategory from "@/components/ProductCategory";
 import ServicesSection from "@/components/ServicesSection";
-import Certificates from "@/components/Certificate";
+import Certificates from "@/components/Certificates";
 import NewsHomeSection from "@/components/NewsHomeSection";
 
 import BusinessNeedsSection from "@/components/BusinessNeedsSection";
