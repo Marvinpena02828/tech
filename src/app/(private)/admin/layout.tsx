@@ -39,11 +39,7 @@ export default function AdminLayout({
 
   const navigation = [
     { name: "Dashboard", href: "/admin/dashboard", icon: Home },
-    {
-  name: "Guaranteed Quality",
-  href: "/admin/guaranteed-quality",
-  icon: Award, // Import Award from lucide-react
-},
+    { name: "Guaranteed Quality", href: "/admin/guaranteed-quality",icon: Award },
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Banners", href: "/admin/banners", icon: ImageIcon },
     { name: "Featured Items", href: "/admin/featured", icon: Star },
