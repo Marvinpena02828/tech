@@ -5,8 +5,7 @@ import GlobalMarketing from "@/app/about/components/GlobalMarketing";
 import ProductCategory from "@/components/ProductCategory";
 import CompanyProfile from "@/app/about/components/CompanyProfile";
 import Image from "next/image";
-import GuaranteedQuality from "./components/GuaranteedQuality";
-import Certificates from "@/components/Certificates";
+import GuaranteedQuality from "@/app/about/components/GuaranteedQuality"; // Updated path
 import { isSectionVisible } from "../(private)/admin/settings/models/section-settings-model";
 import { getMarketingPhotos } from "../(private)/admin/about-marketing/models/marketing-photos-model";
 import { transformImageToProxy } from "@/lib/utils/image-proxy";
@@ -31,7 +30,7 @@ const items = [
     image: "/about/exhibition.png",
     title: "Global Presence & Industry Leadership",
     description:
-      "Industry Exhibition Excellence As a recurring participant in the world’s premier technology expos, Ayyan has successfully pivoted toward Artificial Intelligence and smart integration. We have evolved beyond hardware manufacturing to provide sophisticated, software-integrated power solutions that meet the demands of a connected world.",
+      "Industry Exhibition Excellence As a recurring participant in the world's premier technology expos, Ayyan has successfully pivoted toward Artificial Intelligence and smart integration. We have evolved beyond hardware manufacturing to provide sophisticated, software-integrated power solutions that meet the demands of a connected world.",
   },
   {
     image: "/about/manufacture.jpg",
@@ -70,7 +69,8 @@ export default async function AboutPage() {
         <CompanyProfile />
         <CompanyAchievements />
         <TimelineSection />
-        <Certificates heading="Guaranteed Quality" />
+        {/* Updated: Using CMS-driven GuaranteedQuality component */}
+        <GuaranteedQuality />
 
         <ProductCategory showDesktopNavigation={true} />
         {showGlobalMarketing && <GlobalMarketing />}
