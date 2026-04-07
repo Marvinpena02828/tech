@@ -5,16 +5,15 @@ import { Address } from "@/types/address";
 import { revalidatePath } from "next/cache";
 
 /**
- * Fetch all active addresses for a specific company
+ * Fetch all active addresses ordered by display_order
  */
-export async function getAddressesByCompany(companyId: number): Promise<Address[]> {
+export async function getAddresses(): Promise<Address[]> {
   try {
     const supabase = await createClient({ useCookies: false });
 
     const { data, error } = await supabase
       .from("address")
       .select("*")
-      .eq("company_id", companyId)
       .eq("is_active", true)
       .order("display_order", { ascending: true });
 
@@ -50,31 +49,6 @@ export async function getAllAddresses(): Promise<Address[]> {
     return data as Address[];
   } catch (error) {
     console.error("Unexpected error fetching all addresses:", error);
-    return [];
-  }
-}
-
-/**
- * Fetch all addresses for a company (including inactive) for admin
- */
-export async function getAddressesByCompanyAdmin(companyId: number): Promise<Address[]> {
-  try {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase
-      .from("address")
-      .select("*")
-      .eq("company_id", companyId)
-      .order("display_order", { ascending: true });
-
-    if (error) {
-      console.error("Error fetching addresses:", error);
-      return [];
-    }
-
-    return data as Address[];
-  } catch (error) {
-    console.error("Unexpected error fetching addresses:", error);
     return [];
   }
 }
