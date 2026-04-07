@@ -1,54 +1,55 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Image from 'next/image';
-import { Award, Star, Medal, Trophy } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import { Award, Star, Medal, Trophy } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+interface Honor {
+  id: number;
+  title: string;
+  year: string;
+  image_url?: string;
+  icon_type: string;
+  sort_order: number;
+}
+
+const iconMap: Record<string, React.ComponentType<any>> = {
+  trophy: Trophy,
+  star: Star,
+  medal: Medal,
+  award: Award,
+};
 
 export default function CompanyHonors() {
-  const honors = [
-    {
-      id: 1,
-      title: 'Top 10 Consumer Electronics Brand',
-      year: '2024',
-      image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=900&fit=crop&q=80',
-      icon: Trophy,
-    },
-    {
-      id: 2,
-      title: 'Innovation Excellence Award',
-      year: '2023',
-      image: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1200&h=900&fit=crop&q=80',
-      icon: Star,
-    },
-    {
-      id: 3,
-      title: 'Best Quality Manufacturer',
-      year: '2023',
-      image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=900&fit=crop&q=80',
-      icon: Medal,
-    },
-    {
-      id: 4,
-      title: 'Export Excellence Award',
-      year: '2022',
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&h=900&fit=crop&q=80',
-      icon: Award,
-    },
-    {
-      id: 5,
-      title: 'Green Manufacturing Certificate',
-      year: '2022',
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=900&fit=crop&q=80',
-      icon: Award,
-    },
-    {
-      id: 6,
-      title: 'Customer Satisfaction Award',
-      year: '2021',
-      image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=900&fit=crop&q=80',
-      icon: Star,
-    },
-  ];
+  const supabase = createClient();
+  const [honors, setHonors] = useState<Honor[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHonors();
+  }, []);
+
+  const fetchHonors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("company_honors")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      setHonors(data || []);
+    } catch (error) {
+      console.error("Error fetching honors:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || honors.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-20 md:py-28 bg-white">
@@ -60,14 +61,15 @@ export default function CompanyHonors() {
           </h2>
           <div className="w-20 h-1 bg-[#00CED1] mx-auto mb-6" />
           <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto">
-            Recognition of our commitment to excellence and innovation in the industry.
+            Recognition of our commitment to excellence and innovation in the
+            industry.
           </p>
         </div>
 
         {/* Honors Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {honors.map((honor, index) => {
-            const IconComponent = honor.icon;
+            const IconComponent = iconMap[honor.icon_type] || Trophy;
             return (
               <div
                 key={honor.id}
@@ -78,13 +80,20 @@ export default function CompanyHonors() {
               >
                 {/* Image Container */}
                 <div className="relative h-64 overflow-hidden bg-gradient-to-br from-[#3A2E59]/5 to-[#00CED1]/5">
-                  <Image
-                    src={honor.image}
-                    alt={honor.title}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
+                  {honor.image_url ? (
+                    <Image
+                      src={honor.image_url}
+                      alt={honor.title}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-700"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+                      <IconComponent size={64} className="text-blue-300" />
+                    </div>
+                  )}
+
                   {/* Icon Overlay */}
                   <div className="absolute top-4 right-4 w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
                     <IconComponent size={24} className="text-[#00CED1]" />
