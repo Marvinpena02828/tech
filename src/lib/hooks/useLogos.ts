@@ -58,7 +58,7 @@ export function useLogos() {
       // Upload new file
       const { error: uploadError } = await supabase.storage
         .from("logos")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, { upsert: false });
 
       if (uploadError) throw uploadError;
 
