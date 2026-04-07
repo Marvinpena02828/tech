@@ -2,15 +2,27 @@
 
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { createClient } from "@/lib/supabase/client";
+
+interface Certificate {
+  id: number;
+  title: string;
+  image_url: string;
+  alt_text: string;
+  sort_order: number;
+}
 
 export default function Certificates({
   heading = "Certificates",
 }: {
-  heading: string;
+  heading?: string;
 }) {
+  const supabase = createClient();
   const { ref, isVisible } = useScrollReveal({ threshold: 0.3 });
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCert, setSelectedCert] = useState<number | null>(null);
   const [startIndex, setStartIndex] = useState(0);
   const [slideDirection, setSlideDirection] = useState<"left" | "right">(
@@ -19,44 +31,41 @@ export default function Certificates({
   const [isAnimating, setIsAnimating] = useState(false);
   const mobileItemsToShow = 1;
 
-  const certificates = [
-    {
-      id: 1,
-      src: "/Images/Certificates/Certificate1.png",
-      alt: "Certificate 1",
-    },
-    {
-      id: 2,
-      src: "/Images/Certificates/Certificate2.png",
-      alt: "Certificate 2",
-    },
-    {
-      id: 3,
-      src: "/Images/Certificates/Certificate3.png",
-      alt: "Certificate 3",
-    },
-    {
-      id: 4,
-      src: "/Images/Certificates/Certificate4.png",
-      alt: "Certificate 4",
-    },
-    {
-      id: 5,
-      src: "/Images/Certificates/Certificate5.jpg",
-      alt: "Certificate 5",
-    },
-  ];
+  // Fetch certificates from CMS
+  useEffect(() => {
+    fetchCertificates();
+  }, []);
+
+  const fetchCertificates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("guaranteed_quality_certificates")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      setCertificates(data || []);
+    } catch (error) {
+      console.error("Error fetching certificates:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleNext = () => {
     if (selectedCert === null) return;
-    const nextId = selectedCert === 4 ? 1 : selectedCert + 1;
-    setSelectedCert(nextId);
+    const currentIndex = certificates.findIndex((c) => c.id === selectedCert);
+    const nextIndex =
+      currentIndex === certificates.length - 1 ? 0 : currentIndex + 1;
+    setSelectedCert(certificates[nextIndex].id);
   };
 
   const handlePrev = () => {
     if (selectedCert === null) return;
-    const prevId = selectedCert === 1 ? 4 : selectedCert - 1;
-    setSelectedCert(prevId);
+    const currentIndex = certificates.findIndex((c) => c.id === selectedCert);
+    const prevIndex = currentIndex === 0 ? certificates.length - 1 : currentIndex - 1;
+    setSelectedCert(certificates[prevIndex].id);
   };
 
   // Mobile carousel handlers
@@ -83,6 +92,25 @@ export default function Certificates({
     startIndex + mobileItemsToShow
   );
 
+  if (loading) {
+    return (
+      <section className="w-full py-20 bg-white flex flex-col items-center mx-auto overflow-hidden mt-2">
+        <div className="container">
+          <h2 className="heading mb-8 md:mb-10 lg:mb-12 px-4 text-center">
+            {heading}
+          </h2>
+          <div className="text-center text-gray-500">Loading certificates...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (certificates.length === 0) {
+    return null; // Don't show section if no certificates
+  }
+
+  const selectedCertData = certificates.find((c) => c.id === selectedCert);
+
   return (
     <section
       ref={ref as React.RefObject<HTMLElement>}
@@ -94,7 +122,7 @@ export default function Certificates({
         </h2>
 
         {/* Desktop/Tablet Grid View */}
-        <div className="hidden w-full  sm:grid grid-cols-2 lg:grid-cols-5 gap-12 md:gap-20">
+        <div className="hidden w-full sm:grid grid-cols-2 lg:grid-cols-5 gap-12 md:gap-20">
           {certificates.map((cert) => (
             <div
               key={cert.id}
@@ -103,10 +131,10 @@ export default function Certificates({
             >
               <div className="relative w-full max-w-sm aspect-[4/6] bg-white border-2 border-gray-200 p-2 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden rounded-lg hover:border-[#232250] hover:scale-105">
                 <Image
-                  src={cert.src}
-                  alt={cert.alt}
+                  src={cert.image_url}
+                  alt={cert.alt_text}
                   fill
-                  className="w-full h-full object-contain transition-transform duration-300 "
+                  className="w-full h-full object-contain transition-transform duration-300"
                 />
               </div>
             </div>
@@ -171,8 +199,8 @@ export default function Certificates({
               >
                 <div className="w-56 aspect-[3/4] bg-white border-2 border-gray-200 p-2 shadow-md active:shadow-lg transition-all duration-300 overflow-hidden rounded-lg active:border-purple-400">
                   <Image
-                    src={cert.src}
-                    alt={cert.alt}
+                    src={cert.image_url}
+                    alt={cert.alt_text}
                     width={250}
                     height={333}
                     className="w-full h-full object-contain transition-transform duration-300"
@@ -189,7 +217,7 @@ export default function Certificates({
         </div>
 
         {/* Modal */}
-        {selectedCert !== null && (
+        {selectedCert !== null && selectedCertData && (
           <div
             className="fixed inset-0 bg-black/70 z-40 animate-fade-in"
             onClick={() => setSelectedCert(null)}
@@ -214,8 +242,8 @@ export default function Certificates({
               {/* Certificate Image Container */}
               <div className="flex-1 flex items-center justify-center p-3 md:p-5 bg-gray-50 overflow-y-auto overflow-x-hidden pt-12 md:pt-8 text-center">
                 <Image
-                  src={certificates[selectedCert - 1].src}
-                  alt={certificates[selectedCert - 1].alt}
+                  src={selectedCertData.image_url}
+                  alt={selectedCertData.alt_text}
                   width={1200}
                   height={1600}
                   className="max-w-full max-h-[70vh] w-auto h-auto object-contain"
@@ -234,7 +262,8 @@ export default function Certificates({
                 </button>
 
                 <span className="text-gray-600 font-medium text-xs md:text-base">
-                  {selectedCert}/{certificates.length}
+                  {certificates.findIndex((c) => c.id === selectedCert) + 1}/
+                  {certificates.length}
                 </span>
 
                 <button
