@@ -13,6 +13,7 @@ import FloatingContactButtons from "@/components/FloatingContactButtons";
 import { Providers } from "@/components/Providers";
 import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
+import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +49,33 @@ const neuropol = localFont({
   display: "swap",
   weight: "400",
 });
+
+async function getLogos() {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("logos")
+      .select("logo_type, url");
+
+    if (error) {
+      return { main: "", mobile: "", favicon: "" };
+    }
+
+    const logoMap: Record<string, string> = { main: "", mobile: "", favicon: "" };
+    
+    if (data && Array.isArray(data)) {
+      data.forEach((logo: any) => {
+        if (logo.logo_type && logo.url) {
+          logoMap[logo.logo_type] = logo.url;
+        }
+      });
+    }
+
+    return logoMap;
+  } catch {
+    return { main: "", mobile: "", favicon: "" };
+  }
+}
 
 export const metadata: Metadata = {
   title: {
@@ -119,14 +147,18 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const logos = await getLogos();
+
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <head>
+        {logos.favicon && <link rel="icon" href={logos.favicon} />}
+
         {/* Organization Schema - JSON-LD Structured Data */}
         <script
           type="application/ld+json"
@@ -141,7 +173,7 @@ export default function RootLayout({
                 "ayyantech",
               ],
               url: "https://ayyantech.net",
-              logo: "https://ayyantech.net/Ayyan Logo(1).png",
+              logo: logos.main || "https://ayyantech.net/Ayyan Logo(1).png",
               description:
                 "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics since 2015.",
               foundingDate: "2015",
@@ -254,7 +286,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${montserrat.variable} ${neuropol.variable} antialiased`}
       >
         <Providers>
-          <Header />
+          <Header logos={logos} />
           {children}
           <Footer />
           <FloatingContactButtons />
