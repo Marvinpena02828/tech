@@ -16,6 +16,7 @@ import {
   MapPin,
   Images,
   User,
+  Award,
 } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
