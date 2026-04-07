@@ -1,10 +1,10 @@
 /**
- * Address Type Definitions
+ * Address Type Definitions (Updated for Multi-Company)
  * Database table: address
  */
-
 export interface Address {
   id: string;
+  company_id?: number | null;
   title: string;
   address_line1: string;
   address_line2?: string | null;
