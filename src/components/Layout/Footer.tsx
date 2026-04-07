@@ -64,6 +64,28 @@ export default function Footer() {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     description: "Since 2015, we've been crafting innovative, durable and functional tech accessories. With roots in China, we deliver quality worldwide built for everyday life.",
   });
+  const [logoUrl, setLogoUrl] = useState("");
+
+  // Fetch logo from CMS
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("logos")
+          .select("url")
+          .eq("logo_type", "main")
+          .single();
+        
+        if (data?.url) {
+          setLogoUrl(data.url);
+        }
+      } catch (error) {
+        console.error("Error fetching logo:", error);
+      }
+    };
+    fetchLogo();
+  }, []);
 
   // Fetch company info from Supabase
   useEffect(() => {
@@ -138,13 +160,15 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between gap-6 md:gap-2 mb-8">
           {/* Brand Section */}
           <div className="flex flex-1 flex-col max-w-sm">
-            <AppImage
-              src="/Ayyan Logo(1).png"
-              alt="Ayyan Innovations"
-              width={1250}
-              height={1250}
-              className="h-auto w-24 md:w-50  object-contain -mt-6"
-            />
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="Ayyan Innovations"
+                className="h-auto w-24 md:w-50 object-contain -mt-6 mb-4"
+              />
+            ) : (
+              <div className="h-24 w-24 bg-white/20 rounded animate-pulse mb-4" />
+            )}
             <p className="text-sm leading-5 text-white font-arial mb-6">
               {companyInfo.description}
             </p>
