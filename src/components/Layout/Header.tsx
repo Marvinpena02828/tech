@@ -10,9 +10,9 @@ import { getPublicCategories } from "@/app/(private)/admin/categories/models/cat
 import { Category } from "@/lib/types";
 
 interface LogosProps {
-  main: string;
-  mobile: string;
-  favicon: string;
+  main?: string;
+  mobile?: string;
+  favicon?: string;
 }
 
 interface HeaderProps {
@@ -80,9 +80,9 @@ export default function Header({ logos }: HeaderProps) {
 
   const currentPath = usePathname();
 
-  // Use logos from CMS
-  const mainLogo = "https://kgrysyofpflzxlwlzmzj.supabase.co/storage/v1/object/public/logos/main/main-1775497943082.png";
-  const mobileLogo = logos?.mobile;
+  // ✅ USE LOGOS FROM CMS PROP - FIXED!
+  const mainLogo = logos?.main || "";
+  const mobileLogo = logos?.mobile || "";
 
   // Helper function to check if a path is active
   const isPathActive = (href: string): boolean => {
