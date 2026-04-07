@@ -39,6 +39,11 @@ export default function AdminLayout({
 
   const navigation = [
     { name: "Dashboard", href: "/admin/dashboard", icon: Home },
+    {
+  name: "Guaranteed Quality",
+  href: "/admin/guaranteed-quality",
+  icon: Award, // Import Award from lucide-react
+},
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Banners", href: "/admin/banners", icon: ImageIcon },
     { name: "Featured Items", href: "/admin/featured", icon: Star },
@@ -52,6 +57,7 @@ export default function AdminLayout({
     { name: "Account Security", href: "/admin/account", icon: User },
     { name: "Section Settings", href: "/admin/settings", icon: Settings },
     { name: "About Marketing", href: "/admin/about-marketing", icon: Images },
+    
   ];
 
   const handleLogout = async () => {
