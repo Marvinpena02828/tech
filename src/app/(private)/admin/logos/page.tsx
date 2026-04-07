@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload, Trash2, Eye, AlertCircle } from "lucide-react";
 import { useLogos } from "@/lib/hooks/useLogos";
+import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
 
 const LOGO_SPECS = {
@@ -31,6 +32,62 @@ export default function LogoSettings() {
   const [uploading, setUploading] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState<string | null>(null);
+  const [companyDescription, setCompanyDescription] = useState("");
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [isSavingDescription, setIsSavingDescription] = useState(false);
+
+  // Fetch company description
+  useEffect(() => {
+    const fetchCompanyInfo = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("company_info")
+          .select("description")
+          .single();
+
+        if (error) {
+          console.error("Error fetching company info:", error);
+        } else if (data) {
+          setCompanyDescription(data.description);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchCompanyInfo();
+  }, []);
+
+  const handleSaveDescription = async () => {
+    if (!companyDescription.trim()) {
+      toast.error("Description cannot be empty");
+      return;
+    }
+
+    try {
+      setIsSavingDescription(true);
+      const supabase = createClient();
+      
+      const { error } = await supabase
+        .from("company_info")
+        .update({ description: companyDescription })
+        .eq("id", 1);
+
+      if (error) {
+        toast.error("Failed to save description");
+        console.error(error);
+      } else {
+        toast.success("Company description updated!");
+        setIsEditingDescription(false);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Error saving description");
+    } finally {
+      setIsSavingDescription(false);
+    }
+  };
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -94,11 +151,63 @@ export default function LogoSettings() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Logo Management
+            Logo & Footer Management
           </h1>
           <p className="text-gray-600">
-            Manage your website logos - main, mobile, and favicon
+            Manage your website logos and footer content
           </p>
+        </div>
+
+        {/* Company Description Section */}
+        <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden mb-6">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Footer Company Description
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              This text appears in the footer below the company logo
+            </p>
+
+            {!isEditingDescription ? (
+              <div>
+                <div className="bg-gray-50 rounded p-4 mb-4 min-h-24">
+                  <p className="text-gray-700 whitespace-pre-wrap">
+                    {companyDescription || "No description set"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsEditingDescription(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                  Edit Description
+                </button>
+              </div>
+            ) : (
+              <div>
+                <textarea
+                  value={companyDescription}
+                  onChange={(e) => setCompanyDescription(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-32 resize-none"
+                  placeholder="Enter company description..."
+                />
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={handleSaveDescription}
+                    disabled={isSavingDescription}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50"
+                  >
+                    {isSavingDescription ? "Saving..." : "Save Description"}
+                  </button>
+                  <button
+                    onClick={() => setIsEditingDescription(false)}
+                    className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Logo Cards */}
@@ -204,6 +313,7 @@ export default function LogoSettings() {
             <li>• Favicon shows in browser tabs and bookmarks</li>
             <li>• Use PNG or SVG format for best quality</li>
             <li>• Transparent backgrounds work best for logos</li>
+            <li>• Footer description is displayed under the company logo</li>
           </ul>
         </div>
       </div>
