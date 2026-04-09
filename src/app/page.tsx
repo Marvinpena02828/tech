@@ -13,9 +13,9 @@ import { getAllBannersByPageType } from "./(private)/admin/banners/models/banner
 
 export const metadata: Metadata = {
   title:
-    "AyyanTech – Innovative Electronics & Smart Tech Accessories | Official Site",
+    "Mytechon – Innovative Electronics & Smart Tech Accessories | Official Site",
   description:
-    "AyyanTech (ayyantech.net) is a leading B2B supplier of innovative smartphone accessories, smart electronics, and tech solutions. Established in 2015, AyyanTech delivers quality products worldwide.",
+    "Mytechon (mytechon.net) is a leading B2B supplier of innovative smartphone accessories, smart electronics, and tech solutions. Established in 2015, AyyanTech delivers quality products worldwide.",
 };
 
 export default async function Home() {
@@ -32,7 +32,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen w-full">
       <h1 className="sr-only">
-        AyyanTech – Innovative Electronics & Smart Tech Accessories
+        Mytechon – Innovative Electronics & Smart Tech Accessories
       </h1>
       <Hero banners={homepageBanners} />
       <FeatureSection featuredBanner={featuredBanner} />
