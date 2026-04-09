@@ -302,22 +302,22 @@ export default function Header({ logos }: HeaderProps) {
           className="sticky top-0 left-0 right-0 w-full z-50 transition-all duration-300"
           style={{
             backgroundColor: promoBar.background_color,
-            maxHeight: showPromo ? "35px" : "0px",
+            maxHeight: showPromo ? "30px" : "0px",
             opacity: showPromo ? 1 : 0,
             overflow: "hidden",
-            marginBottom: showPromo ? "0px" : "-35px",
+            margin: 0,
           }}
         >
-          <div className="px-4 md:px-8 py-1 md:py-1.5 flex items-center justify-between">
+          <div className="px-4 md:px-8 py-0.5 flex items-center justify-between h-[30px]">
             <p
-              className="text-xs font-medium flex-1 text-center"
+              className="text-xs font-medium flex-1 text-center whitespace-nowrap"
               style={{ color: promoBar.text_color }}
             >
               {promoBar.message}
             </p>
             <button
               onClick={() => setShowPromo(false)}
-              className="ml-4 p-0 hover:opacity-70 transition flex-shrink-0 text-xs"
+              className="ml-4 p-0 hover:opacity-70 transition flex-shrink-0 text-xs leading-none"
               style={{ color: promoBar.text_color }}
             >
               ✕
@@ -334,7 +334,7 @@ export default function Header({ logos }: HeaderProps) {
         ${showHeader ? "translate-y-0" : "-translate-y-full"}
         ${currentPath.startsWith("/admin") ? "hidden" : ""}
         `}
-        style={{ backgroundColor: "#d6202a", top: showPromo ? "35px" : "0px" }}
+        style={{ backgroundColor: "#d6202a", top: showPromo ? "30px" : "0px" }}
       >
         <div className="w-full flex items-center max-w-[1800px] mx-auto px-4 md:px-12 justify-between h-full">
           {/* ========== LOGO AREA ========== */}
