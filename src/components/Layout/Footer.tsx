@@ -229,7 +229,7 @@ export default function Footer() {
         }
 
         .social-icon {
-          animation: fadeInScale 0.6s ease-out forwards;
+          animation: fadeInUp 0.6s ease-out forwards;
           opacity: 0;
         }
 
