@@ -1,14 +1,9 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import { AlertCircle, Trash2, Eye, EyeOff, Edit2, Plus, CheckCircle } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
-import {
-  getAllPromotionalBars,
-  createPromotionalBar,
-  updatePromotionalBar,
-  deletePromotionalBar,
-  setActivePromotionalBar,
-} from "@/app/(private)/admin/promotional-bars/models/promotional-bars-model";
+import { createClient } from "@/lib/supabase/client";
+import toast from "react-hot-toast";
+import { X, Loader2, Eye, EyeOff } from "lucide-react";
 
 interface PromotionalBar {
   id: string;
@@ -17,421 +12,353 @@ interface PromotionalBar {
   text_color: string;
   is_active: boolean;
   created_at: string;
-  updated_at: string;
 }
 
 export default function PromotionalBarsPage() {
   const [bars, setBars] = useState<PromotionalBar[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  // Form state
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     message: "",
-    backgroundColor: "#D4B896",
-    textColor: "#1F2937",
+    background_color: "#D4B896",
+    text_color: "#1F2937",
   });
+  const supabase = createClient();
 
-  // ========== LOAD BARS ==========
-  useEffect(() => {
-    loadBars();
-  }, []);
-
-  const loadBars = async () => {
+  // Fetch bars
+  const fetchBars = async () => {
     try {
       setLoading(true);
-      const result = await getAllPromotionalBars();
+      const { data, error } = await supabase
+        .from("promotional_bars")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (result.success) {
-        setBars(result.data as PromotionalBar[]);
-      } else {
-        toast.error(result.error || "Failed to load promotional bars");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("An error occurred while loading bars");
+      if (error) throw error;
+      setBars(data || []);
+    } catch (err) {
+      console.error("Error fetching bars:", err);
+      toast.error("Failed to load promotional bars");
     } finally {
       setLoading(false);
     }
   };
 
-  // ========== HANDLE CREATE/UPDATE ==========
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    fetchBars();
+  }, []);
 
+  // Handle save
+  const handleSave = async () => {
     if (!formData.message.trim()) {
-      toast.error("Message is required");
+      toast.error("Please enter a message");
       return;
     }
 
     try {
-      setSubmitting(true);
+      setIsSubmitting(true);
 
-      let result;
+      const { error } = await supabase.from("promotional_bars").insert({
+        message: formData.message,
+        background_color: formData.background_color,
+        text_color: formData.text_color,
+        is_active: false,
+      });
 
-      if (editingId) {
-        result = await updatePromotionalBar(editingId, {
-          message: formData.message,
-          backgroundColor: formData.backgroundColor,
-          textColor: formData.textColor,
-        });
-      } else {
-        result = await createPromotionalBar({
-          message: formData.message,
-          backgroundColor: formData.backgroundColor,
-          textColor: formData.textColor,
-        });
-      }
+      if (error) throw error;
 
-      if (result.success) {
-        toast.success(result.message || "Saved successfully");
-        setShowForm(false);
-        setEditingId(null);
-        setFormData({
-          message: "",
-          backgroundColor: "#D4B896",
-          textColor: "#1F2937",
-        });
-        await loadBars();
-      } else {
-        toast.error(result.error || "Failed to save");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("An error occurred");
+      toast.success("Promotional bar created successfully");
+      setFormData({
+        message: "",
+        background_color: "#D4B896",
+        text_color: "#1F2937",
+      });
+      await fetchBars();
+    } catch (err) {
+      console.error("Error saving bar:", err);
+      toast.error("Failed to create promotional bar");
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
-  // ========== HANDLE EDIT ==========
-  const handleEdit = (bar: PromotionalBar) => {
-    setFormData({
-      message: bar.message,
-      backgroundColor: bar.background_color,
-      textColor: bar.text_color,
-    });
-    setEditingId(bar.id);
-    setShowForm(true);
+  // Toggle visibility
+  const handleToggleVisibility = async (bar: PromotionalBar) => {
+    try {
+      // If activating, deactivate others first
+      if (!bar.is_active) {
+        await supabase
+          .from("promotional_bars")
+          .update({ is_active: false })
+          .neq("id", bar.id);
+      }
+
+      const { error } = await supabase
+        .from("promotional_bars")
+        .update({ is_active: !bar.is_active })
+        .eq("id", bar.id);
+
+      if (error) throw error;
+      await fetchBars();
+      toast.success(bar.is_active ? "Bar hidden" : "Bar activated");
+    } catch (err) {
+      console.error("Error toggling visibility:", err);
+      toast.error("Failed to update visibility");
+    }
   };
 
-  // ========== HANDLE DELETE ==========
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this promotional bar?")) {
-      return;
-    }
+  // Delete bar
+  const handleDelete = async (barId: string) => {
+    if (!confirm("Are you sure you want to delete this promotional bar?")) return;
 
     try {
-      const result = await deletePromotionalBar(id);
+      const { error } = await supabase
+        .from("promotional_bars")
+        .delete()
+        .eq("id", barId);
 
-      if (result.success) {
-        toast.success("Deleted successfully");
-        await loadBars();
-      } else {
-        toast.error(result.error || "Failed to delete");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("An error occurred");
+      if (error) throw error;
+      toast.success("Promotional bar deleted successfully");
+      await fetchBars();
+    } catch (err) {
+      console.error("Error deleting bar:", err);
+      toast.error("Failed to delete promotional bar");
     }
   };
 
-  // ========== HANDLE TOGGLE ACTIVE ==========
-  const handleSetActive = async (id: string) => {
-    try {
-      const result = await setActivePromotionalBar(id);
-
-      if (result.success) {
-        toast.success("Promotional bar activated");
-        await loadBars();
-      } else {
-        toast.error(result.error || "Failed to activate");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("An error occurred");
-    }
-  };
-
-  // ========== HANDLE CLOSE FORM ==========
-  const handleCloseForm = () => {
-    setShowForm(false);
-    setEditingId(null);
-    setFormData({
-      message: "",
-      backgroundColor: "#D4B896",
-      textColor: "#1F2937",
-    });
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin" size={32} />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <Toaster position="top-right" />
-
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Promotional Bars
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Manage promotional messages shown at the top of your site
-            </p>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <Plus size={20} />
-            New Bar
-          </button>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">
+            Promotional Bars
+          </h1>
+          <p className="text-slate-600">Create and manage promotional messages</p>
         </div>
 
-        {/* Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  {editingId ? "Edit Promotional Bar" : "Create New Promotional Bar"}
-                </h2>
+        {/* Create Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-8">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
+            Create New Promotional Bar
+          </h2>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Message */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Message *
-                    </label>
-                    <textarea
-                      value={formData.message}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          message: e.target.value,
-                        })
-                      }
-                      placeholder="Enter promotional message (e.g., 🎉 LIMITED TIME OFFER: Get 30% OFF! Use code: SAVE30)"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      rows={4}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      You can include emojis and special characters
-                    </p>
-                  </div>
+          <div className="space-y-6">
+            {/* Message Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Message *
+              </label>
+              <textarea
+                value={formData.message}
+                onChange={(e) =>
+                  setFormData({ ...formData, message: e.target.value })
+                }
+                placeholder="Enter promotional message (e.g., 🎉 50% OFF - Limited Time!)"
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={3}
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                You can include emojis and special characters
+              </p>
+            </div>
 
-                  {/* Colors */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Background Color */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Background Color
-                      </label>
-                      <div className="flex gap-3">
-                        <input
-                          type="color"
-                          value={formData.backgroundColor}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              backgroundColor: e.target.value,
-                            })
-                          }
-                          className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
-                        />
-                        <input
-                          type="text"
-                          value={formData.backgroundColor}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              backgroundColor: e.target.value,
-                            })
-                          }
-                          placeholder="#D4B896"
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Default: Beige (#D4B896)
-                      </p>
-                    </div>
+            {/* Colors */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Background Color */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Background Color
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="color"
+                    value={formData.background_color}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        background_color: e.target.value,
+                      })
+                    }
+                    className="w-12 h-10 rounded-lg cursor-pointer border border-slate-300"
+                  />
+                  <input
+                    type="text"
+                    value={formData.background_color}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        background_color: e.target.value,
+                      })
+                    }
+                    placeholder="#D4B896"
+                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  />
+                </div>
+              </div>
 
-                    {/* Text Color */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Text Color
-                      </label>
-                      <div className="flex gap-3">
-                        <input
-                          type="color"
-                          value={formData.textColor}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              textColor: e.target.value,
-                            })
-                          }
-                          className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
-                        />
-                        <input
-                          type="text"
-                          value={formData.textColor}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              textColor: e.target.value,
-                            })
-                          }
-                          placeholder="#1F2937"
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Default: Dark Gray (#1F2937)
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Preview */}
-                  <div className="bg-gray-100 p-4 rounded-lg">
-                    <p className="text-xs font-semibold text-gray-600 mb-3">
-                      Preview
-                    </p>
-                    <div
-                      className="p-3 rounded text-center"
-                      style={{
-                        backgroundColor: formData.backgroundColor,
-                        color: formData.textColor,
-                      }}
-                    >
-                      {formData.message || "Your message will appear here..."}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-2 rounded-lg transition-colors font-medium"
-                    >
-                      {submitting
-                        ? "Saving..."
-                        : editingId
-                          ? "Update"
-                          : "Create"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCloseForm}
-                      className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900 py-2 rounded-lg transition-colors font-medium"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+              {/* Text Color */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Text Color
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="color"
+                    value={formData.text_color}
+                    onChange={(e) =>
+                      setFormData({ ...formData, text_color: e.target.value })
+                    }
+                    className="w-12 h-10 rounded-lg cursor-pointer border border-slate-300"
+                  />
+                  <input
+                    type="text"
+                    value={formData.text_color}
+                    onChange={(e) =>
+                      setFormData({ ...formData, text_color: e.target.value })
+                    }
+                    placeholder="#1F2937"
+                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* List */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="text-gray-600 mt-4">Loading promotional bars...</p>
-          </div>
-        ) : bars.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <AlertCircle size={48} className="mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600 text-lg mb-4">
-              No promotional bars yet
-            </p>
+            {/* Preview */}
+            <div className="bg-slate-100 p-4 rounded-lg">
+              <p className="text-xs font-semibold text-slate-600 mb-3">Preview</p>
+              <div
+                className="p-4 rounded text-center"
+                style={{
+                  backgroundColor: formData.background_color,
+                  color: formData.text_color,
+                }}
+              >
+                {formData.message || "Your message will appear here..."}
+              </div>
+            </div>
+
+            {/* Submit Button */}
             <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              onClick={handleSave}
+              disabled={isSubmitting || !formData.message.trim()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <Plus size={20} />
-              Create First Bar
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  Creating...
+                </>
+              ) : (
+                "Create Promotional Bar"
+              )}
             </button>
           </div>
-        ) : (
-          <div className="grid gap-4">
-            {bars.map((bar) => (
-              <div
-                key={bar.id}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden"
-              >
-                {/* Bar Preview */}
+        </div>
+
+        {/* Bars List */}
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-900 mb-4">
+            All Promotional Bars ({bars.length})
+          </h2>
+
+          {bars.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+              <p className="text-slate-500 text-lg">
+                No promotional bars yet. Create one to get started!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {bars.map((bar) => (
                 <div
-                  className="p-4 text-center text-sm font-medium"
-                  style={{
-                    backgroundColor: bar.background_color,
-                    color: bar.text_color,
-                  }}
+                  key={bar.id}
+                  className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition"
                 >
-                  {bar.message}
-                </div>
-
-                {/* Bar Info & Actions */}
-                <div className="p-4 bg-gray-50 border-t">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    {/* Info */}
-                    <div className="text-sm">
-                      <div className="flex items-center gap-2 mb-2">
-                        {bar.is_active ? (
-                          <div className="flex items-center gap-1 text-green-600">
-                            <CheckCircle size={16} />
-                            <span className="font-semibold">Active</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1 text-gray-500">
-                            <Eye size={16} />
-                            <span>Inactive</span>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-gray-600">
-                        Created:{" "}
-                        {new Date(bar.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 flex-wrap">
-                      {!bar.is_active && (
-                        <button
-                          onClick={() => handleSetActive(bar.id)}
-                          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm transition-colors"
-                        >
-                          <Eye size={16} />
-                          Activate
-                        </button>
+                  {/* Header with visibility toggle */}
+                  <div className="flex justify-between items-center mb-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        bar.is_active
+                          ? "bg-green-100 text-green-700"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {bar.is_active ? "Active" : "Inactive"}
+                    </span>
+                    <button
+                      onClick={() => handleToggleVisibility(bar)}
+                      className="p-2 hover:bg-slate-100 rounded-lg transition"
+                      title={bar.is_active ? "Hide" : "Show"}
+                    >
+                      {bar.is_active ? (
+                        <Eye size={20} className="text-slate-600" />
+                      ) : (
+                        <EyeOff size={20} className="text-slate-400" />
                       )}
-                      <button
-                        onClick={() => handleEdit(bar)}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors"
-                      >
-                        <Edit2 size={16} />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(bar.id)}
-                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors"
-                      >
-                        <Trash2 size={16} />
-                        Delete
-                      </button>
+                    </button>
+                  </div>
+
+                  {/* Message Preview */}
+                  <div
+                    className="p-4 rounded-lg mb-4"
+                    style={{
+                      backgroundColor: bar.background_color,
+                      color: bar.text_color,
+                    }}
+                  >
+                    <p className="font-medium">{bar.message}</p>
+                  </div>
+
+                  {/* Colors Info */}
+                  <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-slate-200">
+                    <div className="text-sm">
+                      <p className="text-slate-500">Background</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div
+                          className="w-6 h-6 rounded border border-slate-300"
+                          style={{ backgroundColor: bar.background_color }}
+                        />
+                        <span className="font-mono text-xs text-slate-600">
+                          {bar.background_color}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-slate-500">Text</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div
+                          className="w-6 h-6 rounded border border-slate-300"
+                          style={{ backgroundColor: bar.text_color }}
+                        />
+                        <span className="font-mono text-xs text-slate-600">
+                          {bar.text_color}
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Action Buttons */}
+                  <button
+                    onClick={() => handleDelete(bar.id)}
+                    className="w-full bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 rounded-lg transition flex items-center justify-center gap-2"
+                  >
+                    <X size={18} />
+                    Delete
+                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
