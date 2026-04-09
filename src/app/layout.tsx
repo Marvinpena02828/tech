@@ -13,6 +13,7 @@ import FloatingContactButtons from "@/components/FloatingContactButtons";
 import { Providers } from "@/components/Providers";
 import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
+import HomePage from "@/components/Layout/HomePage";
 import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
@@ -287,7 +288,12 @@ export default async function RootLayout({
       >
         <Providers>
           <Header logos={logos} />
-          {children}
+          
+          {/* HomePage wrapper - Promotional Bar Component */}
+          <HomePage>
+            {children}
+          </HomePage>
+          
           <Footer />
           <FloatingContactButtons />
         </Providers>
