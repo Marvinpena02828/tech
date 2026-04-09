@@ -107,7 +107,7 @@ export const metadata: Metadata = {
     siteName: "TechOn",
     images: [
       {
-        url: "/Ayyan Logo(1).png",
+        url: "/techon.png",
         width: 1200,
         height: 630,
         alt: "TechOn – Innovative Electronics & Smart Tech Accessories",
@@ -121,7 +121,7 @@ export const metadata: Metadata = {
     title: "TechOn – Innovative Electronics & Smart Tech Accessories",
     description:
       "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
-    images: ["/Ayyan Logo(1).png"],
+    images: ["/techon.png"],
     site: "@AyyanInnov12181",
   },
   alternates: {
@@ -173,7 +173,7 @@ export default async function RootLayout({
                 "TechOn",
               ],
               url: "https://tech-on.net",
-              logo: logos.main || "https://tech-on.net/Ayyan Logo(1).png",
+              logo: logos.main || "https://tech-on.net/techon.png",
               description:
                 "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics since 2015.",
               foundingDate: "2015",
@@ -209,7 +209,7 @@ export default async function RootLayout({
                 target: {
                   "@type": "EntryPoint",
                   urlTemplate:
-                    "https://ayyantech.net/products?search={search_term_string}",
+                    "https://tech-on.net/products?search={search_term_string}",
                 },
                 "query-input": "required name=search_term_string",
               },
