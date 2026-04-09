@@ -247,12 +247,13 @@ export default function Header({ logos }: HeaderProps) {
   return (
     <>
       <header
-        className={`w-full fixed top-0 left-0 right-0 z-40 bg-primary-blue h-16 md:h-20 lg:h-20 font-sans border-btransition-all duration-300 ${
+        className={`w-full fixed top-0 left-0 right-0 z-40 h-16 md:h-20 lg:h-20 font-sans border-btransition-all duration-300 ${
           isVisible ? "opacity-100" : "opacity-0"
         } ${isScrolled ? "shadow-lg" : ""}
         ${showHeader ? "translate-y-0" : "-translate-y-full"}
         ${currentPath.startsWith("/admin") ? "hidden" : ""}
         `}
+        style={{ backgroundColor: "#d6202a" }}
       >
         <div className="w-full flex items-center max-w-[1800px] mx-auto px-4 md:px-12 justify-between h-full">
           {/* ========== LOGO AREA ========== */}
