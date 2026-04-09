@@ -100,9 +100,17 @@ export type TablesInsert<
     ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName & string]["Insert"]
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName & string] extends {
+      Insert: infer I
+    }
+      ? I
+      : never)
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions & string]["Insert"]
+    ? (PublicSchema["Tables"][PublicTableNameOrOptions & string] extends {
+        Insert: infer I
+      }
+      ? I
+      : never)
     : never
 
 export type TablesUpdate<
@@ -113,9 +121,17 @@ export type TablesUpdate<
     ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName & string]["Update"]
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName & string] extends {
+      Update: infer U
+    }
+      ? U
+      : never)
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions & string]["Update"]
+    ? (PublicSchema["Tables"][PublicTableNameOrOptions & string] extends {
+        Update: infer U
+      }
+      ? U
+      : never)
     : never
 
 export type Enums<
