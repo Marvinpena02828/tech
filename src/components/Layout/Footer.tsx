@@ -12,6 +12,12 @@ interface CompanyInfo {
   description: string;
 }
 
+interface FooterLogos {
+  mainLogo: string | null;
+  footerLogo: string | null;
+  footerImage: string | null;
+}
+
 const socialLinks = [
   {
     name: "Facebook",
@@ -71,27 +77,45 @@ export default function Footer() {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     description: "Since 2015, we've been crafting innovative, durable and functional tech accessories. With roots in China, we deliver quality worldwide built for everyday life.",
   });
-  const [logoUrl, setLogoUrl] = useState("");
+  const [footerLogos, setFooterLogos] = useState<FooterLogos>({
+    mainLogo: null,
+    footerLogo: null,
+    footerImage: null,
+  });
+  const [loadingLogos, setLoadingLogos] = useState(true);
 
-  // Fetch logo from CMS
+  // Fetch all logos from CMS
   useEffect(() => {
-    const fetchLogo = async () => {
+    const fetchLogos = async () => {
       try {
+        setLoadingLogos(true);
         const supabase = createClient();
         const { data } = await supabase
           .from("logos")
-          .select("url")
-          .eq("logo_type", "main")
-          .single();
-        
-        if (data?.url) {
-          setLogoUrl(data.url);
+          .select("logo_type, url")
+          .in("logo_type", ["main", "footer_logo", "footer_image"]);
+
+        if (data) {
+          const logoMap: Record<string, string> = {};
+          data.forEach((item) => {
+            if (item.url) {
+              logoMap[item.logo_type] = item.url;
+            }
+          });
+
+          setFooterLogos({
+            mainLogo: logoMap["main"] || null,
+            footerLogo: logoMap["footer_logo"] || null,
+            footerImage: logoMap["footer_image"] || null,
+          });
         }
       } catch (error) {
-        console.error("Error fetching logo:", error);
+        console.error("Error fetching logos:", error);
+      } finally {
+        setLoadingLogos(false);
       }
     };
-    fetchLogo();
+    fetchLogos();
   }, []);
 
   // Fetch company info from Supabase
@@ -162,6 +186,17 @@ export default function Footer() {
         currentPath.startsWith("/admin") ? " hidden" : ""
       }`}
     >
+      {/* Footer Image Banner - Display if available */}
+      {footerLogos.footerImage && (
+        <div className="w-full max-w-7xl mx-auto mb-12 rounded-lg overflow-hidden">
+          <img
+            src={footerLogos.footerImage}
+            alt="Footer Banner"
+            className="w-full h-auto object-cover max-h-64"
+          />
+        </div>
+      )}
+
       {/* Main Footer Content */}
       <div className="w-full max-w-7xl mx-auto mb-12">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12">
@@ -169,9 +204,16 @@ export default function Footer() {
           {/* Column 1: Brand Section */}
           <div className="md:col-span-1">
             <div className="mb-4">
-              {logoUrl ? (
+              {/* Use footer_logo if available, otherwise fall back to main logo */}
+              {footerLogos.footerLogo ? (
                 <img
-                  src={logoUrl}
+                  src={footerLogos.footerLogo}
+                  alt="Ayyan Innovations Footer Logo"
+                  className="h-auto w-40 object-contain"
+                />
+              ) : footerLogos.mainLogo ? (
+                <img
+                  src={footerLogos.mainLogo}
                   alt="Ayyan Innovations"
                   className="h-auto w-32 object-contain"
                 />
