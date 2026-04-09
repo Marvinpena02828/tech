@@ -5,8 +5,8 @@ import PopularProductLineup from "@/components/PopularProductLineup";
 import ProductCategory from "@/components/ProductCategory";
 import ServicesSection from "@/components/ServicesSection";
 import Certificates from "@/components/Certificates";
+import AwardsCarousel from "@/components/AwardsCarousel";
 import NewsHomeSection from "@/components/NewsHomeSection";
-
 import BusinessNeedsSection from "@/components/BusinessNeedsSection";
 import AchievementsSection from "@/components/AchievementsSection";
 import { getAllBannersByPageType } from "./(private)/admin/banners/models/banners-model";
@@ -23,7 +23,6 @@ export default async function Home() {
   const homepageBanners = homepageBannersResult.success
     ? homepageBannersResult.data
     : [];
-
   const featuredBannerResult = await getAllBannersByPageType("featured");
   const featuredBanner = featuredBannerResult.success
     ? featuredBannerResult.data
@@ -42,6 +41,7 @@ export default async function Home() {
       <ServicesSection />
       <BusinessNeedsSection />
       <Certificates heading="Certificates" />
+      <AwardsCarousel />
       <NewsHomeSection showViewAll={false} />
     </main>
   );
