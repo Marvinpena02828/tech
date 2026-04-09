@@ -360,7 +360,7 @@ export default function Footer() {
                     target="_blank"
                     key={social.name}
                     href={social.href}
-                    className="aspect-square border border-white border-opacity-50 flex items-center justify-center hover:bg-white hover:bg-opacity-10 hover:scale-105 transition-all duration-300"
+                    className="aspect-square border border-white border-opacity-50 flex items-center justify-center hover:bg-white hover:bg-opacity-10 hover:scale-105 transition-all duration-300 group"
                     aria-label={social.name}
                     title={social.name}
                   >
@@ -369,7 +369,7 @@ export default function Footer() {
                       alt={social.name}
                       width={20}
                       height={20}
-                      className="object-contain w-5 h-5 brightness-0 invert"
+                      className="object-contain w-5 h-5 brightness-0 invert group-hover:brightness-100 group-hover:invert-0"
                     />
                   </Link>
                 );
