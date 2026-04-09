@@ -17,6 +17,7 @@ interface LogosProps {
 
 interface HeaderProps {
   logos?: LogosProps;
+  showPromoBar?: boolean; // NEW: Control promotional bar visibility
 }
 
 export const socialLinks = [
@@ -59,7 +60,7 @@ export const socialLinks = [
   { name: "X", href: "https://x.com/AyyanInnov12181", image: "/socials/X.png" },
 ];
 
-export default function Header({ logos }: HeaderProps) {
+export default function Header({ logos, showPromoBar = false }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const [openParentCategory, setOpenParentCategory] = useState<string | null>(
@@ -247,7 +248,7 @@ export default function Header({ logos }: HeaderProps) {
   return (
     <>
       <header
-        className={`w-full fixed top-0 left-0 right-0 z-40 h-16 md:h-20 lg:h-20 font-sans border-btransition-all duration-300 ${
+        className={`w-full fixed top-0 left-0 right-0 z-40 h-16 md:h-20 lg:h-20 font-sans border-b transition-all duration-300 ${
           isVisible ? "opacity-100" : "opacity-0"
         } ${isScrolled ? "shadow-lg" : ""}
         ${showHeader ? "translate-y-0" : "-translate-y-full"}
