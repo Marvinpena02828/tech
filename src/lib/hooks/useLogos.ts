@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
 
+export type LogoType = "main" | "mobile" | "favicon" | "footer_logo" | "footer_image";
+
 export interface Logo {
   id: number;
-  logo_type: "main" | "mobile" | "favicon";
+  logo_type: LogoType;
   url: string;
   alt_text?: string;
   width?: number;
@@ -26,7 +28,6 @@ export function useLogos() {
         .from("logos")
         .select("*")
         .order("logo_type");
-
       if (error) throw error;
       setLogos(data || []);
     } catch (error: any) {
@@ -39,7 +40,7 @@ export function useLogos() {
   // Upload image to Supabase Storage
   const uploadImage = async (
     file: File,
-    logoType: "main" | "mobile" | "favicon"
+    logoType: LogoType
   ) => {
     try {
       const fileExt = file.name.split(".").pop();
@@ -64,7 +65,6 @@ export function useLogos() {
 
       // Get public URL
       const { data } = supabase.storage.from("logos").getPublicUrl(filePath);
-
       return data.publicUrl;
     } catch (error: any) {
       throw new Error(`Image upload failed: ${error.message}`);
@@ -73,7 +73,7 @@ export function useLogos() {
 
   // Update logo in database
   const updateLogo = async (
-    logoType: "main" | "mobile" | "favicon",
+    logoType: LogoType,
     url: string,
     metadata?: { alt_text?: string; width?: number; height?: number }
   ) => {
@@ -90,6 +90,7 @@ export function useLogos() {
         .eq("logo_type", logoType);
 
       if (error) throw error;
+
       await fetchLogos();
       toast.success(`${logoType} logo updated successfully`);
     } catch (error: any) {
@@ -101,7 +102,7 @@ export function useLogos() {
   // Handle file upload and update
   const handleLogoUpload = async (
     file: File,
-    logoType: "main" | "mobile" | "favicon",
+    logoType: LogoType,
     metadata?: { alt_text?: string; width?: number; height?: number }
   ) => {
     try {
@@ -115,7 +116,7 @@ export function useLogos() {
   };
 
   // Get specific logo
-  const getLogo = (logoType: "main" | "mobile" | "favicon") => {
+  const getLogo = (logoType: LogoType) => {
     return logos.find((l) => l.logo_type === logoType);
   };
 
