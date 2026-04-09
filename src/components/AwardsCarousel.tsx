@@ -67,7 +67,7 @@ export default function AwardsCarousel() {
       {/* Title */}
       <div className="container mx-auto px-4 mb-12">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
-          Awards & Recognition
+          Awards
         </h2>
         <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 mx-auto mt-4 rounded-full" />
       </div>
