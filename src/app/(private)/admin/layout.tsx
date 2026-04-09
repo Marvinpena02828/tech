@@ -1,5 +1,4 @@
 "use client";
-
 import { useRouter, usePathname } from "next/navigation";
 import {
   Package,
@@ -18,6 +17,7 @@ import {
   User,
   Award,
   FileText,
+  Megaphone,
 } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -46,7 +46,7 @@ export default function AdminLayout({
       href: "/admin/guaranteed-quality",
       icon: Award,
     },
-    { name: "Awards", href: "/admin/awards", icon: Award }, // NEW AWARDS PAGE
+    { name: "Awards", href: "/admin/awards", icon: Award },
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Banners", href: "/admin/banners", icon: ImageIcon },
     { name: "Featured Items", href: "/admin/featured", icon: Star },
@@ -54,6 +54,7 @@ export default function AdminLayout({
     { name: "Categories", href: "/admin/categories", icon: Grid },
     { name: "News", href: "/admin/news", icon: Newspaper },
     { name: "Newsletter", href: "/admin/newsletter", icon: Mail },
+    { name: "Promotional Bars", href: "/admin/promotional-bars", icon: Megaphone }, // NEW
     { name: "Contact Info", href: "/admin/contact-info", icon: Phone },
     { name: "Address", href: "/admin/address", icon: MapPin },
     { name: "Logo Settings", href: "/admin/logos", icon: ImageIcon },
@@ -67,7 +68,6 @@ export default function AdminLayout({
       setLoggingOut(true);
       const supabase = createClient();
       const { error } = await supabase.auth.signOut();
-
       if (error) {
         toast.error("Failed to sign out. Please try again.");
         setLoggingOut(false);
