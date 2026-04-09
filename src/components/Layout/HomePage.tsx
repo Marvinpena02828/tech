@@ -54,13 +54,16 @@ export default function HomePage({ children }: { children?: React.ReactNode }) {
 
   return (
     <>
+      {/* Promo Bar - STICKY, not fixed - renders BEFORE everything */}
       {promoBar?.is_active && (
         <div
-          className="fixed left-0 right-0 w-full z-50 transition-all duration-300"
+          className="sticky top-0 left-0 right-0 w-full z-50 transition-all duration-300"
           style={{
             backgroundColor: promoBar.background_color,
-            top: show ? '0px' : '-60px',
+            maxHeight: show ? '60px' : '0px',
             opacity: show ? 1 : 0,
+            overflow: 'hidden',
+            marginBottom: show ? '0px' : '-60px',
           }}
         >
           <div className="px-4 md:px-8 py-3 flex items-center justify-between">
@@ -80,6 +83,8 @@ export default function HomePage({ children }: { children?: React.ReactNode }) {
           </div>
         </div>
       )}
+
+      {/* Main content - Header, children, etc. render AFTER promo bar */}
       {children}
     </>
   );
