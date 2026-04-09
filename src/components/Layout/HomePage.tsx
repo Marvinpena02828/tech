@@ -56,10 +56,10 @@ export default function HomePage({ children }: { children?: React.ReactNode }) {
     <>
       {promoBar?.is_active && (
         <div
-          className="fixed left-0 right-0 w-full z-40 transition-all duration-300"
+          className="fixed left-0 right-0 w-full z-50 transition-all duration-300"
           style={{
             backgroundColor: promoBar.background_color,
-            top: show ? '80px' : '-60px',
+            top: show ? '0px' : '-60px',
             opacity: show ? 1 : 0,
           }}
         >
