@@ -14,19 +14,19 @@ interface CompanyInfo {
 
 const socialLinks = [
   {
-    name: "Instagram",
-    href: "https://www.instagram.com/ayyan_innovations/",
-    image: "/socials/Instagram.png",
-  },
-  {
     name: "Facebook",
     href: "https://www.facebook.com/AyyanInnovations/",
     image: "/socials/FB.png",
   },
   {
-    name: "SnapChat",
-    href: "https://snapchat.com/t/RSuD7Sx3",
-    image: "/socials/Snapchat.png",
+    name: "X",
+    href: "https://x.com/AyyanInnov12181",
+    image: "/socials/X.png",
+  },
+  {
+    name: "Instagram",
+    href: "https://www.instagram.com/ayyan_innovations/",
+    image: "/socials/Instagram.png",
   },
   {
     name: "LinkedIn",
@@ -43,7 +43,11 @@ const socialLinks = [
     href: "https://www.tiktok.com/@ayyan_innovations",
     image: "/socials/tiktok.png",
   },
-  { name: "X", href: "https://x.com/AyyanInnov12181", image: "/socials/X.png" },
+  {
+    name: "SnapChat",
+    href: "https://snapchat.com/t/RSuD7Sx3",
+    image: "/socials/Snapchat.png",
+  },
 ];
 
 const footerLinks = {
@@ -51,7 +55,10 @@ const footerLinks = {
     { label: "About Us", href: "/about" },
     { label: "News", href: "/news" },
     { label: "Contact Us", href: "/contact" },
-    { label: "Events", href: "#" },
+    { label: "Newsroom", href: "#" },
+    { label: "Privacy Policy", href: "#" },
+    { label: "Terms and Conditions", href: "#" },
+    { label: "Accessibility", href: "#" },
   ],
 };
 
@@ -151,214 +158,200 @@ export default function Footer() {
 
   return (
     <footer
-      className={`bg-primary-blue w-full text-gray-300 mt-2 mx-auto px-6 sm:px-8 lg:px-12 py-16 ${
+      className={`bg-[#d6202a] w-full text-white mt-2 mx-auto px-6 sm:px-8 lg:px-12 py-16 ${
         currentPath.startsWith("/admin") ? " hidden" : ""
       }`}
     >
       {/* Main Footer Content */}
-      <div className="w-full max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between gap-6 md:gap-2 mb-8">
-          {/* Brand Section */}
-          <div className="flex flex-1 flex-col max-w-sm">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt="Ayyan Innovations"
-                className="h-auto w-24 md:w-50 object-contain -mt-6 mb-4"
-              />
-            ) : (
-              <div className="h-24 w-24 bg-white/20 rounded animate-pulse mb-4" />
-            )}
-            <p className="text-sm leading-5 text-white font-arial mb-6">
+      <div className="w-full max-w-7xl mx-auto mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12">
+          
+          {/* Column 1: Brand Section */}
+          <div className="md:col-span-1">
+            <div className="mb-4">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="Ayyan Innovations"
+                  className="h-auto w-32 object-contain"
+                />
+              ) : (
+                <div className="h-20 w-20 bg-white/20 rounded animate-pulse" />
+              )}
+            </div>
+            <p className="text-sm leading-6 text-white text-opacity-90">
               {companyInfo.description}
             </p>
           </div>
 
-          {/* Links Sections */}
-          <div className="flex-1 flex flex-col md:flex-row  gap-12 px-6">
-            <div>
-              <h3 className="text-white font-arial font-semibold text-lg mb-2 md:mb-4 lg:mb-6">
-                Product Categories
-              </h3>
-              <ul className="space-y-1.5 md:space-y-2 lg:space-y-2 grid grid-cols-2 space-x-6">
-                {categories
-                  .filter((category) => category.parent_category_id === null)
-                  .map((category) => (
-                    <li key={category.id}>
-                      <Link
-                        href={category.id}
-                        className="text-sm font-bold font-arial hover:scale-110 transition-all duration-300 flex items-center space-x-1.5 md:space-x-2 group"
-                      >
-                        <span>{category.title}</span>
-                      </Link>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-
-            {Object.entries(footerLinks).map(([category, links]) => (
-              <div key={category}>
-                <h3 className="text-white font-arial font-semibold text-lg mb-2 md:mb-4 lg:mb-6">
-                  {category}
-                </h3>
-                <ul className="space-y-1.5 md:space-y-2 lg:space-y-2">
-                  {links.map((link) => (
-                    <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        className="text-sm font-bold font-arial hover:scale-110 transition-all duration-300 flex items-center space-x-1.5 md:space-x-2 group"
-                      >
-                        <span>{link.label}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex-1 max-w-2xs">
-            <div className="space-y-3 text-white">
-              <div className="flex items-end gap-2">
-                <AppImage
-                  src="/Icons/envelope.png"
-                  alt="Mail"
-                  width={50}
-                  height={50}
-                />
-                <div className="">
-                  <h4 className="font-semibold text-md">Join Our Newsletter</h4>
-                  <p className="text-sm">
-                    Be the first to know Sign up to newsletter today
-                  </p>
-                </div>
-              </div>
-
-              <form onSubmit={handleNewsletterSubmit} className="space-y-2">
-                <div className="grid grid-cols-3 gap-2 row-span-1">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="col-span-2 bg-gray-100 p-2 text-black text-sm rounded focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="col-span-1 bg-white text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all rounded font-medium"
-                  >
-                    {isLoading ? (
-                      <span className="flex items-center justify-center">
-                        <svg
-                          className="animate-spin h-4 w-4"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                      </span>
-                    ) : (
-                      "Send"
-                    )}
-                  </button>
-                </div>
-
-                {/* Success/Error Message */}
-                {message && (
-                  <div
-                    className={`p-3 rounded-lg flex items-center gap-2 animate-fade-in ${
-                      message.includes("Thank you") ||
-                      message.includes("Successfully")
-                        ? "bg-green-500/20 border border-green-400 text-green-100"
-                        : "bg-red-500/20 border border-red-400 text-red-100"
-                    }`}
-                  >
-                    {message.includes("Thank you") ||
-                    message.includes("Successfully") ? (
-                      <svg
-                        className="w-5 h-5 flex-shrink-0"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-5 h-5 flex-shrink-0"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    )}
-                    <span className="text-sm font-medium">{message}</span>
-                  </div>
-                )}
-              </form>
-
-              {/* Social Links Grid - Updated to match screenshot */}
-              <div className="grid grid-cols-5 gap-2 order-1 md:order-2 mt-4 w-full max-w-xs">
-                {socialLinks.map((social) => {
-                  return (
+          {/* Column 2: Product Categories */}
+          <div className="md:col-span-1">
+            <h3 className="text-white font-semibold text-base mb-4 font-arial">
+              Product Categories
+            </h3>
+            <ul className="space-y-2">
+              {categories
+                .filter((category) => category.parent_category_id === null)
+                .slice(0, 4)
+                .map((category) => (
+                  <li key={category.id}>
                     <Link
-                      target="_blank"
-                      key={social.name}
-                      href={social.href}
-                      className="aspect-square bg-gray-800 border border-gray-700 flex items-center justify-center hover:bg-gray-700 hover:scale-105 transition-all duration-300"
-                      aria-label={social.name}
-                      title={social.name}
+                      href={category.id}
+                      className="text-sm text-white text-opacity-90 hover:text-opacity-100 transition-all duration-300 font-arial"
                     >
-                      <AppImage
-                        src={social.image}
-                        alt={social.name}
-                        width={32}
-                        height={32}
-                        className="object-contain w-8 h-8 brightness-0 invert"
-                      />
+                      {category.title}
                     </Link>
-                  );
-                })}
+                  </li>
+                ))}
+            </ul>
+          </div>
+
+          {/* Column 3: About Baseus */}
+          <div className="md:col-span-1">
+            <h3 className="text-white font-semibold text-base mb-4 font-arial">
+              ABOUT BASEUS
+            </h3>
+            <ul className="space-y-2">
+              {footerLinks.Company.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white text-opacity-90 hover:text-opacity-100 transition-all duration-300 font-arial"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 4: Newsletter */}
+          <div className="md:col-span-1">
+            <h3 className="text-white font-semibold text-base mb-4 font-arial">
+              NEWSLETTER
+            </h3>
+            <p className="text-sm text-white text-opacity-90 mb-4 font-arial">
+              Get the latest news from Baseus
+            </p>
+            
+            <form onSubmit={handleNewsletterSubmit} className="space-y-3">
+              <div className="flex items-center border border-white border-opacity-50 rounded-full px-4 py-2 bg-transparent hover:border-opacity-100 transition-all">
+                <input
+                  type="email"
+                  placeholder="Your E-Mail"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  className="bg-transparent text-white text-sm placeholder-white placeholder-opacity-70 flex-1 focus:outline-none disabled:opacity-50 font-arial"
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="text-white ml-2 disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7l5 5m0 0l-5 5m5-5H6"
+                      />
+                    </svg>
+                  )}
+                </button>
               </div>
+
+              {/* Success/Error Message */}
+              {message && (
+                <div
+                  className={`p-2 rounded text-sm font-arial ${
+                    message.includes("Thank you") ||
+                    message.includes("Successfully")
+                      ? "bg-green-500/30 text-green-100"
+                      : "bg-red-500/30 text-red-100"
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
+            </form>
+          </div>
+
+          {/* Column 5: Follow Us */}
+          <div className="md:col-span-1">
+            <h3 className="text-white font-semibold text-base mb-4 font-arial">
+              FOLLOW US
+            </h3>
+            
+            {/* Social Links Grid */}
+            <div className="grid grid-cols-5 gap-2 w-full">
+              {socialLinks.map((social) => {
+                return (
+                  <Link
+                    target="_blank"
+                    key={social.name}
+                    href={social.href}
+                    className="aspect-square border border-white border-opacity-50 flex items-center justify-center hover:bg-white hover:bg-opacity-10 hover:scale-105 transition-all duration-300"
+                    aria-label={social.name}
+                    title={social.name}
+                  >
+                    <AppImage
+                      src={social.image}
+                      alt={social.name}
+                      width={20}
+                      height={20}
+                      className="object-contain w-5 h-5 brightness-0 invert"
+                    />
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
-        {/* Bottom Section */}
-        <div className="flex flex-col md:flex-row items-start justify-between gap-6 w-fit">
-          {/* Copyright */}
-          <p className="text-xs md:text-sm text-white font-arial text-left md:text-left order-3 md:order-1 w-full md:w-auto ">
-            All rights reserved. Ayyan Technology Co., Limited
-          </p>
-        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-white border-opacity-30 my-8"></div>
+
+      {/* Bottom Section */}
+      <div className="w-full max-w-7xl mx-auto">
+        <p className="text-sm text-white text-opacity-90 font-arial">
+          All rights reserved. Ayyan Technology Co., Limited
+        </p>
       </div>
 
       {/* Scroll to Top Button */}
       <div className="fixed bottom-8 right-8 z-50">
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="w-12 h-12 rounded-full bg-gradient-to-r from-[#4A90E2] to-[#357ABD] flex items-center justify-center hover:shadow-lg hover:scale-110 transition-all duration-300 text-white shadow-lg"
+          className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center hover:bg-opacity-30 hover:scale-110 transition-all duration-300 text-white shadow-lg border border-white border-opacity-30"
           aria-label="Scroll to top"
         >
           <svg
