@@ -336,7 +336,7 @@ export default function Footer() {
                         alt={social.name}
                         width={32}
                         height={32}
-                        className="object-contain w-8 h-8"
+                        className="object-contain w-8 h-8 brightness-0 invert"
                       />
                     </Link>
                   );
