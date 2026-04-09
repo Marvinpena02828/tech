@@ -124,23 +124,7 @@ export default function Header({ logos }: HeaderProps) {
     fetchPromo();
   }, []);
 
-  // Handle promo bar scroll
-  useEffect(() => {
-    let lastScroll = 0;
-
-    const handlePromoScroll = () => {
-      const current = window.scrollY;
-      if (current > lastScroll && current > 100) {
-        setShowPromo(false);
-      } else if (current < lastScroll || current < 10) {
-        setShowPromo(true);
-      }
-      lastScroll = current;
-    };
-
-    window.addEventListener("scroll", handlePromoScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handlePromoScroll);
-  }, []);
+  // Promo bar always visible (removed scroll hide logic)
 
   // Function to change language using Google Translate
   const changeLanguage = (languageCode: string, languageName: string) => {
@@ -308,20 +292,13 @@ export default function Header({ logos }: HeaderProps) {
             margin: 0,
           }}
         >
-          <div className="px-4 md:px-8 py-0.5 flex items-center justify-between h-[30px]">
+          <div className="px-4 md:px-8 py-0.5 flex items-center justify-center h-[30px]">
             <p
-              className="text-xs font-medium flex-1 text-center whitespace-nowrap"
+              className="text-xs font-medium text-center whitespace-nowrap"
               style={{ color: promoBar.text_color }}
             >
               {promoBar.message}
             </p>
-            <button
-              onClick={() => setShowPromo(false)}
-              className="ml-4 p-0 hover:opacity-70 transition flex-shrink-0 text-xs leading-none"
-              style={{ color: promoBar.text_color }}
-            >
-              ✕
-            </button>
           </div>
         </div>
       )}
