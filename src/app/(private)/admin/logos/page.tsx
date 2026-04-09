@@ -25,6 +25,18 @@ const LOGO_SPECS = {
     recommendedSize: "32x32px or 64x64px",
     maxSize: "500KB",
   },
+  footer_logo: {
+    label: "Footer Logo",
+    description: "Logo displayed in footer section",
+    recommendedSize: "200x100px (or 2:1 ratio)",
+    maxSize: "2MB",
+  },
+  footer_image: {
+    label: "Footer Image",
+    description: "Featured image or banner in footer",
+    recommendedSize: "1200x400px (or 3:1 ratio)",
+    maxSize: "3MB",
+  },
 };
 
 export default function LogoSettings() {
@@ -91,7 +103,7 @@ export default function LogoSettings() {
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    logoType: "main" | "mobile" | "favicon"
+    logoType: "main" | "mobile" | "favicon" | "footer_logo" | "footer_image"
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -103,8 +115,15 @@ export default function LogoSettings() {
     }
 
     // Validate file size (in MB)
-    const maxSizeMB =
-      logoType === "favicon" ? 0.5 : logoType === "mobile" ? 1 : 2;
+    let maxSizeMB = 2;
+    if (logoType === "favicon") {
+      maxSizeMB = 0.5;
+    } else if (logoType === "mobile") {
+      maxSizeMB = 1;
+    } else if (logoType === "footer_image") {
+      maxSizeMB = 3;
+    }
+
     if (file.size > maxSizeMB * 1024 * 1024) {
       toast.error(
         `File size should be less than ${maxSizeMB}MB for ${logoType}`
@@ -212,7 +231,7 @@ export default function LogoSettings() {
 
         {/* Logo Cards */}
         <div className="grid gap-6">
-          {(["main", "mobile", "favicon"] as const).map((logoType) => {
+          {(["main", "mobile", "favicon", "footer_logo", "footer_image"] as const).map((logoType) => {
             const logo = getLogo(logoType);
             const spec = LOGO_SPECS[logoType];
 
@@ -244,7 +263,7 @@ export default function LogoSettings() {
                   {logo?.url && (
                     <div className="mb-6">
                       <p className="text-sm font-medium text-gray-700 mb-2">
-                        Current Logo
+                        Current {spec.label}
                       </p>
                       <div className="bg-gray-100 rounded p-4 flex items-center justify-center min-h-32">
                         <img
@@ -268,7 +287,7 @@ export default function LogoSettings() {
                       <div className="flex items-center justify-center gap-2 mb-2">
                         <Upload size={20} className="text-gray-500" />
                         <span className="text-sm font-medium text-gray-700">
-                          {uploading === logoType ? "Uploading..." : "Upload New Logo"}
+                          {uploading === logoType ? "Uploading..." : `Upload New ${spec.label}`}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500">
@@ -311,6 +330,8 @@ export default function LogoSettings() {
             <li>• Main logo appears in desktop header navigation</li>
             <li>• Mobile logo displays on mobile/tablet screens</li>
             <li>• Favicon shows in browser tabs and bookmarks</li>
+            <li>• Footer logo is displayed in the footer section alongside company description</li>
+            <li>• Footer image serves as a featured banner or visual element in the footer</li>
             <li>• Use PNG or SVG format for best quality</li>
             <li>• Transparent backgrounds work best for logos</li>
             <li>• Footer description is displayed under the company logo</li>
