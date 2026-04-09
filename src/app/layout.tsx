@@ -13,7 +13,6 @@ import FloatingContactButtons from "@/components/FloatingContactButtons";
 import { Providers } from "@/components/Providers";
 import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
-import HomePage from "@/components/Layout/HomePage";
 import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
@@ -286,22 +285,19 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${montserrat.variable} ${neuropol.variable} antialiased m-0 p-0`}
       >
-        {/* HomePage wrapper - contains promo bar and everything else */}
-        <HomePage>
-          <Providers>
-            {/* Header (red navbar) comes after HomePage renders promo */}
-            <Header logos={logos} />
-            
-            {/* Main page content */}
-            {children}
-            
-            {/* Footer */}
-            <Footer />
-            
-            {/* Floating buttons */}
-            <FloatingContactButtons />
-          </Providers>
-        </HomePage>
+        <Providers>
+          {/* Header with integrated promo bar */}
+          <Header logos={logos} />
+
+          {/* Main page content */}
+          {children}
+
+          {/* Footer */}
+          <Footer />
+
+          {/* Floating buttons */}
+          <FloatingContactButtons />
+        </Providers>
 
         {/* Google Translate Element - Hidden but functional */}
         <div id="google_translate_element" />
