@@ -287,12 +287,13 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${montserrat.variable} ${neuropol.variable} antialiased`}
       >
         <Providers>
-          <Header logos={logos} />
-          
-          {/* HomePage wrapper - Promotional Bar Component */}
+           {/* HomePage wrapper - Promotional Bar Component */}
           <HomePage>
             {children}
           </HomePage>
+          <Header logos={logos} />
+          
+         
           
           <Footer />
           <FloatingContactButtons />
