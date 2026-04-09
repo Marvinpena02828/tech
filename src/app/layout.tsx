@@ -286,18 +286,15 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${montserrat.variable} ${neuropol.variable} antialiased`}
       >
-        <Providers>
-           {/* HomePage wrapper - Promotional Bar Component */}
-          <HomePage>
+        {/* HomePage wrapper at top level - Promotional Bar Component */}
+        <HomePage>
+          <Providers>
+            <Header logos={logos} />
             {children}
-          </HomePage>
-          <Header logos={logos} />
-          
-         
-          
-          <Footer />
-          <FloatingContactButtons />
-        </Providers>
+            <Footer />
+            <FloatingContactButtons />
+          </Providers>
+        </HomePage>
 
         {/* Google Translate Element - Hidden but functional */}
         <div id="google_translate_element" />
