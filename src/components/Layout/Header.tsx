@@ -8,6 +8,7 @@ import SearchDialog from "../SearchDialog";
 import { usePathname } from "next/navigation";
 import { getPublicCategories } from "@/app/(private)/admin/categories/models/categories-model";
 import { Category } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
 
 interface LogosProps {
   main?: string;
@@ -17,7 +18,13 @@ interface LogosProps {
 
 interface HeaderProps {
   logos?: LogosProps;
-  showPromoBar?: boolean; // NEW: Control promotional bar visibility
+}
+
+interface PromotionalBar {
+  message: string;
+  background_color: string;
+  text_color: string;
+  is_active: boolean;
 }
 
 export const socialLinks = [
@@ -60,7 +67,9 @@ export const socialLinks = [
   { name: "X", href: "https://x.com/AyyanInnov12181", image: "/socials/X.png" },
 ];
 
-export default function Header({ logos, showPromoBar = false }: HeaderProps) {
+export default function Header({ logos }: HeaderProps) {
+  const [promoBar, setPromoBar] = useState<PromotionalBar | null>(null);
+  const [showPromo, setShowPromo] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const [openParentCategory, setOpenParentCategory] = useState<string | null>(
@@ -78,10 +87,11 @@ export default function Header({ logos, showPromoBar = false }: HeaderProps) {
   const megaMenuRef = useRef<HTMLDivElement | null>(null);
   const languageDropdownRef = useRef<HTMLDivElement | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const supabase = createClient();
 
   const currentPath = usePathname();
 
-  // ✅ USE LOGOS FROM CMS PROP - FIXED!
+  // ✅ USE LOGOS FROM CMS PROP
   const mainLogo = logos?.main || "";
   const mobileLogo = logos?.mobile || "";
 
@@ -92,6 +102,45 @@ export default function Header({ logos, showPromoBar = false }: HeaderProps) {
     }
     return currentPath.startsWith(href);
   };
+
+  // Fetch promotional bar
+  useEffect(() => {
+    const fetchPromo = async () => {
+      try {
+        const { data } = await supabase
+          .from("promotional_bars")
+          .select("*")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (data) setPromoBar(data);
+      } catch (err) {
+        console.error("Error fetching promo:", err);
+      }
+    };
+
+    fetchPromo();
+  }, []);
+
+  // Handle promo bar scroll
+  useEffect(() => {
+    let lastScroll = 0;
+
+    const handlePromoScroll = () => {
+      const current = window.scrollY;
+      if (current > lastScroll && current > 100) {
+        setShowPromo(false);
+      } else if (current < lastScroll || current < 10) {
+        setShowPromo(true);
+      }
+      lastScroll = current;
+    };
+
+    window.addEventListener("scroll", handlePromoScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handlePromoScroll);
+  }, []);
 
   // Function to change language using Google Translate
   const changeLanguage = (languageCode: string, languageName: string) => {
@@ -247,14 +296,45 @@ export default function Header({ logos, showPromoBar = false }: HeaderProps) {
 
   return (
     <>
+      {/* PROMO BAR - STICKY AT TOP */}
+      {promoBar?.is_active && (
+        <div
+          className="sticky top-0 left-0 right-0 w-full z-50 transition-all duration-300"
+          style={{
+            backgroundColor: promoBar.background_color,
+            maxHeight: showPromo ? "45px" : "0px",
+            opacity: showPromo ? 1 : 0,
+            overflow: "hidden",
+            marginBottom: showPromo ? "0px" : "-45px",
+          }}
+        >
+          <div className="px-4 md:px-8 py-2 flex items-center justify-between">
+            <p
+              className="text-xs md:text-sm font-medium flex-1 text-center"
+              style={{ color: promoBar.text_color }}
+            >
+              {promoBar.message}
+            </p>
+            <button
+              onClick={() => setShowPromo(false)}
+              className="ml-4 p-0.5 hover:opacity-70 transition flex-shrink-0 text-sm"
+              style={{ color: promoBar.text_color }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* HEADER - BELOW PROMO BAR */}
       <header
-        className={`w-full fixed top-0 left-0 right-0 z-40 h-16 md:h-20 lg:h-20 font-sans border-b transition-all duration-300 ${
+        className={`w-full fixed left-0 right-0 z-40 h-16 md:h-20 lg:h-20 font-sans border-b transition-all duration-300 ${
           isVisible ? "opacity-100" : "opacity-0"
         } ${isScrolled ? "shadow-lg" : ""}
         ${showHeader ? "translate-y-0" : "-translate-y-full"}
         ${currentPath.startsWith("/admin") ? "hidden" : ""}
         `}
-        style={{ backgroundColor: "#d6202a" }}
+        style={{ backgroundColor: "#d6202a", top: showPromo ? "45px" : "0px" }}
       >
         <div className="w-full flex items-center max-w-[1800px] mx-auto px-4 md:px-12 justify-between h-full">
           {/* ========== LOGO AREA ========== */}
@@ -517,7 +597,7 @@ export default function Header({ logos, showPromoBar = false }: HeaderProps) {
 
       {/* Mobile Navigation Menu - Off-Canvas Drawer */}
       <div
-        className={`h-[calc(100vh-64px)] w-[85vw] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 xl:hidden fixed  top-16  md:top-20 lg:top-24 left-0                   
+        className={`h-[calc(100vh-64px)] w-[85vw] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-40 xl:hidden fixed  top-16  md:top-20 lg:top-24 left-0                   
     ${
       isMobileMenuOpen
         ? "translate-x-0"
