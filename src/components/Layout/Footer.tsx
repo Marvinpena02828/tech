@@ -319,23 +319,24 @@ export default function Footer() {
                 )}
               </form>
 
-              {/* Social Links */}
-              <div className="flex items-center space-x-3 order-1 md:order-2 mt-2">
+              {/* Social Links Grid - Updated to match screenshot */}
+              <div className="grid grid-cols-5 gap-2 order-1 md:order-2 mt-4 w-full max-w-xs">
                 {socialLinks.map((social) => {
                   return (
                     <Link
                       target="_blank"
                       key={social.name}
                       href={social.href}
-                      className="w-9 md:w-10 h-8 md:h-[29px] rounded-full bg-white flex items-center justify-center hover:bg-primary-blue hover:scale-110 hover:shadow-xl transition-all duration-300"
+                      className="aspect-square bg-gray-800 border border-gray-700 flex items-center justify-center hover:bg-gray-700 hover:scale-105 transition-all duration-300"
                       aria-label={social.name}
+                      title={social.name}
                     >
                       <AppImage
                         src={social.image}
                         alt={social.name}
-                        width={40}
-                        height={40}
-                        className="object-contain filter hover:brightness-0 hover:invert"
+                        width={32}
+                        height={32}
+                        className="object-contain w-8 h-8"
                       />
                     </Link>
                   );
