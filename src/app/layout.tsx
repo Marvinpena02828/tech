@@ -284,14 +284,21 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${montserrat.variable} ${neuropol.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${montserrat.variable} ${neuropol.variable} antialiased m-0 p-0`}
       >
-        {/* HomePage wrapper at top level - Promotional Bar Component */}
+        {/* HomePage wrapper - contains promo bar and everything else */}
         <HomePage>
           <Providers>
+            {/* Header (red navbar) comes after HomePage renders promo */}
             <Header logos={logos} />
+            
+            {/* Main page content */}
             {children}
+            
+            {/* Footer */}
             <Footer />
+            
+            {/* Floating buttons */}
             <FloatingContactButtons />
           </Providers>
         </HomePage>
