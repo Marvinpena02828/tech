@@ -1,4 +1,4 @@
-# Ayyan B2B Platform
+# Mytechon B2B Platform
 
 Next.js 16 + TypeScript + Supabase application for public catalog and admin CMS operations.
 
