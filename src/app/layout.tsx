@@ -80,18 +80,18 @@ async function getLogos() {
 export const metadata: Metadata = {
   title: {
     default:
-      "AyyanTech – Innovative Electronics & Smart Tech Accessories | ayyantech.net",
-    template: "%s | AyyanTech",
+      "TechOn – Innovative Electronics & Smart Tech Accessories | tech-on.net",
+    template: "%s | TechOn",
   },
   description:
-    "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide. Visit ayyantech.net.",
-  metadataBase: new URL("https://ayyantech.net"),
+    "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, TechOn delivers quality B2B tech solutions worldwide. Visit tech-on.net.",
+  metadataBase: new URL("https://tech-on.net"),
   keywords: [
-    "AyyanTech",
-    "ayyantech",
-    "ayyantech.net",
-    "Ayyan Technology",
-    "Ayyan Innovations",
+    "TechOn",
+    "TechOn",
+    "tech-on.net",
+    "TechOn Technology",
+    "TechOn Innovations",
     "B2B electronics supplier",
     "smartphone accessories wholesale",
     "tech accessories",
@@ -100,17 +100,17 @@ export const metadata: Metadata = {
     "innovative electronics",
   ],
   openGraph: {
-    title: "AyyanTech – Innovative Electronics & Smart Tech Accessories",
+    title: "TechOn – Innovative Electronics & Smart Tech Accessories",
     description:
-      "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
-    url: "https://ayyantech.net",
-    siteName: "AyyanTech",
+      "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
+    url: "https://tech-on.net",
+    siteName: "TechOn",
     images: [
       {
         url: "/Ayyan Logo(1).png",
         width: 1200,
         height: 630,
-        alt: "AyyanTech – Innovative Electronics & Smart Tech Accessories",
+        alt: "TechOn – Innovative Electronics & Smart Tech Accessories",
       },
     ],
     locale: "en_US",
@@ -118,14 +118,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AyyanTech – Innovative Electronics & Smart Tech Accessories",
+    title: "TechOn – Innovative Electronics & Smart Tech Accessories",
     description:
-      "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
+      "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
     images: ["/Ayyan Logo(1).png"],
     site: "@AyyanInnov12181",
   },
   alternates: {
-    canonical: "https://ayyantech.net",
+    canonical: "https://tech-on.net",
   },
   robots: {
     index: true,
@@ -166,16 +166,16 @@ export default async function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "AyyanTech",
+              name: "TechOn",
               alternateName: [
-                "Ayyan Technology",
-                "Ayyan Innovations",
-                "ayyantech",
+                "TechOn Technology",
+                "TechOn Innovations",
+                "TechOn",
               ],
-              url: "https://ayyantech.net",
-              logo: logos.main || "https://ayyantech.net/Ayyan Logo(1).png",
+              url: "https://tech-on.net",
+              logo: logos.main || "https://tech-on.net/Ayyan Logo(1).png",
               description:
-                "AyyanTech is a professional supplier of smart, reliable and innovative smartphone accessories and electronics since 2015.",
+                "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics since 2015.",
               foundingDate: "2015",
               sameAs: [
                 "https://www.facebook.com/share/17GuPDVnXE/",
@@ -189,7 +189,7 @@ export default async function RootLayout({
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer service",
-                url: "https://ayyantech.net/contact",
+                url: "https://tech-on.net/contact",
               },
             }),
           }}
@@ -201,9 +201,9 @@ export default async function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              name: "AyyanTech",
-              alternateName: "ayyantech",
-              url: "https://ayyantech.net",
+              name: "TechOn",
+              alternateName: "TechOn",
+              url: "https://tech-on.net",
               potentialAction: {
                 "@type": "SearchAction",
                 target: {
@@ -227,8 +227,8 @@ export default async function RootLayout({
                 {
                   "@type": "ListItem",
                   position: 1,
-                  name: "AyyanTech Home",
-                  item: "https://ayyantech.net",
+                  name: "TechOn Home",
+                  item: "https://tech-on.net",
                 },
               ],
             }),
