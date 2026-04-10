@@ -11,6 +11,9 @@ import {
   Eye,
   GripVertical,
   ChevronDown,
+  Upload,
+  X,
+  Loader,
 } from "lucide-react";
 
 export default function AboutSectionsAdmin() {
@@ -49,6 +52,8 @@ export default function AboutSectionsAdmin() {
     animation_delay: 0,
   });
   const [previewMode, setPreviewMode] = useState(false);
+  const [bannerImagePreview, setBannerImagePreview] = useState("");
+  const [uploadingBannerImage, setUploadingBannerImage] = useState(false);
 
   // ===== COMPANY PROFILE =====
   const [profile, setProfile] = useState<any>(null);
@@ -58,9 +63,6 @@ export default function AboutSectionsAdmin() {
   // ===== TIMELINE =====
   const [timelines, setTimelines] = useState<any[]>([]);
   const [newTimeline, setNewTimeline] = useState({ year: "", details: "" });
-  const [editingTimelineId, setEditingTimelineId] = useState<number | null>(
-    null
-  );
 
   // ===== ACHIEVEMENTS =====
   const [achievements, setAchievements] = useState<any[]>([]);
@@ -70,9 +72,8 @@ export default function AboutSectionsAdmin() {
     description: "",
     image_url: "",
   });
-  const [editingAchievementId, setEditingAchievementId] = useState<
-    number | null
-  >(null);
+  const [achievementImagePreview, setAchievementImagePreview] = useState("");
+  const [uploadingAchievementImage, setUploadingAchievementImage] = useState(false);
 
   // ===== HONORS =====
   const [honors, setHonors] = useState<any[]>([]);
@@ -82,7 +83,8 @@ export default function AboutSectionsAdmin() {
     image_url: "",
     icon_type: "trophy",
   });
-  const [editingHonorId, setEditingHonorId] = useState<number | null>(null);
+  const [honorImagePreview, setHonorImagePreview] = useState("");
+  const [uploadingHonorImage, setUploadingHonorImage] = useState(false);
 
   // ===== MARKETING =====
   const [marketing, setMarketing] = useState<any>(null);
@@ -103,7 +105,6 @@ export default function AboutSectionsAdmin() {
     try {
       setLoading(true);
 
-      // Fetch all data in parallel
       const [
         bannerData,
         profileData,
@@ -144,12 +145,11 @@ export default function AboutSectionsAdmin() {
           .single(),
       ]);
 
-      // Handle Hero Banner
       if (bannerData.data) {
         setBanner(bannerData.data);
         setEditedBanner(bannerData.data);
+        setBannerImagePreview(bannerData.data.banner_image_url);
       } else if (bannerData.error?.code === "PGRST116") {
-        // No active banner, create default
         const defaultBanner = {
           ...editedBanner,
           is_active: true,
@@ -187,10 +187,60 @@ export default function AboutSectionsAdmin() {
     }
   };
 
+  // ===== IMAGE UPLOAD HANDLERS =====
+  const handleImageUpload = async (
+    file: File,
+    bucket: string,
+    onSuccess: (url: string) => void,
+    setLoading: (loading: boolean) => void
+  ) => {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
+      const filePath = `${bucket}/${fileName}`;
+
+      // Upload file to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from("images")
+        .upload(filePath, file);
+
+      if (error) {
+        throw error;
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("images").getPublicUrl(filePath);
+
+      onSuccess(publicUrl);
+      toast.success("Image uploaded successfully");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ===== HERO BANNER HANDLERS =====
   const handleSaveBanner = async () => {
     if (!editedBanner.banner_image_url.trim()) {
-      toast.error("Banner image URL required");
+      toast.error("Banner image required");
       return;
     }
 
@@ -310,6 +360,7 @@ export default function AboutSectionsAdmin() {
         description: "",
         image_url: "",
       });
+      setAchievementImagePreview("");
       toast.success("Achievement added");
       fetchAllData();
     } catch (error) {
@@ -352,6 +403,7 @@ export default function AboutSectionsAdmin() {
         image_url: "",
         icon_type: "trophy",
       });
+      setHonorImagePreview("");
       toast.success("Honor added");
       fetchAllData();
     } catch (error) {
@@ -522,6 +574,77 @@ export default function AboutSectionsAdmin() {
           ) : (
             // Edit Section
             <div className="space-y-8">
+              {/* Image Upload */}
+              <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold mb-4 text-gray-900">
+                    Banner Image
+                  </h3>
+
+                  {/* Image Preview */}
+                  {bannerImagePreview && (
+                    <div className="mb-4 relative">
+                      <img
+                        src={bannerImagePreview}
+                        alt="Banner preview"
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={() => {
+                          setBannerImagePreview("");
+                          setEditedBanner({ ...editedBanner, banner_image_url: "" });
+                        }}
+                        className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Upload Area */}
+                  <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                    <div className="flex flex-col items-center gap-2">
+                      {uploadingBannerImage ? (
+                        <>
+                          <Loader size={24} className="animate-spin text-blue-600" />
+                          <span className="text-sm text-gray-600">Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={24} className="text-gray-400" />
+                          <span className="text-sm text-gray-600">
+                            Click to upload or drag and drop
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            PNG, JPG, WEBP up to 5MB
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      disabled={uploadingBannerImage}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleImageUpload(
+                            file,
+                            "hero-banner",
+                            (url) => {
+                              setEditedBanner({ ...editedBanner, banner_image_url: url });
+                              setBannerImagePreview(url);
+                            },
+                            setUploadingBannerImage
+                          );
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
               {/* Image & Overlay Settings */}
               <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
                 <div>
@@ -529,24 +652,6 @@ export default function AboutSectionsAdmin() {
                     Image & Overlay
                   </h3>
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Banner Image URL
-                      </label>
-                      <input
-                        type="text"
-                        value={editedBanner.banner_image_url}
-                        onChange={(e) =>
-                          setEditedBanner({
-                            ...editedBanner,
-                            banner_image_url: e.target.value,
-                          })
-                        }
-                        placeholder="https://example.com/banner.jpg"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1158,18 +1263,63 @@ export default function AboutSectionsAdmin() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm"
               />
 
-              <input
-                type="text"
-                placeholder="Image URL (optional)"
-                value={newAchievement.image_url}
-                onChange={(e) =>
-                  setNewAchievement({
-                    ...newAchievement,
-                    image_url: e.target.value,
-                  })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              />
+              {/* Achievement Image Upload */}
+              {achievementImagePreview && (
+                <div className="relative">
+                  <img
+                    src={achievementImagePreview}
+                    alt="Achievement preview"
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                  <button
+                    onClick={() => {
+                      setAchievementImagePreview("");
+                      setNewAchievement({ ...newAchievement, image_url: "" });
+                    }}
+                    className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              )}
+
+              <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                <div className="flex flex-col items-center gap-2">
+                  {uploadingAchievementImage ? (
+                    <>
+                      <Loader size={20} className="animate-spin text-blue-600" />
+                      <span className="text-sm text-gray-600">Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={20} className="text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        Upload achievement image (optional)
+                      </span>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  disabled={uploadingAchievementImage}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleImageUpload(
+                        file,
+                        "achievements",
+                        (url) => {
+                          setNewAchievement({ ...newAchievement, image_url: url });
+                          setAchievementImagePreview(url);
+                        },
+                        setUploadingAchievementImage
+                      );
+                    }
+                  }}
+                />
+              </label>
 
               <button
                 onClick={handleAddAchievement}
@@ -1211,9 +1361,11 @@ export default function AboutSectionsAdmin() {
                 )}
 
                 {achievement.image_url && (
-                  <p className="text-xs text-gray-500 truncate">
-                    {achievement.image_url}
-                  </p>
+                  <img
+                    src={achievement.image_url}
+                    alt={achievement.label}
+                    className="w-full h-24 object-cover rounded mt-2"
+                  />
                 )}
               </div>
             ))}
@@ -1263,15 +1415,63 @@ export default function AboutSectionsAdmin() {
                 <option value="award">Award</option>
               </select>
 
-              <input
-                type="text"
-                placeholder="Image URL (optional)"
-                value={newHonor.image_url}
-                onChange={(e) =>
-                  setNewHonor({ ...newHonor, image_url: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              />
+              {/* Honor Image Upload */}
+              {honorImagePreview && (
+                <div className="relative">
+                  <img
+                    src={honorImagePreview}
+                    alt="Honor preview"
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                  <button
+                    onClick={() => {
+                      setHonorImagePreview("");
+                      setNewHonor({ ...newHonor, image_url: "" });
+                    }}
+                    className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              )}
+
+              <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                <div className="flex flex-col items-center gap-2">
+                  {uploadingHonorImage ? (
+                    <>
+                      <Loader size={20} className="animate-spin text-blue-600" />
+                      <span className="text-sm text-gray-600">Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={20} className="text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        Upload honor image (optional)
+                      </span>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  disabled={uploadingHonorImage}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleImageUpload(
+                        file,
+                        "honors",
+                        (url) => {
+                          setNewHonor({ ...newHonor, image_url: url });
+                          setHonorImagePreview(url);
+                        },
+                        setUploadingHonorImage
+                      );
+                    }
+                  }}
+                />
+              </label>
 
               <button
                 onClick={handleAddHonor}
@@ -1304,7 +1504,15 @@ export default function AboutSectionsAdmin() {
                   </button>
                 </div>
 
-                <p className="text-xs text-gray-500">
+                {honor.image_url && (
+                  <img
+                    src={honor.image_url}
+                    alt={honor.title}
+                    className="w-full h-24 object-cover rounded mt-2"
+                  />
+                )}
+
+                <p className="text-xs text-gray-500 mt-2">
                   Icon: {honor.icon_type}
                 </p>
               </div>
