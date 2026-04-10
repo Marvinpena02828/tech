@@ -1,270 +1,456 @@
-"use server";
+"use client";
 
-import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { useState, useRef } from "react";
+import { Newspaper, Plus, Edit, Trash2, Upload, X } from "lucide-react";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import AppImage from "@/components/ui/AppImage";
 import {
-  newsSchema,
-  newsUpdateSchema,
-  type NewsInput,
-  type NewsUpdateInput,
-} from "@/lib/validations/news";
-import type { News, ActionResult } from "@/lib/types";
-import { normalizeProxyUrl } from "@/lib/utils/image-utils";
+  createNews,
+  updateNews,
+  deleteNews,
+  uploadNewsImage,
+  type NewsItem,
+} from "@/app/(private)/admin/news/models/news-model";
 
-/**
- * Get all news items
- */
-export async function getNews(): Promise<ActionResult<News[]>> {
-  try {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase
-      .from("news")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching news:", error);
-      return {
-        success: false,
-        error: "Failed to fetch news. Please try again.",
-      };
-    }
-
-    // Transform image URLs to proxy URLs
-    const transformedData = data.map((item) => ({
-      ...item,
-      image_url: normalizeProxyUrl(item.image_url),
-    }));
-
-    return {
-      success: true,
-      data: transformedData as News[],
-    };
-  } catch (error) {
-    console.error("Unexpected error in getNews:", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred. Please try again.",
-    };
-  }
+interface NewsContentProps {
+  news: NewsItem[];
 }
 
-/**
- * Create a new news item
- */
-export async function createNews(
-  input: NewsInput
-): Promise<ActionResult<News>> {
-  try {
-    const validationResult = newsSchema.safeParse(input);
-    if (!validationResult.success) {
-      const errors = validationResult.error.issues
-        .map((err: { message: string }) => err.message)
-        .join(", ");
-      return {
-        success: false,
-        error: `Validation failed: ${errors}`,
-      };
+export default function NewsContent({ news: initialNews }: NewsContentProps) {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [news, setNews] = useState(initialNews);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
+  const [formData, setFormData] = useState({
+    caption: "",
+    title: "",
+    content: "",
+    image_url: "",
+  });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const handleDelete = async (id: number, title: string) => {
+    if (!confirm(`Delete news article "${title}"?`)) return;
+
+    setIsDeleting(id);
+    const result = await deleteNews(id);
+
+    setIsDeleting(null);
+
+    if (!result.success) {
+      toast.error(result.error || "Failed to delete news article");
+    } else {
+      toast.success("News article deleted");
+      setNews(news.filter((n) => n.id !== id));
+      router.refresh();
+    }
+  };
+
+  const handleAdd = () => {
+    setSelectedNews(null);
+    setFormData({ caption: "", title: "", content: "", image_url: "" });
+    setImageFile(null);
+    setImagePreview(null);
+    setShowDialog(true);
+  };
+
+  const handleEdit = (item: NewsItem) => {
+    setSelectedNews(item);
+    setFormData({
+      caption: item.caption,
+      title: item.title,
+      content: item.content,
+      image_url: item.image_url,
+    });
+    setImageFile(null);
+    setImagePreview(item.image_url);
+    setShowDialog(true);
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
     }
 
-    const validatedData = validationResult.data;
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return {
-        success: false,
-        error: "Unauthorized. Please sign in to continue.",
-      };
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be smaller than 5MB");
+      return;
     }
 
-    const now = new Date().toISOString();
-    const { data, error } = await supabase
-      .from("news")
-      .insert({
-        ...validatedData,
-        created_at: now,
-        edited_at: now,
-      })
-      .select()
-      .single();
+    setImageFile(file);
 
-    if (error) {
-      console.error("Error creating news:", error);
-      return {
-        success: false,
-        error: "Failed to create news item. Please try again.",
-      };
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!imageFile && !imagePreview) {
+      toast.error("Please select an image");
+      return;
     }
 
-    revalidatePath("/admin/news");
-    revalidatePath("/news");
+    setIsSaving(true);
 
-    return {
-      success: true,
-      data: data as News,
-    };
-  } catch (error) {
-    console.error("Unexpected error in createNews:", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred. Please try again.",
-    };
-  }
-}
+    try {
+      let imageUrl = formData.image_url;
 
-/**
- * Update an existing news item
- */
-export async function updateNews(
-  id: number,
-  input: NewsUpdateInput
-): Promise<ActionResult<News>> {
-  try {
-    const validationResult = newsUpdateSchema.safeParse(input);
+      // Upload image if new file selected
+      if (imageFile) {
+        setIsUploadingImage(true);
+        const uploadResult = await uploadNewsImage(imageFile);
 
-    if (!validationResult.success) {
-      const errors = validationResult.error.issues
-        .map((err: { message: string }) => err.message)
-        .join(", ");
-      return {
-        success: false,
-        error: `Validation failed: ${errors}`,
-      };
+        if (!uploadResult.success) {
+          toast.error(uploadResult.error || "Failed to upload image");
+          setIsSaving(false);
+          setIsUploadingImage(false);
+          return;
+        }
+
+        imageUrl = uploadResult.data;
+        setIsUploadingImage(false);
+      }
+
+      if (selectedNews) {
+        // Update
+        const result = await updateNews(selectedNews.id, {
+          caption: formData.caption,
+          title: formData.title,
+          content: formData.content,
+          image_url: imageUrl,
+        });
+
+        if (!result.success) {
+          toast.error(result.error || "Failed to update news");
+        } else {
+          toast.success("News updated successfully");
+          setShowDialog(false);
+          router.refresh();
+        }
+      } else {
+        // Create
+        const result = await createNews({
+          caption: formData.caption,
+          title: formData.title,
+          content: formData.content,
+          image_url: imageUrl,
+        });
+
+        if (!result.success) {
+          toast.error(result.error || "Failed to create news");
+        } else {
+          toast.success("News created successfully");
+          setShowDialog(false);
+          router.refresh();
+        }
+      }
+    } catch (error) {
+      toast.error(
+        "An error occurred: " + (error instanceof Error ? error.message : "")
+      );
     }
 
-    const validatedData = validationResult.data;
-    const supabase = await createClient();
+    setIsSaving(false);
+  };
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+  return (
+    <div className="p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                <Newspaper className="text-purple-600" size={32} />
+                News & Updates
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Manage news articles ({news.length} total)
+              </p>
+            </div>
+            <button
+              onClick={handleAdd}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <Plus size={20} />
+              Add News
+            </button>
+          </div>
+        </div>
 
-    if (authError || !user) {
-      return {
-        success: false,
-        error: "Unauthorized. Please sign in to continue.",
-      };
-    }
+        {/* News List */}
+        {news.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <Newspaper className="mx-auto text-gray-400 mb-4" size={64} />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No news articles yet
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Get started by adding your first news article
+            </p>
+            <button
+              onClick={handleAdd}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2"
+            >
+              <Plus size={20} />
+              Add First Article
+            </button>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    News
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Caption
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Created
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Last Edited
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {news.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {item.image_url && (
+                          <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                            <AppImage
+                              src={item.image_url}
+                              alt={item.title}
+                              width={64}
+                              height={64}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {item.title}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
 
-    const { data, error } = await supabase
-      .from("news")
-      .update({
-        ...validatedData,
-        edited_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      <p className="line-clamp-2">{item.caption}</p>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {new Date(item.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {new Date(item.edited_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id, item.title)}
+                          disabled={isDeleting === item.id}
+                          className="text-red-600 hover:text-red-800 disabled:opacity-50 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-    if (error) {
-      console.error("Error updating news:", error);
-      return {
-        success: false,
-        error: "Failed to update news item. Please try again.",
-      };
-    }
+        {/* Dialog */}
+        {showDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-4">
+                  {selectedNews ? "Edit News Article" : "Add News Article"}
+                </h2>
 
-    revalidatePath("/admin/news");
-    revalidatePath("/news");
+                <form onSubmit={handleSave} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      required
+                    />
+                  </div>
 
-    return {
-      success: true,
-      data: data as News,
-    };
-  } catch (error) {
-    console.error("Unexpected error in updateNews:", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred. Please try again.",
-    };
-  }
-}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Caption
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.caption}
+                      onChange={(e) =>
+                        setFormData({ ...formData, caption: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      required
+                    />
+                  </div>
 
-/**
- * Delete a news item
- */
-export async function deleteNews(id: number): Promise<ActionResult> {
-  try {
-    const supabase = await createClient();
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Content
+                    </label>
+                    <textarea
+                      value={formData.content}
+                      onChange={(e) =>
+                        setFormData({ ...formData, content: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      rows={6}
+                      required
+                    />
+                  </div>
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+                  {/* Image Upload Section */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Image
+                    </label>
 
-    if (authError || !user) {
-      return {
-        success: false,
-        error: "Unauthorized. Please sign in to continue.",
-      };
-    }
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
 
-    const { error } = await supabase.from("news").delete().eq("id", id);
+                    {imagePreview ? (
+                      <div className="relative">
+                        <div className="w-full bg-gray-100 rounded-lg border-2 border-gray-200 overflow-hidden">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-full h-64 object-cover"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImageFile(null);
+                            setImagePreview(null);
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = "";
+                            }
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors"
+                        >
+                          <X size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                        >
+                          Change Image
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors flex flex-col items-center gap-2"
+                      >
+                        <Upload className="text-gray-400" size={32} />
+                        <span className="text-sm font-medium text-gray-700">
+                          Click to upload image
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Max 5MB (PNG, JPG, GIF, WebP)
+                        </span>
+                      </button>
+                    )}
+                  </div>
 
-    if (error) {
-      console.error("Error deleting news:", error);
-      return {
-        success: false,
-        error: "Failed to delete news item. Please try again.",
-      };
-    }
-
-    revalidatePath("/admin/news");
-    revalidatePath("/news");
-
-    return {
-      success: true,
-      data: undefined,
-    };
-  } catch (error) {
-    console.error("Unexpected error in deleteNews:", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred. Please try again.",
-    };
-  }
-}
-
-export async function getNewsById(id: string) {
-  try {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase
-      .from("news")
-      .select()
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      console.error("Error fetching news:", error);
-      return {
-        success: false,
-        error: "Failed to fetch news. Please try again.",
-      };
-    }
-
-    // Transform image URL to proxy URL
-    const transformedData = {
-      ...data,
-      image_url: normalizeProxyUrl(data.image_url),
-    };
-
-    return {
-      success: true,
-      data: transformedData,
-    };
-  } catch (error) {
-    console.error("Unexpected error in getNewsById:", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred. Please try again.",
-    };
-  }
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="submit"
+                      disabled={isSaving || isUploadingImage}
+                      className="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                    >
+                      {isSaving ? (
+                        <>
+                          {isUploadingImage ? "Uploading image..." : "Saving..."}
+                        </>
+                      ) : selectedNews ? (
+                        "Update"
+                      ) : (
+                        "Create"
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowDialog(false)}
+                      className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
