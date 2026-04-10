@@ -6,7 +6,7 @@ const BUCKET_NAME = "banners";
  * Upload a banner image to Supabase Storage (Client-side version)
  * @param file - The image file to upload
  * @param type - 'mobile' or 'desktop'
- * @param bannerId - Optional banner ID for organizing files
+ * @param bannerId - Optional (not used for path to avoid 400 errors)
  * @returns The public URL of the uploaded image
  */
 export async function uploadBannerImageClient(
@@ -22,13 +22,14 @@ export async function uploadBannerImageClient(
   }
 
   // Generate unique filename with timestamp
+  // DO NOT use bannerId as subfolder - it causes path issues and 400 errors
   const fileExt = file.name.split(".").pop();
   const timestamp = Date.now();
-  const fileName = bannerId
-    ? `${bannerId}/${type}-${timestamp}.${fileExt}`
-    : `${type}-${timestamp}.${fileExt}`;
+  const fileName = `${type}-${timestamp}.${fileExt}`;
 
   try {
+    console.log("Uploading banner file:", fileName);
+
     // Upload file to Supabase Storage
     const { data, error } = await supabase.storage
       .from(BUCKET_NAME)
@@ -42,9 +43,9 @@ export async function uploadBannerImageClient(
       throw new Error(`Failed to upload ${type} banner: ${error.message}`);
     }
 
-    console.log("File uploaded successfully:", fileName);
+    console.log("File uploaded successfully:", fileName, data);
 
-    // Get public URL - bucket must be public for this to work
+    // Get public URL
     const {
       data: { publicUrl },
     } = supabase.storage.from(BUCKET_NAME).getPublicUrl(fileName);
@@ -68,7 +69,7 @@ export async function deleteBannerImageClient(imageUrl: string): Promise<void> {
 
   try {
     // Extract file path from URL
-    // URL format: https://[project].supabase.co/storage/v1/object/public/banners/[filepath]
+    // URL format: https://[project].supabase.co/storage/v1/object/public/banners/[filename]
     const urlParts = imageUrl.split(`/object/public/${BUCKET_NAME}/`);
     if (urlParts.length < 2) {
       console.warn("Invalid banner image URL format:", imageUrl);
