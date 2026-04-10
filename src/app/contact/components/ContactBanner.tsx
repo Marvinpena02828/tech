@@ -23,7 +23,6 @@ export default function ContactBanner() {
   const supabase = createClient();
   const [banner, setBanner] = useState<ContactBannerData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBannerData();
@@ -32,29 +31,23 @@ export default function ContactBanner() {
   const fetchBannerData = async () => {
     try {
       setLoading(true);
-      setError(null);
 
-      const { data, error: fetchError } = await supabase
+      const { data, error } = await supabase
         .from("contact_banner")
         .select("*")
         .eq("is_active", true)
         .maybeSingle();
 
-      if (fetchError) {
-        console.error("Supabase fetch error:", fetchError);
-        setError(fetchError.message);
+      if (error) {
+        console.error("Supabase fetch error:", error);
         return;
       }
 
       if (data) {
         setBanner(data);
-      } else {
-        console.log("No active banner found in database");
-        setBanner(null);
       }
     } catch (err: any) {
       console.error("Error fetching banner:", err);
-      setError(err?.message || "Failed to fetch banner");
     } finally {
       setLoading(false);
     }
@@ -88,11 +81,6 @@ export default function ContactBanner() {
         </div>
       </section>
     );
-  }
-
-  // If error, show fallback but don't break the page
-  if (error) {
-    console.warn("Banner error, showing fallback:", error);
   }
 
   return (
