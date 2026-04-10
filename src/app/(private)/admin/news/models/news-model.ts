@@ -10,7 +10,7 @@ import type { News, ActionResult } from "@/lib/types";
  * Type definitions
  */
 export interface NewsItem {
-  id: number;
+  id: string;
   caption: string;
   title: string;
   content: string;
@@ -190,7 +190,7 @@ export async function createNews(
  * If updating image, it should already be uploaded to storage
  */
 export async function updateNews(
-  id: number,
+  id: string,
   input: NewsUpdateInput
 ): Promise<ActionResult<NewsItem>> {
   try {
@@ -253,7 +253,7 @@ export async function updateNews(
 /**
  * Delete a news item and its associated image
  */
-export async function deleteNews(id: number): Promise<ActionResult> {
+export async function deleteNews(id: string): Promise<ActionResult> {
   try {
     const supabase = await createClient();
 
