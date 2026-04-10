@@ -21,7 +21,7 @@ export default function NewsContent({ news: initialNews }: NewsContentProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [news, setNews] = useState(initialNews);
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [formData, setFormData] = useState({
@@ -35,7 +35,7 @@ export default function NewsContent({ news: initialNews }: NewsContentProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const handleDelete = async (id: number, title: string) => {
+  const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Delete news article "${title}"?`)) return;
 
     setIsDeleting(id);
