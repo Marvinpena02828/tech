@@ -4,7 +4,6 @@ import { useState, useRef } from "react";
 import { Newspaper, Plus, Edit, Trash2, Upload, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import AppImage from "@/components/ui/AppImage";
 import {
   createNews,
   updateNews,
@@ -245,12 +244,14 @@ export default function NewsContent({ news: initialNews }: NewsContentProps) {
                       <div className="flex items-center gap-3">
                         {item.image_url && (
                           <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                            <AppImage
+                            <img
                               src={item.image_url}
                               alt={item.title}
-                              width={64}
-                              height={64}
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.error("Image failed to load:", item.image_url);
+                                e.currentTarget.src = "";
+                              }}
                             />
                           </div>
                         )}
@@ -381,6 +382,10 @@ export default function NewsContent({ news: initialNews }: NewsContentProps) {
                             src={imagePreview}
                             alt="Preview"
                             className="w-full h-64 object-cover"
+                            onError={(e) => {
+                              console.error("Preview image failed to load");
+                              e.currentTarget.src = "";
+                            }}
                           />
                         </div>
                         <button
