@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Newspaper, Plus, Edit, Trash2, Calendar } from "lucide-react";
+import { useState, useRef } from "react";
+import { Newspaper, Plus, Edit, Trash2, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import AppImage from "@/components/ui/AppImage";
-import { convertDriveUrl } from "@/lib/utils/DriveLinkConverter";
+import { createNews, updateNews, deleteNews } from "@/app/actions/news";
 
 interface NewsItem {
   id: number;
@@ -24,6 +24,7 @@ export default function NewsContent({
   news: NewsItem[];
 }) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [news, setNews] = useState(initialNews);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
   const [showDialog, setShowDialog] = useState(false);
@@ -34,19 +35,20 @@ export default function NewsContent({
     content: "",
     image_url: "",
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleDelete = async (id: number, title: string) => {
     if (!confirm(`Delete news article "${title}"?`)) return;
 
     setIsDeleting(id);
-    const supabase = createClient();
-    const { error } = await supabase.from("news").delete().eq("id", id);
+    const result = await deleteNews(id);
 
     setIsDeleting(null);
 
-    if (error) {
-      toast.error("Failed to delete news article");
+    if (!result.success) {
+      toast.error(result.error || "Failed to delete news article");
     } else {
       toast.success("News article deleted");
       setNews(news.filter((n) => n.id !== id));
@@ -57,6 +59,8 @@ export default function NewsContent({
   const handleAdd = () => {
     setSelectedNews(null);
     setFormData({ caption: "", title: "", content: "", image_url: "" });
+    setImageFile(null);
+    setImagePreview(null);
     setShowDialog(true);
   };
 
@@ -66,50 +70,117 @@ export default function NewsContent({
       caption: item.caption,
       title: item.title,
       content: item.content,
-      image_url: convertDriveUrl(item.image_url),
+      image_url: item.image_url,
     });
+    setImageFile(null);
+    setImagePreview(item.image_url);
     setShowDialog(true);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be smaller than 5MB");
+      return;
+    }
+
+    setImageFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!imageFile && !imagePreview) {
+      toast.error("Please select an image");
+      return;
+    }
+
     setIsSaving(true);
 
-    const image_url = await convertDriveUrl(formData.image_url);
+    try {
+      let imageUrl = formData.image_url;
 
-    const supabase = createClient();
+      // Upload image if new file selected
+      if (imageFile) {
+        const supabase = createClient();
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `news/${fileName}`;
 
-    if (selectedNews) {
-      // Update
-      const { error } = await supabase
-        .from("news")
-        .update({
-          ...formData,
-          edited_at: new Date().toISOString(),
-          image_url: image_url,
-        })
-        .eq("id", selectedNews.id);
+        const { error: uploadError } = await supabase.storage
+          .from("news-images")
+          .upload(filePath, imageFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
 
-      if (error) {
-        toast.error("Failed to update news:" + error.message);
-      } else {
-        toast.success("News updated successfully");
-        setShowDialog(false);
-        router.refresh();
+        if (uploadError) {
+          toast.error("Failed to upload image: " + uploadError.message);
+          setIsSaving(false);
+          return;
+        }
+
+        // Get public URL
+        const { data } = supabase.storage
+          .from("news-images")
+          .getPublicUrl(filePath);
+
+        imageUrl = data.publicUrl;
       }
-    } else {
-      // Create
-      const { error } = await supabase
-        .from("news")
-        .insert({ ...formData, image_url });
 
-      if (error) {
-        toast.error("Failed to create news");
+      if (selectedNews) {
+        // Update
+        const result = await updateNews(selectedNews.id, {
+          caption: formData.caption,
+          title: formData.title,
+          content: formData.content,
+          image_url: imageUrl,
+        });
+
+        if (!result.success) {
+          toast.error(result.error || "Failed to update news");
+        } else {
+          toast.success("News updated successfully");
+          setShowDialog(false);
+          router.refresh();
+        }
       } else {
-        toast.success("News created successfully");
-        setShowDialog(false);
-        router.refresh();
+        // Create
+        const result = await createNews({
+          caption: formData.caption,
+          title: formData.title,
+          content: formData.content,
+          image_url: imageUrl,
+        });
+
+        if (!result.success) {
+          toast.error(result.error || "Failed to create news");
+        } else {
+          toast.success("News created successfully");
+          setShowDialog(false);
+          router.refresh();
+        }
       }
+    } catch (error) {
+      toast.error(
+        "An error occurred: " + (error instanceof Error ? error.message : "")
+      );
     }
 
     setIsSaving(false);
@@ -211,6 +282,13 @@ export default function NewsContent({
                       <p className="line-clamp-2">{item.caption}</p>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
+                      {new Date(item.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
                       {new Date(item.last_edited).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -267,7 +345,7 @@ export default function NewsContent({
                       required
                     />
                   </div>
-                  {/* caption */}
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Caption
@@ -298,36 +376,64 @@ export default function NewsContent({
                     />
                   </div>
 
+                  {/* Image Upload Section */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Image URL (Google Drive or Direct Link)
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Image
                     </label>
+
                     <input
-                      type="url"
-                      value={formData.image_url}
-                      onChange={(e) =>
-                        setFormData({ ...formData, image_url: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="https://drive.google.com/... or https://..."
-                      required
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
                     />
 
-                    {formData.image_url && (
-                      <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-xs font-medium text-gray-700 mb-2">
-                          Image Preview:
-                        </p>
-                        <div className="flex items-center gap-4">
-                          <AppImage
-                            src={convertDriveUrl(formData.image_url)}
+                    {imagePreview ? (
+                      <div className="relative">
+                        <div className="w-full bg-gray-100 rounded-lg border-2 border-gray-200 overflow-hidden">
+                          <img
+                            src={imagePreview}
                             alt="Preview"
-                            width={200}
-                            height={200}
-                            className="rounded-lg shadow-md object-cover "
+                            className="w-full h-64 object-cover"
                           />
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImageFile(null);
+                            setImagePreview(null);
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = "";
+                            }
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors"
+                        >
+                          <X size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                        >
+                          Change Image
+                        </button>
                       </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors flex flex-col items-center gap-2"
+                      >
+                        <Upload className="text-gray-400" size={32} />
+                        <span className="text-sm font-medium text-gray-700">
+                          Click to upload image
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Max 5MB (PNG, JPG, GIF, WebP)
+                        </span>
+                      </button>
                     )}
                   </div>
 
