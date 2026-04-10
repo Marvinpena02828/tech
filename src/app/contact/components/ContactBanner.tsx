@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Image from "next/image";
 
 interface ContactBannerData {
   id?: string;
@@ -90,15 +89,12 @@ export default function ContactBanner() {
     >
       {/* Background Image */}
       {displayBanner.banner_image_url && (
-        <div className="absolute inset-0 z-0">
-          <Image
-            src={displayBanner.banner_image_url}
-            alt="Contact banner"
-            fill
-            className="object-cover md:object-fill"
-            priority
-          />
-        </div>
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('${displayBanner.banner_image_url}')`,
+          }}
+        />
       )}
 
       {/* Overlay */}
