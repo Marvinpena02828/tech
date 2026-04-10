@@ -2,27 +2,22 @@
 
 import { useState, useRef } from "react";
 import { Newspaper, Plus, Edit, Trash2, Upload, X } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import AppImage from "@/components/ui/AppImage";
-import { createNews, updateNews, deleteNews } from "@/app/actions/news";
+import {
+  createNews,
+  updateNews,
+  deleteNews,
+  uploadNewsImage,
+  type NewsItem,
+} from "@/app/(private)/admin/news/models/news-model";
 
-interface NewsItem {
-  id: number;
-  caption: string;
-  title: string;
-  content: string;
-  image_url: string;
-  created_at: string;
-  last_edited: string;
+interface NewsContentProps {
+  news: NewsItem[];
 }
 
-export default function NewsContent({
-  news: initialNews,
-}: {
-  news: NewsItem[];
-}) {
+export default function NewsContent({ news: initialNews }: NewsContentProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [news, setNews] = useState(initialNews);
@@ -38,6 +33,7 @@ export default function NewsContent({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const handleDelete = async (id: number, title: string) => {
     if (!confirm(`Delete news article "${title}"?`)) return;
@@ -77,7 +73,7 @@ export default function NewsContent({
     setShowDialog(true);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -118,30 +114,18 @@ export default function NewsContent({
 
       // Upload image if new file selected
       if (imageFile) {
-        const supabase = createClient();
-        const fileExt = imageFile.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `news/${fileName}`;
+        setIsUploadingImage(true);
+        const uploadResult = await uploadNewsImage(imageFile);
 
-        const { error: uploadError } = await supabase.storage
-          .from("news-images")
-          .upload(filePath, imageFile, {
-            cacheControl: "3600",
-            upsert: false,
-          });
-
-        if (uploadError) {
-          toast.error("Failed to upload image: " + uploadError.message);
+        if (!uploadResult.success) {
+          toast.error(uploadResult.error || "Failed to upload image");
           setIsSaving(false);
+          setIsUploadingImage(false);
           return;
         }
 
-        // Get public URL
-        const { data } = supabase.storage
-          .from("news-images")
-          .getPublicUrl(filePath);
-
-        imageUrl = data.publicUrl;
+        imageUrl = uploadResult.data;
+        setIsUploadingImage(false);
       }
 
       if (selectedNews) {
@@ -238,7 +222,7 @@ export default function NewsContent({
                     News
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Summary
+                    Caption
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Created
@@ -289,7 +273,7 @@ export default function NewsContent({
                       })}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {new Date(item.last_edited).toLocaleDateString("en-US", {
+                      {new Date(item.edited_at).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -440,14 +424,18 @@ export default function NewsContent({
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
-                      disabled={isSaving}
+                      disabled={isSaving || isUploadingImage}
                       className="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
                     >
-                      {isSaving
-                        ? "Saving..."
-                        : selectedNews
-                          ? "Update"
-                          : "Create"}
+                      {isSaving ? (
+                        <>
+                          {isUploadingImage ? "Uploading image..." : "Saving..."}
+                        </>
+                      ) : selectedNews ? (
+                        "Update"
+                      ) : (
+                        "Create"
+                      )}
                     </button>
                     <button
                       type="button"
