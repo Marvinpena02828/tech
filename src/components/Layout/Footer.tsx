@@ -337,7 +337,7 @@ export default function Footer() {
             {/* Column 3: About Baseus */}
             <div className="md:col-span-1 footer-column">
               <h3 className="text-white font-semibold text-base mb-4 font-arial">
-                ABOUT BASEUS
+                ABOUT TechOn
               </h3>
               <ul className="space-y-2">
                 {footerLinks.Company.map((link, index) => (
