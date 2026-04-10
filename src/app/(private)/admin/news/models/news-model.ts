@@ -10,7 +10,7 @@ import type { News, ActionResult } from "@/lib/types";
  * Type definitions
  */
 export interface NewsItem {
-  id: string;
+  id: string; // UUID from database (Supabase returns as string)
   caption: string;
   title: string;
   content: string;
@@ -327,6 +327,8 @@ export async function deleteNews(id: string): Promise<ActionResult> {
  */
 export async function uploadNewsImage(file: File): Promise<ActionResult<string>> {
   try {
+    console.log("🔵 Starting image upload:", { fileName: file.name, fileSize: file.size });
+    
     const supabase = await createClient();
 
     // Check authentication
@@ -334,6 +336,8 @@ export async function uploadNewsImage(file: File): Promise<ActionResult<string>>
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
+
+    console.log("🔵 Auth check:", { userId: user?.id, authError: authError?.message });
 
     if (authError || !user) {
       return {
@@ -343,6 +347,8 @@ export async function uploadNewsImage(file: File): Promise<ActionResult<string>>
     }
 
     // Validate file
+    console.log("🔵 Validating file:", { type: file.type, isImage: file.type.startsWith("image/") });
+
     if (!file.type.startsWith("image/")) {
       return {
         success: false,
@@ -361,18 +367,22 @@ export async function uploadNewsImage(file: File): Promise<ActionResult<string>>
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `news/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
+    console.log("🔵 Uploading to path:", filePath);
+
+    const { error: uploadError, data: uploadData } = await supabase.storage
       .from("news-images")
       .upload(filePath, file, {
         cacheControl: "3600",
         upsert: false,
       });
 
+    console.log("🔵 Upload response:", { uploadError: uploadError?.message, uploadData });
+
     if (uploadError) {
-      console.error("Error uploading image:", uploadError);
+      console.error("❌ Error uploading image:", uploadError);
       return {
         success: false,
-        error: "Failed to upload image. Please try again.",
+        error: `Failed to upload image: ${uploadError.message || "Unknown error"}`,
       };
     }
 
@@ -381,15 +391,17 @@ export async function uploadNewsImage(file: File): Promise<ActionResult<string>>
       .from("news-images")
       .getPublicUrl(filePath);
 
+    console.log("✅ Upload successful. Public URL:", data.publicUrl);
+
     return {
       success: true,
       data: data.publicUrl,
     };
   } catch (error) {
-    console.error("Unexpected error in uploadNewsImage:", error);
+    console.error("❌ Unexpected error in uploadNewsImage:", error);
     return {
       success: false,
-      error: "An unexpected error occurred. Please try again.",
+      error: `An unexpected error occurred: ${error instanceof Error ? error.message : "Unknown"}`,
     };
   }
 }
