@@ -49,7 +49,7 @@ export default function ContactInfoContent({
     icon_name: "Mail",
     title: "",
     label: "",
-    link: "",
+    link: null as string | null,
     display_order: contactInfos.length + 1,
     is_active: true,
   });
@@ -61,7 +61,7 @@ export default function ContactInfoContent({
         icon_name: item.icon_name,
         title: item.title,
         label: item.label,
-        link: item.link || "",
+        link: item.link,
         display_order: item.display_order,
         is_active: item.is_active,
       });
@@ -71,7 +71,7 @@ export default function ContactInfoContent({
         icon_name: "Mail",
         title: "",
         label: "",
-        link: "",
+        link: null,
         display_order: contactInfos.length + 1,
         is_active: true,
       });
@@ -333,9 +333,12 @@ export default function ContactInfoContent({
                 </label>
                 <input
                   type="text"
-                  value={formData.link}
+                  value={formData.link || ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, link: e.target.value })
+                    setFormData({
+                      ...formData,
+                      link: e.target.value || null,
+                    })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="e.g., mailto:sales@ayyantech.net"
