@@ -1,3 +1,5 @@
+"use server";
+
 // src/app/(private)/admin/news/models/news-model.ts
 
 import { revalidatePath } from "next/cache";
