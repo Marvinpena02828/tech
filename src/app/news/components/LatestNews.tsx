@@ -1,10 +1,8 @@
 import Link from "next/link";
-
 import Image from "next/image";
 import { News } from "@/lib/types";
 
 const LatestNews = ({ news }: { news: News[] }) => {
-
   if (news.length === 0 || !news) {
     return <p className="text-center p-16">No news available.</p>;
   }
@@ -12,26 +10,29 @@ const LatestNews = ({ news }: { news: News[] }) => {
   return (
     <div className="py-12 mt-2 container">
       <h1 className="text-center text-4xl font-semibold">Latest News</h1>
-
       <div className="flex flex-wrap items-start justify-between gap-2 mt-12">
-        {news.map((item, index) => (
+        {news.map((item) => (
           <Link
             href={`/news/${item.id}`}
-            key={index}
+            key={item.id}
             className="w-full max-w-2xl group"
           >
-            <Image
-              width={192}
-              height={192}
-              src={item.image_url}
-              alt={item.title}
-              className="w-full h-auto object-cover aspect-13/9 hover:scale-101 transition-all"
-            />
-
-            <p className="text-center text-lg group-hover:text-blue-500 transition-all">{item.caption}</p>
+            <div className="relative w-full aspect-13/9 overflow-hidden rounded-lg bg-gray-200">
+              <Image
+                width={500}
+                height={350}
+                src={item.image_url}
+                alt={item.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                priority={false}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            </div>
+            <p className="text-center text-lg font-medium mt-4 group-hover:text-blue-500 transition-colors duration-200">
+              {item.caption}
+            </p>
           </Link>
         ))}
-       
       </div>
     </div>
   );
