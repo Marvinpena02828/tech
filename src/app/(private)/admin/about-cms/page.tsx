@@ -16,8 +16,39 @@ import {
 export default function AboutSectionsAdmin() {
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<
-    "profile" | "timeline" | "achievements" | "honors" | "marketing"
-  >("profile");
+    "hero" | "profile" | "timeline" | "achievements" | "honors" | "marketing"
+  >("hero");
+
+  // ===== HERO BANNER =====
+  const [banner, setBanner] = useState<any>(null);
+  const [editedBanner, setEditedBanner] = useState({
+    banner_image_url: "",
+    banner_height: 500,
+    overlay_enabled: true,
+    overlay_color: "rgba(0,0,0,0.3)",
+    overlay_opacity: 0.3,
+    primary_text: "Empowered by",
+    primary_text_color: "text-violet-950",
+    primary_text_size: "text-3xl",
+    secondary_text: "INNOVATIONS",
+    secondary_text_color: "text-red-700",
+    secondary_text_size: "text-2xl",
+    text_position_left: 60,
+    text_position_top: 25,
+    text_alignment: "center",
+    responsive_mobile_height: 350,
+    responsive_mobile_text_size: "text-xl",
+    responsive_tablet_height: 400,
+    responsive_tablet_text_size: "text-2xl",
+    enable_parallax: false,
+    cta_button_enabled: false,
+    cta_button_text: "Learn More",
+    cta_button_link: "#",
+    cta_button_color: "bg-blue-600",
+    animation_type: "fade-in",
+    animation_delay: 0,
+  });
+  const [previewMode, setPreviewMode] = useState(false);
 
   // ===== COMPANY PROFILE =====
   const [profile, setProfile] = useState<any>(null);
@@ -74,12 +105,18 @@ export default function AboutSectionsAdmin() {
 
       // Fetch all data in parallel
       const [
+        bannerData,
         profileData,
         timelinesData,
         achievementsData,
         honorsData,
         marketingData,
       ] = await Promise.all([
+        supabase
+          .from("hero_banner")
+          .select("*")
+          .eq("is_active", true)
+          .single(),
         supabase
           .from("company_profile")
           .select("*")
@@ -107,6 +144,29 @@ export default function AboutSectionsAdmin() {
           .single(),
       ]);
 
+      // Handle Hero Banner
+      if (bannerData.data) {
+        setBanner(bannerData.data);
+        setEditedBanner(bannerData.data);
+      } else if (bannerData.error?.code === "PGRST116") {
+        // No active banner, create default
+        const defaultBanner = {
+          ...editedBanner,
+          is_active: true,
+          created_at: new Date().toISOString(),
+        };
+        const { data: newBanner } = await supabase
+          .from("hero_banner")
+          .insert([defaultBanner])
+          .select()
+          .single();
+
+        if (newBanner) {
+          setBanner(newBanner);
+          setEditedBanner(newBanner);
+        }
+      }
+
       if (profileData.data) {
         setProfile(profileData.data);
         setEditedProfile(profileData.data.content);
@@ -124,6 +184,38 @@ export default function AboutSectionsAdmin() {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ===== HERO BANNER HANDLERS =====
+  const handleSaveBanner = async () => {
+    if (!editedBanner.banner_image_url.trim()) {
+      toast.error("Banner image URL required");
+      return;
+    }
+
+    try {
+      const updateData = {
+        ...editedBanner,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (banner) {
+        await supabase
+          .from("hero_banner")
+          .update(updateData)
+          .eq("id", banner.id);
+      } else {
+        await supabase
+          .from("hero_banner")
+          .insert([{ ...updateData, is_active: true }]);
+      }
+
+      toast.success("Banner saved successfully");
+      fetchAllData();
+    } catch (error) {
+      console.error("Error saving banner:", error);
+      toast.error("Failed to save banner");
     }
   };
 
@@ -323,6 +415,7 @@ export default function AboutSectionsAdmin() {
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
         {[
+          { id: "hero", label: "Hero Banner" },
           { id: "profile", label: "Company Profile" },
           { id: "timeline", label: "Timeline" },
           { id: "achievements", label: "Achievements" },
@@ -334,6 +427,7 @@ export default function AboutSectionsAdmin() {
             onClick={() =>
               setActiveTab(
                 tab.id as
+                  | "hero"
                   | "profile"
                   | "timeline"
                   | "achievements"
@@ -351,6 +445,568 @@ export default function AboutSectionsAdmin() {
           </button>
         ))}
       </div>
+
+      {/* TAB: HERO BANNER */}
+      {activeTab === "hero" && (
+        <div className="space-y-8">
+          {/* Preview Toggle */}
+          <div className="mb-6">
+            <button
+              onClick={() => setPreviewMode(!previewMode)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 font-medium"
+            >
+              <Eye size={18} />
+              {previewMode ? "Edit Mode" : "Preview Mode"}
+            </button>
+          </div>
+
+          {previewMode ? (
+            // Preview Section
+            <div className="bg-gray-100 rounded-lg p-6">
+              <h3 className="text-lg font-bold mb-4 text-gray-900">Preview</h3>
+              <div
+                className="relative w-full overflow-hidden rounded-lg shadow-lg"
+                style={{ height: `${editedBanner.banner_height}px` }}
+              >
+                {/* Background Image */}
+                <div
+                  className="absolute inset-0 z-0 bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url('${editedBanner.banner_image_url}')`,
+                  }}
+                />
+
+                {/* Overlay */}
+                {editedBanner.overlay_enabled && (
+                  <div
+                    className="absolute inset-0 z-5"
+                    style={{
+                      backgroundColor: editedBanner.overlay_color,
+                      opacity: editedBanner.overlay_opacity,
+                    }}
+                  />
+                )}
+
+                {/* Text Content */}
+                <div
+                  className="absolute z-10 flex flex-col items-center gap-2"
+                  style={{
+                    left: `${editedBanner.text_position_left}%`,
+                    top: `${editedBanner.text_position_top}%`,
+                    transform: "translate(-50%, -50%)",
+                    textAlign: editedBanner.text_alignment as any,
+                  }}
+                >
+                  <span
+                    className={`${editedBanner.primary_text_size} ${editedBanner.primary_text_color} font-semibold tracking-widest`}
+                  >
+                    {editedBanner.primary_text}
+                  </span>
+                  <span
+                    className={`${editedBanner.secondary_text_size} ${editedBanner.secondary_text_color} font-bold uppercase tracking-wider`}
+                  >
+                    {editedBanner.secondary_text}
+                  </span>
+
+                  {/* CTA Button */}
+                  {editedBanner.cta_button_enabled && (
+                    <button
+                      className={`${editedBanner.cta_button_color} text-white px-6 py-2 rounded-lg font-medium mt-4 hover:opacity-90`}
+                    >
+                      {editedBanner.cta_button_text}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Edit Section
+            <div className="space-y-8">
+              {/* Image & Overlay Settings */}
+              <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold mb-4 text-gray-900">
+                    Image & Overlay
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Banner Image URL
+                      </label>
+                      <input
+                        type="text"
+                        value={editedBanner.banner_image_url}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            banner_image_url: e.target.value,
+                          })
+                        }
+                        placeholder="https://example.com/banner.jpg"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Banner Height (px)
+                        </label>
+                        <input
+                          type="number"
+                          value={editedBanner.banner_height}
+                          onChange={(e) =>
+                            setEditedBanner({
+                              ...editedBanner,
+                              banner_height: parseInt(e.target.value),
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Overlay Opacity (0-1)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="1"
+                          value={editedBanner.overlay_opacity}
+                          onChange={(e) =>
+                            setEditedBanner({
+                              ...editedBanner,
+                              overlay_opacity: parseFloat(e.target.value),
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="overlay_enabled"
+                        checked={editedBanner.overlay_enabled}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            overlay_enabled: e.target.checked,
+                          })
+                        }
+                        className="w-4 h-4"
+                      />
+                      <label htmlFor="overlay_enabled" className="text-sm font-medium text-gray-700">
+                        Enable Overlay
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Settings */}
+              <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">
+                  Text Content & Styling
+                </h3>
+
+                <div className="space-y-4">
+                  {/* Primary Text */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Primary Text
+                    </label>
+                    <input
+                      type="text"
+                      value={editedBanner.primary_text}
+                      onChange={(e) =>
+                        setEditedBanner({
+                          ...editedBanner,
+                          primary_text: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Primary Text Color
+                      </label>
+                      <select
+                        value={editedBanner.primary_text_color}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            primary_text_color: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="text-violet-950">Dark Violet</option>
+                        <option value="text-white">White</option>
+                        <option value="text-gray-900">Dark Gray</option>
+                        <option value="text-blue-600">Blue</option>
+                        <option value="text-gray-100">Light Gray</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Primary Text Size
+                      </label>
+                      <select
+                        value={editedBanner.primary_text_size}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            primary_text_size: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="text-xl">Small (xl)</option>
+                        <option value="text-2xl">Medium (2xl)</option>
+                        <option value="text-3xl">Large (3xl)</option>
+                        <option value="text-4xl">Extra Large (4xl)</option>
+                        <option value="text-5xl">Huge (5xl)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Secondary Text */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Secondary Text
+                    </label>
+                    <input
+                      type="text"
+                      value={editedBanner.secondary_text}
+                      onChange={(e) =>
+                        setEditedBanner({
+                          ...editedBanner,
+                          secondary_text: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Secondary Text Color
+                      </label>
+                      <select
+                        value={editedBanner.secondary_text_color}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            secondary_text_color: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="text-red-700">Red</option>
+                        <option value="text-white">White</option>
+                        <option value="text-yellow-400">Yellow</option>
+                        <option value="text-orange-600">Orange</option>
+                        <option value="text-pink-600">Pink</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Secondary Text Size
+                      </label>
+                      <select
+                        value={editedBanner.secondary_text_size}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            secondary_text_size: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="text-xl">Small (xl)</option>
+                        <option value="text-2xl">Medium (2xl)</option>
+                        <option value="text-3xl">Large (3xl)</option>
+                        <option value="text-4xl">Extra Large (4xl)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Positioning */}
+              <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">
+                  Text Positioning
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Position from Left (%)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={editedBanner.text_position_left}
+                          onChange={(e) =>
+                            setEditedBanner({
+                              ...editedBanner,
+                              text_position_left: parseInt(e.target.value),
+                            })
+                          }
+                          className="flex-1"
+                        />
+                        <span className="text-sm font-medium w-12">
+                          {editedBanner.text_position_left}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Position from Top (%)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={editedBanner.text_position_top}
+                          onChange={(e) =>
+                            setEditedBanner({
+                              ...editedBanner,
+                              text_position_top: parseInt(e.target.value),
+                            })
+                          }
+                          className="flex-1"
+                        />
+                        <span className="text-sm font-medium w-12">
+                          {editedBanner.text_position_top}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Text Alignment
+                    </label>
+                    <select
+                      value={editedBanner.text_alignment}
+                      onChange={(e) =>
+                        setEditedBanner({
+                          ...editedBanner,
+                          text_alignment: e.target.value,
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    >
+                      <option value="left">Left</option>
+                      <option value="center">Center</option>
+                      <option value="right">Right</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Button Settings */}
+              <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">
+                  Call-to-Action Button
+                </h3>
+
+                <div className="flex items-center gap-2 mb-4">
+                  <input
+                    type="checkbox"
+                    id="cta_enabled"
+                    checked={editedBanner.cta_button_enabled}
+                    onChange={(e) =>
+                      setEditedBanner({
+                        ...editedBanner,
+                        cta_button_enabled: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="cta_enabled" className="text-sm font-medium text-gray-700">
+                    Enable CTA Button
+                  </label>
+                </div>
+
+                {editedBanner.cta_button_enabled && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Button Text
+                      </label>
+                      <input
+                        type="text"
+                        value={editedBanner.cta_button_text}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            cta_button_text: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Button Link
+                      </label>
+                      <input
+                        type="text"
+                        value={editedBanner.cta_button_link}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            cta_button_link: e.target.value,
+                          })
+                        }
+                        placeholder="https://example.com or #section"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Button Color
+                      </label>
+                      <select
+                        value={editedBanner.cta_button_color}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            cta_button_color: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="bg-blue-600">Blue</option>
+                        <option value="bg-red-600">Red</option>
+                        <option value="bg-green-600">Green</option>
+                        <option value="bg-gray-800">Dark Gray</option>
+                        <option value="bg-purple-600">Purple</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Responsive Settings */}
+              <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">
+                  Responsive Design
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Mobile Height (px)
+                      </label>
+                      <input
+                        type="number"
+                        value={editedBanner.responsive_mobile_height}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            responsive_mobile_height: parseInt(e.target.value),
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tablet Height (px)
+                      </label>
+                      <input
+                        type="number"
+                        value={editedBanner.responsive_tablet_height}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            responsive_tablet_height: parseInt(e.target.value),
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Mobile Text Size
+                      </label>
+                      <select
+                        value={editedBanner.responsive_mobile_text_size}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            responsive_mobile_text_size: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="text-lg">Large (lg)</option>
+                        <option value="text-xl">Extra Large (xl)</option>
+                        <option value="text-2xl">2xl</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tablet Text Size
+                      </label>
+                      <select
+                        value={editedBanner.responsive_tablet_text_size}
+                        onChange={(e) =>
+                          setEditedBanner({
+                            ...editedBanner,
+                            responsive_tablet_text_size: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="text-xl">Small (xl)</option>
+                        <option value="text-2xl">Medium (2xl)</option>
+                        <option value="text-3xl">Large (3xl)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <button
+                onClick={handleSaveBanner}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-lg w-full justify-center"
+              >
+                <Save size={20} />
+                Save Hero Banner
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* TAB: COMPANY PROFILE */}
       {activeTab === "profile" && (
