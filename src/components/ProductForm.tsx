@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -8,13 +8,15 @@ import {
   Plus,
   X,
   Image as ImageIcon,
-  Link as LinkIcon,
+  Upload,
+  Loader,
 } from "lucide-react";
 import {
   createProduct,
   updateProduct,
   getProductById,
-  convertGoogleDriveUrl,
+  uploadProductImage,
+  deleteProductImage,
   type Product,
 } from "@/lib/supabase/products";
 import toast from "react-hot-toast";
@@ -25,15 +27,11 @@ import {
 import { z } from "zod";
 import { Category } from "@/lib/types";
 
-// Predefined color options for admin selection
 const PREDEFINED_COLORS = [
-  // black
   { name: "UK Black", hex: "#1A1A1A" },
   { name: "EU (UE) Black", hex: "#000000" },
   { name: "AU Black", hex: "#0F0F0F" },
   { name: "US Black", hex: "#0B0B0B" },
-
-  // white
   { name: "UK White", hex: "#F5F5F5" },
   { name: "EU (UE) White", hex: "#FFFFFF" },
   { name: "AU White", hex: "#FAFAFA" },
@@ -45,14 +43,21 @@ interface ProductFormProps {
   categories?: Category[];
 }
 
+interface UploadProgress {
+  [key: string]: number;
+}
+
 export default function ProductForm({
   productId,
   categories,
 }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [imageInput, setImageInput] = useState("");
-  const [thumbnailInput, setThumbnailInput] = useState("");
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({});
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     title: "",
@@ -60,17 +65,17 @@ export default function ProductForm({
     category: "",
     tags: [] as string[],
     short_description: "",
-    images: [] as string[], // Main product images
-    thumbnail: [] as string[], // Small preview images (up to 5)
-    description_images: [] as string[], // Images shown in description tab
+    images: [] as string[],
+    thumbnail: [] as string[],
+    description_images: [] as string[],
     features: [] as string[],
     specifications: {} as Record<string, string>,
     colors: [] as Array<{ name: string; hex: string }>,
     description: "",
     related_products: [] as string[],
-    is_active: true, // Whether product is visible on the site
-    video_link: "", // YouTube video link
-    downloads_link: "", // Google Drive PDF link
+    is_active: true,
+    video_link: "",
+    downloads_link: "",
   });
 
   const [currentTag, setCurrentTag] = useState("");
@@ -81,7 +86,7 @@ export default function ProductForm({
   const [colorHex, setColorHex] = useState("#000000");
   const [bulkSpecsInput, setBulkSpecsInput] = useState("");
   const [specInputMode, setSpecInputMode] = useState<"single" | "bulk">(
-    "single",
+    "single"
   );
 
   useEffect(() => {
@@ -117,12 +122,137 @@ export default function ProductForm({
     setLoading(false);
   };
 
+  // Optimize image before upload (resize, compress)
+  const optimizeImage = (
+    file: File,
+    maxWidth: number = 1920,
+    maxHeight: number = 1920,
+    quality: number = 0.8
+  ): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext("2d")?.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(resolve, "image/jpeg", quality);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle file upload sa Supabase
+  const handleFileUpload = async (
+    files: File[],
+    type: "thumbnail" | "image" | "description"
+  ) => {
+    setUploading(true);
+    const uploadId = Date.now().toString();
+
+    try {
+      for (const file of files) {
+        // Validate file type
+        if (!file.type.startsWith("image/")) {
+          toast.error(`${file.name} is not an image`);
+          continue;
+        }
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`${file.name} is larger than 10MB`);
+          continue;
+        }
+
+        const fileId = `${uploadId}-${file.name}`;
+        setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }));
+
+        try {
+          // Optimize image
+          const optimizedBlob = await optimizeImage(file);
+          const optimizedFile = new File([optimizedBlob], file.name, {
+            type: "image/jpeg",
+          });
+
+          // Upload to Supabase
+          const url = await uploadProductImage(optimizedFile, type);
+
+          // Add to form data
+          setFormData((prev) => ({
+            ...prev,
+            [type === "description"
+              ? "description_images"
+              : type === "thumbnail"
+                ? "thumbnail"
+                : "images"]: [
+              ...prev[
+                type === "description"
+                  ? "description_images"
+                  : type === "thumbnail"
+                    ? "thumbnail"
+                    : "images"
+              ],
+              url,
+            ],
+          }));
+
+          setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }));
+          toast.success(`${file.name} uploaded successfully`);
+        } catch (error) {
+          console.error(`Upload failed for ${file.name}:`, error);
+          toast.error(`Failed to upload ${file.name}`);
+        }
+      }
+    } finally {
+      setUploading(false);
+      setUploadProgress({});
+      // Reset file inputs
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (
+    e: React.DragEvent,
+    type: "thumbnail" | "image"
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = Array.from(e.dataTransfer.files);
+    handleFileUpload(files, type);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
     try {
-      // Validate form data
       const validatedData = cmsProductSchema.parse(formData);
       if (productId) {
         await updateProduct(productId, validatedData as any);
@@ -134,7 +264,6 @@ export default function ProductForm({
       router.push("/admin/products");
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Handle validation errors
         const fieldErrors: Record<string, string> = {};
         error.issues.forEach((err) => {
           const path = err.path.join(".");
@@ -151,21 +280,12 @@ export default function ProductForm({
     }
   };
 
-  const addImage = () => {
-    if (imageInput.trim()) {
-      const convertedUrl = convertGoogleDriveUrl(imageInput.trim());
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, convertedUrl],
-      }));
-      setImageInput("");
-    }
-  };
-
-  const removeImage = (index: number) => {
+  const removeImage = (index: number, type: "thumbnail" | "image" = "image") => {
     setFormData((prev) => ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index),
+      [type === "thumbnail" ? "thumbnail" : "images"]: prev[
+        type === "thumbnail" ? "thumbnail" : "images"
+      ].filter((_, i) => i !== index),
     }));
   };
 
@@ -227,9 +347,8 @@ export default function ProductForm({
 
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
-      if (!trimmedLine) return; // Skip empty lines
+      if (!trimmedLine) return;
 
-      // Support multiple formats: key:value, key=value, or key|value
       const separators = [":", "=", "|"];
       let matched = false;
 
@@ -238,7 +357,7 @@ export default function ProductForm({
           const parts = trimmedLine.split(sep);
           if (parts.length >= 2) {
             const key = parts[0].trim();
-            const value = parts.slice(1).join(sep).trim(); // Handle values with separators
+            const value = parts.slice(1).join(sep).trim();
             if (key && value) {
               newSpecs[key] = value;
               successCount++;
@@ -266,7 +385,7 @@ export default function ProductForm({
 
     if (errorLines.length > 0) {
       toast.error(
-        `Skipped ${errorLines.length} invalid line(s). Check format.`,
+        `Skipped ${errorLines.length} invalid line(s). Check format.`
       );
     }
   };
@@ -297,7 +416,6 @@ export default function ProductForm({
     }));
   };
 
-  // Helper function to extract YouTube video ID from various URL formats
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
     const patterns = [
@@ -408,6 +526,7 @@ export default function ProductForm({
                   )}
                 </div>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Short Description *
@@ -465,7 +584,8 @@ export default function ProductForm({
               </div>
             </div>
           </div>
-          {/* Images Section */}
+
+          {/* Thumbnail Images - Direct Upload */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <ImageIcon size={24} />
@@ -474,86 +594,82 @@ export default function ProductForm({
 
             <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
               <p className="text-sm text-purple-900 font-medium mb-2">
-                📸 These are the small preview images shown in product listings
-                (max 5)
+                📸 Direct upload to Supabase (no more Google Drive links - mas mabilis!)
               </p>
-              <ol className="text-sm text-purple-800 space-y-1 list-decimal list-inside">
-                <li>
-                  Suggested aspect ratio 1:1(1024px × 1024px) or 16:9(1920px ×
-                  1080px)
-                </li>
-                <li>Upload image to Google Drive</li>
-                <li>Right-click and select "Get link"</li>
-                <li>Set to "Anyone with the link can view"</li>
-                <li>Paste the link below</li>
-              </ol>
+              <ul className="text-sm text-purple-800 space-y-1 list-disc list-inside">
+                <li>Suggested size: 1024x1024px or 1920x1080px</li>
+                <li>Automatically optimized and compressed</li>
+                <li>Max 10MB per image</li>
+                <li>Drag & drop or click to select</li>
+              </ul>
             </div>
 
-            <div className="flex gap-2 mb-4">
-              <div className="flex-1 relative">
-                <LinkIcon
-                  className="absolute left-3 top-3 text-gray-400"
-                  size={20}
-                />
-                <input
-                  type="text"
-                  value={thumbnailInput}
-                  onChange={(e) => setThumbnailInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      if (
-                        thumbnailInput.trim() &&
-                        formData.thumbnail.length < 5
-                      ) {
-                        const convertedUrl = convertGoogleDriveUrl(
-                          thumbnailInput.trim(),
-                        );
-                        setFormData((prev) => ({
-                          ...prev,
-                          thumbnail: [...prev.thumbnail, convertedUrl],
-                        }));
-                        setThumbnailInput("");
-                      }
-                    }
-                  }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Paste Google Drive thumbnail link..."
-                  disabled={formData.thumbnail.length >= 5}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (thumbnailInput.trim() && formData.thumbnail.length < 5) {
-                    const convertedUrl = convertGoogleDriveUrl(
-                      thumbnailInput.trim(),
-                    );
-                    setFormData((prev) => ({
-                      ...prev,
-                      thumbnail: [...prev.thumbnail, convertedUrl],
-                    }));
-                    setThumbnailInput("");
+            {/* Drag & Drop Zone - Thumbnails */}
+            <div
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, "thumbnail")}
+              onClick={() => thumbnailInputRef.current?.click()}
+              className={`mb-4 p-8 border-2 border-dashed rounded-lg text-center cursor-pointer transition-all ${
+                uploading
+                  ? "border-purple-300 bg-purple-50"
+                  : "border-purple-300 hover:border-purple-500 bg-purple-50 hover:bg-purple-100"
+              }`}
+            >
+              <input
+                ref={thumbnailInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (formData.thumbnail.length + files.length > 5) {
+                    toast.error("Maximum 5 thumbnails allowed");
+                    return;
                   }
+                  handleFileUpload(files, "thumbnail");
                 }}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={formData.thumbnail.length >= 5}
-              >
-                <Plus size={20} />
-                Add Thumbnail
-              </button>
+                className="hidden"
+              />
+              <Upload size={32} className="mx-auto mb-2 text-purple-600" />
+              <p className="font-medium text-gray-900">
+                Drag thumbnails here or click to select
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                {5 - formData.thumbnail.length} slots remaining
+              </p>
             </div>
 
+            {/* Upload Progress */}
+            {uploading && Object.keys(uploadProgress).length > 0 && (
+              <div className="mb-4 space-y-2">
+                {Object.entries(uploadProgress).map(([fileId, progress]) => (
+                  <div key={fileId} className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Uploading...</span>
+                      <span className="text-gray-500">{progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-purple-600 h-2 rounded-full transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Thumbnail Preview */}
             {formData.thumbnail.length > 0 && (
               <div className="mb-4">
                 <p className="text-sm text-gray-600 mb-3">
-                  Preview: Stacked Thumbnails ({formData.thumbnail.length}/5)
+                  Preview ({formData.thumbnail.length}/5)
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {formData.thumbnail.map((thumb, index) => (
                     <div
                       key={index}
-                      className="relative group aspect-video w-full h-auto border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                      className="relative group aspect-square border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                     >
                       <img
                         src={thumb}
@@ -562,14 +678,7 @@ export default function ProductForm({
                       />
                       <button
                         type="button"
-                        onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            thumbnail: prev.thumbnail.filter(
-                              (_, i) => i !== index,
-                            ),
-                          }))
-                        }
+                        onClick={() => removeImage(index, "thumbnail")}
                         className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                         title="Remove thumbnail"
                       >
@@ -583,90 +692,100 @@ export default function ProductForm({
                 </div>
               </div>
             )}
+
             {errors.thumbnail && (
               <p className="text-red-500 text-sm mt-2">{errors.thumbnail}</p>
             )}
           </div>
-          {/* Product Images Section */} {/* Main Product Images */}
+
+          {/* Product Images - Direct Upload */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <ImageIcon size={24} />
-              Product Images (Gallery - Google Drive) *
+              Product Images (Gallery - Direct Upload) *
             </h2>
 
             <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-900 font-medium mb-2">
-                🖼️ These are the full-size images shown in product details
+                🖼️ Full-size gallery images - upload directly sa Supabase
               </p>
-              <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+              <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
                 <li>
-                  Suggested aspect ratio 1:1(1024px × 1024px) or 16:9(1920px ×
-                  1080px)
+                  Recommended: 1024x1024px or 1920x1080px (auto-optimized)
                 </li>
-                <li>Upload images to Google Drive</li>
-                <li>Right-click and select "Get link"</li>
-                <li>Set to "Anyone with the link can view"</li>
-                <li>Paste links below (first image is the main image)</li>
-              </ol>
+                <li>First image becomes the main product image</li>
+                <li>No Google Drive links needed - instant upload!</li>
+              </ul>
             </div>
 
-            <div className="flex gap-2 mb-4">
-              <div className="flex-1 relative">
-                <LinkIcon
-                  className="absolute left-3 top-3 text-gray-400"
-                  size={20}
-                />
-                <input
-                  type="text"
-                  value={imageInput}
-                  onChange={(e) => setImageInput(e.target.value)}
-                  onKeyPress={(e) =>
-                    e.key === "Enter" && (e.preventDefault(), addImage())
-                  }
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Paste Google Drive link here..."
-                />
-              </div>
-              <button
-                type="button"
-                onClick={addImage}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-              >
-                <Plus size={20} />
-                Add
-              </button>
+            {/* Drag & Drop Zone - Product Images */}
+            <div
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, "image")}
+              onClick={() => fileInputRef.current?.click()}
+              className={`mb-4 p-8 border-2 border-dashed rounded-lg text-center cursor-pointer transition-all ${
+                uploading
+                  ? "border-blue-300 bg-blue-50"
+                  : "border-blue-300 hover:border-blue-500 bg-blue-50 hover:bg-blue-100"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  handleFileUpload(files, "image");
+                }}
+                className="hidden"
+              />
+              <Upload size={32} className="mx-auto mb-2 text-blue-600" />
+              <p className="font-medium text-gray-900">
+                Drag images here or click to select
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Support multiple selections
+              </p>
             </div>
+
+            {/* Gallery Preview */}
+            {formData.images.length > 0 && (
+              <div>
+                <p className="text-sm text-gray-600 mb-3">
+                  Gallery ({formData.images.length} images)
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {formData.images.map((img, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={img}
+                        alt={`Product ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index, "image")}
+                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={16} />
+                      </button>
+                      {index === 0 && (
+                        <div className="absolute bottom-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                          Main
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {errors.images && (
-              <p className="text-red-500 text-sm mb-4">{errors.images}</p>
-            )}
-
-            {formData.images.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {formData.images.map((img, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={img}
-                      alt={`Product ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg border border-gray-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X size={16} />
-                    </button>
-                    {index === 0 && (
-                      <div className="absolute bottom-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                        Main Image
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <p className="text-red-500 text-sm mt-4">{errors.images}</p>
             )}
           </div>
+
           {/* Tags */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4">Tags</h2>
@@ -709,6 +828,7 @@ export default function ProductForm({
               ))}
             </div>
           </div>
+
           {/* Features */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4">Features</h2>
@@ -751,11 +871,11 @@ export default function ProductForm({
               ))}
             </ul>
           </div>
+
           {/* Specifications */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4">Specifications</h2>
 
-            {/* Instructions Card */}
             <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg">
               <h3 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
                 📋 How to Input Specifications
@@ -769,31 +889,18 @@ export default function ProductForm({
                   </p>
 
                   <p className="font-semibold mt-3">
-                    2️⃣ Bulk Entry Mode (Recommended for many specs):
+                    2️⃣ Bulk Entry Mode (Recommended):
                   </p>
-                  <p className="ml-4">
-                    Add multiple specifications at once. Supported formats:
-                  </p>
+                  <p className="ml-4">Add multiple specifications at once.</p>
                   <ul className="ml-8 list-disc space-y-1 text-xs font-mono bg-gray-900 text-green-400 p-2 rounded">
                     <li>Weight: 355g</li>
                     <li>Battery Capacity = 20000mAh</li>
                     <li>Dimensions | 150 x 70 x 15 mm</li>
-                    <li>Input: 5V/2A, 9V/1.5A</li>
                   </ul>
-                  <p className="ml-4 text-xs mt-2">
-                    ✅ Use <code className="bg-blue-200 px-1 rounded">:</code>,{" "}
-                    <code className="bg-blue-200 px-1 rounded">=</code>, or{" "}
-                    <code className="bg-blue-200 px-1 rounded">|</code> to
-                    separate key and value
-                    <br />
-                    ✅ Each specification on a new line
-                    <br />✅ Empty lines are automatically skipped
-                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Mode Toggle */}
             <div className="flex gap-2 mb-4 p-1 bg-gray-100 rounded-lg w-fit">
               <button
                 type="button"
@@ -819,7 +926,6 @@ export default function ProductForm({
               </button>
             </div>
 
-            {/* Single Entry Mode */}
             {specInputMode === "single" && (
               <div className="flex gap-2 mb-4">
                 <input
@@ -850,7 +956,6 @@ export default function ProductForm({
               </div>
             )}
 
-            {/* Bulk Entry Mode */}
             {specInputMode === "bulk" && (
               <div className="mb-4">
                 <textarea
@@ -858,15 +963,9 @@ export default function ProductForm({
                   onChange={(e) => setBulkSpecsInput(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                   rows={8}
-                  placeholder={`Enter specifications, one per line. Examples:
-
-Weight: 355g
+                  placeholder={`Weight: 355g
 Battery Capacity = 20000mAh
-Dimensions | 150 x 70 x 15 mm
-Input: 5V/2A, 9V/1.5A
-Output = USB-A: 5V/3A
-Material: Premium ABS Plastic
-Charging Time: 6-7 hours`}
+Dimensions | 150 x 70 x 15 mm`}
                 />
                 <div className="flex gap-2 mt-2">
                   <button
@@ -875,7 +974,7 @@ Charging Time: 6-7 hours`}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
                   >
                     <Plus size={20} />
-                    Add All Specifications
+                    Add All
                   </button>
                   <button
                     type="button"
@@ -888,13 +987,12 @@ Charging Time: 6-7 hours`}
               </div>
             )}
 
-            {/* Current Specifications Display */}
             <div className="space-y-2">
               {Object.entries(formData.specifications).length > 0 ? (
                 <>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-medium text-gray-700">
-                      Current Specifications (
+                      Specifications (
                       {Object.entries(formData.specifications).length})
                     </p>
                     {Object.entries(formData.specifications).length > 0 && (
@@ -903,14 +1001,14 @@ Charging Time: 6-7 hours`}
                         onClick={() => {
                           if (
                             confirm(
-                              "Are you sure you want to clear all specifications?",
+                              "Clear all specifications?"
                             )
                           ) {
                             setFormData((prev) => ({
                               ...prev,
                               specifications: {},
                             }));
-                            toast.success("All specifications cleared");
+                            toast.success("Cleared");
                           }
                         }}
                         className="text-xs text-red-600 hover:text-red-700 underline"
@@ -923,7 +1021,7 @@ Charging Time: 6-7 hours`}
                     ([key, value]) => (
                       <div
                         key={key}
-                        className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg hover:bg-gray-100"
                       >
                         <span className="font-medium text-gray-700 min-w-[150px]">
                           {key}:
@@ -937,31 +1035,30 @@ Charging Time: 6-7 hours`}
                           <X size={16} />
                         </button>
                       </div>
-                    ),
+                    )
                   )}
                 </>
               ) : (
                 <div className="text-center py-8 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
-                  No specifications added yet. Use the form above to add
-                  specifications.
+                  No specifications yet
                 </div>
               )}
             </div>
           </div>
+
           {/* Colors */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4">Colors</h2>
 
-            {/* Predefined Colors */}
             <div className="mb-6">
               <p className="text-sm font-medium text-gray-700 mb-3">
-                Quick Select - Predefined Colors:
+                Quick Select:
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {PREDEFINED_COLORS.map((presetColor) => {
                   const isAdded = formData.colors.some(
                     (c) =>
-                      c.name === presetColor.name && c.hex === presetColor.hex,
+                      c.name === presetColor.name && c.hex === presetColor.hex
                   );
                   return (
                     <button
@@ -979,12 +1076,11 @@ Charging Time: 6-7 hours`}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
                         isAdded
                           ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-50"
-                          : "bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500"
+                          : "bg-white border-gray-300 hover:bg-gray-50"
                       }`}
-                      title={`${presetColor.hex} - Click to add`}
                     >
                       <div
-                        className="w-6 h-6 rounded-full border border-gray-400 flex-shrink-0"
+                        className="w-6 h-6 rounded-full border border-gray-400"
                         style={{ backgroundColor: presetColor.hex }}
                       />
                       <span className="text-sm font-medium truncate">
@@ -996,10 +1092,9 @@ Charging Time: 6-7 hours`}
               </div>
             </div>
 
-            {/* Custom Color Input */}
             <div className="mb-6">
               <p className="text-sm font-medium text-gray-700 mb-3">
-                Or Add Custom Color:
+                Or Add Custom:
               </p>
               <div className="flex gap-2">
                 <input
@@ -1007,7 +1102,7 @@ Charging Time: 6-7 hours`}
                   value={colorName}
                   onChange={(e) => setColorName(e.target.value)}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Color name (e.g., Custom Red)"
+                  placeholder="Color name"
                 />
                 <input
                   type="color"
@@ -1026,32 +1121,30 @@ Charging Time: 6-7 hours`}
               </div>
             </div>
 
-            {/* Selected Colors */}
             <div>
               <p className="text-sm font-medium text-gray-700 mb-3">
-                Selected Colors:
+                Selected:
               </p>
-
               {formData.colors.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {formData.colors.map((color, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
+                      className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 hover:shadow-sm"
                     >
                       <div
                         className="w-6 h-6 rounded-full border-2 border-gray-400"
                         style={{ backgroundColor: color.hex }}
                       />
                       <span className="font-medium text-sm">{color.name}</span>
-                      <span className="text-xs text-gray-500 ml-1">
+                      <span className="text-xs text-gray-500">
                         {color.hex.toUpperCase()}
                       </span>
                       <button
                         type="button"
                         onClick={() => removeColor(index)}
-                        className="ml-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors"
-                        title="Remove color"
+                        className="ml-2 text-red-600 hover:text-red-700 p-1 rounded"
+                        title="Remove"
                       >
                         <X size={16} />
                       </button>
@@ -1060,12 +1153,12 @@ Charging Time: 6-7 hours`}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
-                  No colors added yet. Select from predefined colors or add a
-                  custom color.
+                  No colors added
                 </div>
               )}
             </div>
           </div>
+
           {/* Description */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4">
@@ -1080,181 +1173,105 @@ Charging Time: 6-7 hours`}
                 errors.description ? "border-red-500" : "border-gray-300"
               }`}
               rows={10}
-              placeholder="Enter HTML formatted description (min 20 characters)..."
+              placeholder="Enter HTML formatted description..."
             />
             {errors.description && (
               <p className="text-red-500 text-sm mt-2">{errors.description}</p>
             )}
           </div>
-          {/* Video Link Section */}
+
+          {/* Video Link */}
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-              </svg>
-              YouTube Video Link (Optional)
+            <h2 className="text-xl font-semibold mb-4">
+              🎥 YouTube Video (Optional)
             </h2>
 
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-900 font-medium mb-2">
-                🎥 This video will appear in the Video tab on the product page
-              </p>
-              <p className="text-sm text-red-800">
-                Paste any YouTube video URL (e.g.,
-                https://www.youtube.com/watch?v=VIDEO_ID or
-                https://youtu.be/VIDEO_ID)
-              </p>
-            </div>
+            <input
+              type="text"
+              value={formData.video_link}
+              onChange={(e) =>
+                setFormData({ ...formData, video_link: e.target.value })
+              }
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                errors.video_link ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
 
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <LinkIcon
-                    className="absolute left-3 top-3 text-gray-400"
-                    size={20}
-                  />
-                  <input
-                    type="text"
-                    value={formData.video_link}
-                    onChange={(e) =>
-                      setFormData({ ...formData, video_link: e.target.value })
-                    }
-                    className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                      errors.video_link ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                  />
-                </div>
-              </div>
-              {errors.video_link && (
-                <p className="text-red-500 text-sm">{errors.video_link}</p>
-              )}
-
-              {/* Video Preview */}
-              {formData.video_link && extractYouTubeId(formData.video_link) && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
-                    Preview:
-                  </p>
-                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
-                    <iframe
-                      className="w-full h-full"
-                      src={`https://www.youtube.com/embed/${extractYouTubeId(
-                        formData.video_link,
-                      )}`}
-                      title="Video Preview"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          {/* Downloads Link Section */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            {formData.video_link && extractYouTubeId(formData.video_link) && (
+              <div className="mt-4 aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
+                <iframe
+                  className="w-full h-full"
+                  src={`https://www.youtube.com/embed/${extractYouTubeId(
+                    formData.video_link
+                  )}`}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
                 />
-              </svg>
-              Product PDF Download Link (Optional)
+              </div>
+            )}
+          </div>
+
+          {/* Downloads Link */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-semibold mb-4">
+              📄 PDF Download (Optional)
             </h2>
 
-            <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-              <p className="text-sm text-indigo-900 font-medium mb-2">
-                📄 This PDF will appear in the Downloads tab on the product page
-              </p>
-              <ol className="text-sm text-indigo-800 space-y-1 list-decimal list-inside">
-                <li>Upload your PDF to Google Drive</li>
-                <li>Right-click and select "Get link"</li>
-                <li>Set to "Anyone with the link can view"</li>
-                <li>Paste the Google Drive link below</li>
-              </ol>
-            </div>
+            <input
+              type="text"
+              value={formData.downloads_link}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  downloads_link: e.target.value,
+                })
+              }
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                errors.downloads_link ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="https://drive.google.com/file/d/..."
+            />
 
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <LinkIcon
-                    className="absolute left-3 top-3 text-gray-400"
-                    size={20}
-                  />
-                  <input
-                    type="text"
-                    value={formData.downloads_link}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        downloads_link: e.target.value,
-                      })
-                    }
-                    className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      errors.downloads_link
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
-                    placeholder="https://drive.google.com/file/d/..."
-                  />
+            {formData.downloads_link && (
+              <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-indigo-600 rounded flex items-center justify-center text-white shrink-0">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 text-sm truncate">
+                      {formData.title || "Product Name"}
+                    </h4>
+                    <p className="text-xs text-gray-500">PDF</p>
+                  </div>
+                  <a
+                    href={formData.downloads_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+                  >
+                    Test
+                  </a>
                 </div>
               </div>
-              {errors.downloads_link && (
-                <p className="text-red-500 text-sm">{errors.downloads_link}</p>
-              )}
-
-              {/* Download Link Preview */}
-              {formData.downloads_link && (
-                <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
-                    Link Preview:
-                  </p>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-indigo-600 rounded flex items-center justify-center text-white shrink-0">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 text-sm truncate">
-                        {formData.title || "Product Name"} - Technical
-                        Specifications
-                      </h4>
-                      <p className="text-xs text-gray-500">PDF Document</p>
-                    </div>
-                    <a
-                      href={formData.downloads_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-                    >
-                      Test Link
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
-          {/* Submit Button */}
+
+          {/* Submit */}
           <div className="flex gap-4">
             <button
               type="button"
@@ -1265,15 +1282,17 @@ Charging Time: 6-7 hours`}
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploading}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Save size={20} />
               {loading
                 ? "Saving..."
-                : productId
-                  ? "Update Product"
-                  : "Create Product"}
+                : uploading
+                  ? "Uploading..."
+                  : productId
+                    ? "Update"
+                    : "Create"}
             </button>
           </div>
         </form>
