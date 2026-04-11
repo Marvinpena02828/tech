@@ -18,6 +18,7 @@ import {
   Award,
   FileText,
   Megaphone,
+  Briefcase,
 } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -47,6 +48,7 @@ export default function AdminLayout({
       icon: Award,
     },
     { name: "Awards", href: "/admin/awards", icon: Award },
+    { name: "Services", href: "/admin/services", icon: Briefcase },
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Banners", href: "/admin/banners", icon: ImageIcon },
     { name: "Featured Items", href: "/admin/featured", icon: Star },
@@ -54,7 +56,7 @@ export default function AdminLayout({
     { name: "Categories", href: "/admin/categories", icon: Grid },
     { name: "News", href: "/admin/news", icon: Newspaper },
     { name: "Newsletter", href: "/admin/newsletter", icon: Mail },
-    { name: "Promotional Bars", href: "/admin/promotional-bars", icon: Megaphone }, // NEW
+    { name: "Promotional Bars", href: "/admin/promotional-bars", icon: Megaphone },
     { name: "Contact Info", href: "/admin/contact-info", icon: Phone },
     { name: "Address", href: "/admin/address", icon: MapPin },
     { name: "Logo Settings", href: "/admin/logos", icon: ImageIcon },
