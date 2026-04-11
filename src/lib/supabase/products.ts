@@ -230,7 +230,17 @@ function optimizeImage(
         canvas.width = width;
         canvas.height = height;
         canvas.getContext("2d")?.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(resolve, "image/jpeg", quality);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error("Failed to create blob from canvas"));
+            }
+          },
+          "image/jpeg",
+          quality
+        );
       };
       img.onerror = reject;
       img.src = e.target?.result as string;
