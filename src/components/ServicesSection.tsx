@@ -1,77 +1,128 @@
 "use client";
 
+import { useScrollReveal } from "@/hooks/useScrollReveal";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { FileText, Shield, Building2, CheckCircle } from "lucide-react";
+
+interface Service {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  order: number;
+}
+
+const iconMap = [
+  FileText,
+  Shield,
+  Building2,
+  CheckCircle,
+];
 
 export default function ServicesSection() {
-  const [services, setServices] = useState<any[]>([]);
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.3 });
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/services")
-      .then(r => r.json())
-      .then(data => {
-        console.log("✅ Services loaded:", data);
-        setServices(Array.isArray(data) ? data : []);
+    const fetchServices = async () => {
+      try {
+        const response = await fetch("/api/services", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch");
+
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          const sorted = data
+            .sort((a: Service, b: Service) => a.order - b.order)
+            .slice(0, 4);
+          setServices(sorted);
+        }
+      } catch (error) {
+        console.error("Error loading services:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch(e => {
-        console.error("❌ Error:", e);
-        setError(e.message);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchServices();
   }, []);
 
+  if (loading) {
+    return (
+      <section className="w-full py-16 bg-white border-t border-gray-100 mt-2">
+        <div className="container px-4">
+          <div className="h-8 w-40 bg-gray-200 rounded mx-auto mb-12 animate-pulse"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-40 bg-gray-100 rounded animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (services.length === 0) {
+    return null;
+  }
+
   return (
-    <section className="w-full py-32 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 border-4 border-yellow-400 mt-2">
+    <section
+      ref={ref as React.RefObject<HTMLElement>}
+      className="w-full py-16 bg-white border-t border-gray-100 mt-2"
+    >
       <div className="container px-4">
-        <h2 className="text-5xl font-bold text-center mb-12 text-white drop-shadow-lg">
-          🎯 OUR SERVICES 🎯
+        {/* Header */}
+        <h2
+          className={`heading text-center text-gray-800 mb-12 font-arial transition-all duration-700 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          Our Services
         </h2>
 
-        <div className="bg-white rounded-xl p-8 shadow-2xl">
-          {loading && (
-            <p className="text-center text-2xl text-blue-600 font-bold">⏳ Loading...</p>
-          )}
+        {/* Services Grid */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-8">
+          {services.map((service, idx) => {
+            const IconComponent = iconMap[idx] || FileText;
 
-          {error && (
-            <p className="text-center text-2xl text-red-600 font-bold">❌ Error: {error}</p>
-          )}
-
-          {!loading && !error && (
-            <>
-              <p className="text-center text-3xl font-bold text-green-600 mb-6">
-                ✅ Found {services.length} Services!
-              </p>
-
-              {services.length === 0 ? (
-                <p className="text-center text-xl text-gray-600">No services in database</p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {services.map((service: any, idx: number) => (
-                    <div key={service.id} className="p-4 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg border-2 border-blue-400">
-                      <div className="text-sm font-bold text-blue-600">#{idx + 1}</div>
-                      <h3 className="font-bold text-lg text-gray-800 mt-2">{service.title}</h3>
-                      <p className="text-gray-600 text-sm mt-2 line-clamp-2">
-                        {service.description}
-                      </p>
-                      <p className="text-xs text-purple-600 mt-2 font-mono break-all">
-                        Image: {service.image}
-                      </p>
-                      <div className="mt-3 flex gap-2">
-                        <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">
-                          ID: {service.id.substring(0, 8)}...
-                        </span>
-                        <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded">
-                          Order: {service.order}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+            return (
+              <Link
+                href={`/services#service-${idx}`}
+                key={service.id}
+                className={`flex flex-col items-center text-center transition-all duration-700 hover:scale-105 ${
+                  isVisible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-8"
+                }`}
+                style={{
+                  transitionDelay: `${idx * 100 + 200}ms`,
+                  transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)",
+                }}
+              >
+                {/* Icon Circle */}
+                <div className="mb-4 relative group">
+                  <div className="w-20 h-20 rounded-full border-2 border-red-500 flex items-center justify-center group-hover:bg-red-50 transition-colors duration-300">
+                    <IconComponent size={40} className="text-red-500" />
+                  </div>
+                  {/* Hover effect - outer ring */}
+                  <div className="absolute inset-0 w-20 h-20 rounded-full border-2 border-red-300 opacity-0 group-hover:opacity-100 scale-125 transition-all duration-300"></div>
                 </div>
-              )}
-            </>
-          )}
+
+                {/* Content */}
+                <h3 className="font-bold text-sm md:text-base text-gray-900 mb-2 group-hover:text-red-600 transition-colors duration-300">
+                  {service.title}
+                </h3>
+                <p className="text-xs text-gray-600 line-clamp-3 group-hover:text-gray-800 transition-colors duration-300">
+                  {service.description.replace(/<[^>]*>/g, "")}
+                </p>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>
