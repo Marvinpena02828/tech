@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
+import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 interface Service {
   id: string;
@@ -12,6 +14,7 @@ interface Service {
 }
 
 export default function ServicesSection() {
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.3 });
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,35 +30,81 @@ export default function ServicesSection() {
       .catch(() => setLoading(false));
   }, []);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <section className="w-full py-16 bg-white border-t border-gray-100 mt-2">
+        <div className="container px-4">
+          <div className="h-8 w-40 bg-gray-200 rounded mx-auto mb-12 animate-pulse"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-40 bg-gray-100 rounded animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (services.length === 0) return null;
 
   return (
-    <section className="w-full py-16 bg-white border-t border-gray-100 mt-2">
+    <section
+      ref={ref as React.RefObject<HTMLElement>}
+      className="w-full py-16 bg-white border-t border-gray-100 mt-2"
+    >
       <div className="container px-4">
-        <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+        {/* Header */}
+        <h2
+          className={`heading text-center text-gray-800 mb-12 font-arial transition-all duration-700 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
           Our Services
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        {/* Services Grid */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {services.map((service, idx) => (
             <Link
               href={`/services#service-${idx}`}
               key={service.id}
-              className="flex flex-col items-center text-center p-4 hover:bg-gray-50 rounded-lg transition"
+              className={`group flex flex-col gap-3 transition-all duration-700 cursor-pointer ${
+                isVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8"
+              }`}
+              style={{
+                transitionDelay: `${idx * 100 + 200}ms`,
+                transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)",
+              }}
             >
-              {/* Icon Circle */}
-              <div className="w-20 h-20 rounded-full border-2 border-red-500 flex items-center justify-center mb-4">
-                <span className="text-2xl font-bold text-red-500">{idx + 1}</span>
+              {/* Image Container - Clickable */}
+              <div className="relative w-full h-24 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border-2 border-transparent group-hover:border-red-500 transition-all duration-300">
+                {service.image ? (
+                  <Image
+                    src={service.image}
+                    alt={service.title}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    sizes="100px"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-red-500">{idx + 1}</span>
+                  </div>
+                )}
               </div>
 
               {/* Title */}
-              <h3 className="font-bold text-base text-gray-900 mb-2">
+              <h3 className="font-bold text-sm md:text-base text-gray-900 group-hover:text-red-600 transition-colors duration-300 line-clamp-2">
                 {service.title}
               </h3>
 
               {/* Description */}
-              <p className="text-sm text-gray-600 line-clamp-3">
+              <p className="text-xs text-gray-600 line-clamp-2 group-hover:text-gray-800 transition-colors duration-300">
                 {service.description.replace(/<[^>]*>/g, "")}
               </p>
             </Link>
