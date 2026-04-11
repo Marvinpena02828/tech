@@ -4,10 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
+    const { id } = await params;
 
     // Check if user is authenticated
     const {
@@ -22,7 +23,6 @@ export async function PUT(
       );
     }
 
-    const { id } = params;
     const body = await request.json();
     const { title, description, image, order } = body;
 
@@ -75,10 +75,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
+    const { id } = await params;
 
     // Check if user is authenticated
     const {
@@ -92,8 +93,6 @@ export async function DELETE(
         { status: 401 }
       );
     }
-
-    const { id } = params;
 
     const { error } = await supabase
       .from("services")
