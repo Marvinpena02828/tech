@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Trash2, Edit2, Plus, Copy, Check } from "lucide-react";
+import { Trash2, Edit2, Plus, Upload, X, Loader } from "lucide-react";
 import toast from "react-hot-toast";
+import { createClient } from "@/lib/supabase/client";
 
 interface Service {
   id: string;
@@ -15,11 +16,14 @@ interface Service {
 }
 
 export default function ServicesCMS() {
+  const supabase = createClient();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -48,22 +52,97 @@ export default function ServicesCMS() {
     }
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setImageFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    try {
+      setUploading(true);
+      const timestamp = Date.now();
+      const extension = file.name.split(".").pop();
+      const fileName = `services/${timestamp}-${Math.random().toString(36).substring(7)}.${extension}`;
+
+      const { data, error } = await supabase.storage
+        .from("images")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("images").getPublicUrl(data.path);
+
+      return publicUrl;
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload image");
+      throw error;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title.trim() || !formData.description.trim() || !formData.image.trim()) {
-      toast.error("All fields are required");
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast.error("Title and description are required");
+      return;
+    }
+
+    // Check if image is provided
+    if (!imageFile && !formData.image) {
+      toast.error("Please select an image");
       return;
     }
 
     try {
+      let imageUrl = formData.image;
+
+      // Upload new image if selected
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
+
       const method = editingId ? "PUT" : "POST";
       const url = editingId ? `/api/services/${editingId}` : "/api/services";
 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          image: imageUrl,
+          order: formData.order,
+        }),
       });
 
       if (!response.ok) throw new Error("Failed to save");
@@ -72,6 +151,8 @@ export default function ServicesCMS() {
       setIsModalOpen(false);
       setEditingId(null);
       setFormData({ title: "", description: "", image: "", order: 0 });
+      setImageFile(null);
+      setImagePreview(null);
       fetchServices();
     } catch (error) {
       toast.error(editingId ? "Failed to update service" : "Failed to create service");
@@ -86,6 +167,7 @@ export default function ServicesCMS() {
       image: service.image,
       order: service.order,
     });
+    setImagePreview(service.image);
     setEditingId(service.id);
     setIsModalOpen(true);
   };
@@ -109,16 +191,14 @@ export default function ServicesCMS() {
     setIsModalOpen(false);
     setEditingId(null);
     setFormData({ title: "", description: "", image: "", order: 0 });
+    setImageFile(null);
+    setImagePreview(null);
   };
 
-  const handleImageUrl = (url: string) => {
-    setFormData({ ...formData, image: url });
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setFormData({ ...formData, image: "" });
   };
 
   if (loading) {
@@ -144,6 +224,8 @@ export default function ServicesCMS() {
             onClick={() => {
               setEditingId(null);
               setFormData({ title: "", description: "", image: "", order: services.length });
+              setImageFile(null);
+              setImagePreview(null);
               setIsModalOpen(true);
             }}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
@@ -222,10 +304,16 @@ export default function ServicesCMS() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">
                 {editingId ? "Edit Service" : "Add New Service"}
               </h2>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X size={24} />
+              </button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -258,27 +346,56 @@ export default function ServicesCMS() {
                 <p className="text-xs text-gray-500 mt-1">HTML tags are supported (e.g., &lt;b&gt;, &lt;br/&gt;, &lt;ul&gt;)</p>
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image URL *
+                  Service Image *
                 </label>
-                <input
-                  type="url"
-                  value={formData.image}
-                  onChange={(e) => handleImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                {formData.image && (
-                  <div className="mt-4 relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
+
+                {/* File Input */}
+                <div className="mb-4">
+                  <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition bg-gray-50 hover:bg-blue-50">
+                    <div className="flex flex-col items-center justify-center">
+                      <Upload size={24} className="text-gray-400 mb-2" />
+                      <p className="text-sm font-medium text-gray-700">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        PNG, JPG, GIF up to 5MB
+                      </p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
+                </div>
+
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
                     <Image
-                      src={formData.image}
+                      src={imagePreview}
                       alt="Preview"
                       fill
                       className="object-cover"
-                      onError={() => toast.error("Failed to load image")}
                     />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      disabled={uploading}
+                      className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                    >
+                      <X size={20} />
+                    </button>
+                    {uploading && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <Loader size={32} className="text-white animate-spin" />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -301,14 +418,17 @@ export default function ServicesCMS() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                  disabled={uploading}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  disabled={uploading || !imagePreview}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
+                  {uploading && <Loader size={18} className="animate-spin" />}
                   {editingId ? "Update Service" : "Create Service"}
                 </button>
               </div>
