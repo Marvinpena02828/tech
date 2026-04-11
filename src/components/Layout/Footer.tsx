@@ -363,7 +363,7 @@ export default function Footer() {
                 NEWSLETTER
               </h3>
               <p className="text-sm text-white text-opacity-90 mb-4 font-arial">
-                Get the latest news from Baseus
+                Get the latest news from TechOn
               </p>
               
               <form onSubmit={handleNewsletterSubmit} className="space-y-3">
