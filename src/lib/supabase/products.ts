@@ -189,6 +189,198 @@ export async function deleteProduct(id: string) {
   return true;
 }
 
+// ========================================
+// 🆕 SUPABASE STORAGE UPLOAD FUNCTIONS
+// ========================================
+
+/**
+ * Optimize image before upload
+ * - Resize if larger than max dimensions
+ * - Compress to specified quality
+ * - Convert to JPEG
+ */
+function optimizeImage(
+  file: File,
+  maxWidth: number = 1920,
+  maxHeight: number = 1920,
+  quality: number = 0.8
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        // Calculate new dimensions maintaining aspect ratio
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d")?.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(resolve, "image/jpeg", quality);
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Upload product image to Supabase Storage
+ * @param file - Image file to upload
+ * @param type - Type of image: 'thumbnail', 'image', or 'description'
+ * @returns - Public URL of the uploaded image
+ */
+export async function uploadProductImage(
+  file: File,
+  type: "thumbnail" | "image" | "description" = "image"
+): Promise<string> {
+  const supabase = createClient();
+
+  // Validate file type
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Only image files are allowed");
+  }
+
+  // Validate file size (max 10MB)
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(
+      `File size exceeds 10MB limit (${(file.size / 1024 / 1024).toFixed(2)}MB)`
+    );
+  }
+
+  try {
+    console.log(`[uploadProductImage] Starting upload for ${file.name}`);
+
+    // Optimize image
+    const optimizedBlob = await optimizeImage(file);
+
+    // Generate unique filename with timestamp and random ID
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 9);
+    const fileExtension = "jpg"; // Always save as JPG after optimization
+    const filename = `${timestamp}-${randomId}.${fileExtension}`;
+
+    // Determine bucket path based on type
+    const bucketPath = `product-${type}/${filename}`;
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from("products")
+      .upload(bucketPath, optimizedBlob, {
+        cacheControl: "3600", // 1 hour cache
+        upsert: false,
+        contentType: "image/jpeg",
+      });
+
+    if (error) {
+      console.error("[uploadProductImage] Upload error:", error);
+      throw new Error(`Failed to upload image: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: publicData } = supabase.storage
+      .from("products")
+      .getPublicUrl(bucketPath);
+
+    console.log(
+      `[uploadProductImage] Successfully uploaded: ${publicData.publicUrl}`
+    );
+    return publicData.publicUrl;
+  } catch (error) {
+    console.error("[uploadProductImage] Error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Delete product image from Supabase Storage
+ * @param imageUrl - Full URL of the image to delete
+ */
+export async function deleteProductImage(imageUrl: string): Promise<void> {
+  const supabase = createClient();
+
+  try {
+    console.log("[deleteProductImage] Deleting:", imageUrl);
+
+    // Extract path from URL
+    // URL format: https://xxxx.supabase.co/storage/v1/object/public/products/product-image/timestamp-id.jpg
+    const urlParts = imageUrl.split("/storage/v1/object/public/products/");
+    if (urlParts.length < 2) {
+      console.warn("[deleteProductImage] Invalid URL format:", imageUrl);
+      return;
+    }
+
+    const filePath = urlParts[1];
+
+    // Delete from storage
+    const { error } = await supabase.storage
+      .from("products")
+      .remove([filePath]);
+
+    if (error) {
+      console.error("[deleteProductImage] Delete error:", error);
+      // Don't throw - just log the error
+      // This prevents form submission from failing if deletion fails
+    } else {
+      console.log("[deleteProductImage] Successfully deleted:", filePath);
+    }
+  } catch (error) {
+    console.error("[deleteProductImage] Error:", error);
+    // Don't throw - just log
+  }
+}
+
+/**
+ * Delete multiple product images from Supabase Storage
+ */
+export async function deleteProductImages(imageUrls: string[]): Promise<void> {
+  const supabase = createClient();
+
+  try {
+    const filePaths = imageUrls
+      .map((url) => {
+        const urlParts = url.split("/storage/v1/object/public/products/");
+        return urlParts.length > 1 ? urlParts[1] : null;
+      })
+      .filter((path): path is string => path !== null);
+
+    if (filePaths.length === 0) return;
+
+    const { error } = await supabase.storage
+      .from("products")
+      .remove(filePaths);
+
+    if (error) {
+      console.error("[deleteProductImages] Delete error:", error);
+    } else {
+      console.log("[deleteProductImages] Deleted", filePaths.length, "files");
+    }
+  } catch (error) {
+    console.error("[deleteProductImages] Error:", error);
+  }
+}
+
+// ========================================
+// LEGACY GOOGLE DRIVE FUNCTION (kept for backwards compatibility)
+// ========================================
+
 // Helper function to convert Google Drive share link to direct image URL
 export function convertGoogleDriveUrl(url: string): string {
   if (!url || typeof url !== "string" || url.trim() === "") {
