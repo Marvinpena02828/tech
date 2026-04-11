@@ -24,9 +24,7 @@ export default function ServicesSection() {
       try {
         setLoading(true);
         setError(null);
-        
-        console.log("🔵 Fetching services from /api/services");
-        
+
         const response = await fetch("/api/services", {
           method: "GET",
           headers: {
@@ -35,30 +33,23 @@ export default function ServicesSection() {
           cache: "no-store",
         });
 
-        console.log("📊 Response status:", response.status);
-        console.log("📊 Response ok:", response.ok);
-
         if (!response.ok) {
-          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+          throw new Error(`API Error: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log("✅ Services data received:", data);
 
         if (Array.isArray(data)) {
-          // Limit to 4 services and sort by order
           const sortedServices = data
             .sort((a: Service, b: Service) => a.order - b.order)
             .slice(0, 4);
-          console.log("✅ Sorted services:", sortedServices);
           setServices(sortedServices);
         } else {
-          console.warn("⚠️ Data is not an array:", data);
           setServices([]);
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("❌ Error fetching services:", errorMessage);
+        console.error("Error fetching services:", errorMessage);
         setError(errorMessage);
         setServices([]);
       } finally {
@@ -72,7 +63,7 @@ export default function ServicesSection() {
   if (loading) {
     return (
       <section className="w-full py-20 bg-white border-t border-gray-100 mt-2">
-        <div className="container">
+        <div className="container px-4">
           <div className="h-8 bg-gray-200 rounded w-1/4 mx-auto mb-12 animate-pulse"></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
@@ -84,32 +75,30 @@ export default function ServicesSection() {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <section className="w-full py-20 bg-white border-t border-gray-100 mt-2">
-        <div className="container">
+        <div className="container px-4">
           <h2 className="heading text-center text-gray-800 mb-12 font-arial">
             Our Services
           </h2>
           <div className="text-center p-8 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">Error loading services: {error}</p>
+            <p className="text-red-700 text-sm">Error: {error}</p>
           </div>
         </div>
       </section>
     );
   }
 
-  // Show empty state
   if (services.length === 0) {
     return (
       <section className="w-full py-20 bg-white border-t border-gray-100 mt-2">
-        <div className="container">
+        <div className="container px-4">
           <h2 className="heading text-center text-gray-800 mb-12 font-arial">
             Our Services
           </h2>
-          <div className="text-center p-8 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-700">No services available at the moment</p>
+          <div className="text-center p-8">
+            <p className="text-gray-600">Services will appear here soon</p>
           </div>
         </div>
       </section>
@@ -121,7 +110,7 @@ export default function ServicesSection() {
       ref={ref as React.RefObject<HTMLElement>}
       className="w-full py-20 bg-white border-t border-gray-100 mt-2"
     >
-      <div className="container">
+      <div className="container px-4">
         <h2
           className={`heading text-center text-gray-800 mb-12 font-arial transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
@@ -130,12 +119,12 @@ export default function ServicesSection() {
           Our Services
         </h2>
 
-        <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {services.map((service, idx) => (
             <Link
               href={`/services#service-${idx}`}
               key={service.id}
-              className={`flex items-start gap-2 transition-all duration-700 ${
+              className={`group flex flex-col gap-3 p-4 rounded-lg hover:bg-gray-50 transition-all duration-700 ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
@@ -145,25 +134,28 @@ export default function ServicesSection() {
                 transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)",
               }}
             >
-              <div className="relative min-w-22 h-22 overflow-hidden rounded-full aspect-square group hover:bg-primary-blue flex-shrink-0">
+              {/* Service Image */}
+              <div className="relative w-full h-24 overflow-hidden rounded-lg bg-gray-100 flex-shrink-0">
                 <Image
                   src={service.image}
                   alt={service.title}
-                  width={100}
-                  height={100}
-                  className="object-cover aspect-square group-hover:brightness-0 group-hover:invert transition-all duration-300 w-full h-full"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-300"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   onError={(e) => {
-                    console.error(`Image load error for service ${service.id}:`, service.image);
-                    // Fallback to placeholder
-                    (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23e5e7eb' width='100' height='100'/%3E%3C/svg%3E";
+                    (e.target as HTMLImageElement).style.display = "none";
                   }}
                 />
               </div>
-              <div className="flex flex-col">
-                <h3 className="font-bold text-sm md:text-[17px] text-gray-800 leading-5">
+
+              {/* Service Content */}
+              <div className="flex flex-col flex-1">
+                <h3 className="font-bold text-sm md:text-base text-gray-800 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
                   {service.title}
                 </h3>
-                <p className="text-xs text-gray-600 line-clamp-2">{service.description}</p>
+                <p className="text-xs text-gray-600 line-clamp-2 flex-1">
+                  {service.description}
+                </p>
               </div>
             </Link>
           ))}
