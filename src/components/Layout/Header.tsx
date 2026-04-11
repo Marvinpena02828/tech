@@ -306,7 +306,7 @@ export default function Header({ logos }: HeaderProps) {
 
         {/* HEADER - DIRECTLY BELOW PROMO BAR (NO SPACING) */}
         <header
-          className={`w-full z-40 h-16 md:h-20 lg:h-20 font-sans border-b transition-all duration-300 ${
+          className={`w-full z-40 h-16 md:h-20 lg:h-20 font-sans transition-all duration-300 ${
             isVisible ? "opacity-100" : "opacity-0"
           } ${isScrolled ? "shadow-lg" : ""}`}
           style={{ backgroundColor: "#d6202a" }}
