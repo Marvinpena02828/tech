@@ -140,7 +140,7 @@ export default function Footer() {
                   key={social.name}
                   href={social.href}
                   target="_blank"
-                  className="aspect-square border border-white border-opacity-50 flex items-center justify-center hover:bg-white hover:bg-opacity-10 transition-all duration-300 social-hover"
+                  className="aspect-square border border-white border-opacity-50 flex items-center justify-center hover:bg-white hover:bg-opacity-10 social-hover"
                 >
                   <AppImage
                     src={social.image}
