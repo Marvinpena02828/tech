@@ -11,6 +11,25 @@ export default function HeroBanner() {
 
   useEffect(() => {
     fetchBannerData();
+
+    // Real-time subscription
+    const subscription = supabase
+      .channel("hero_banner_updates")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "hero_banner" },
+        (payload) => {
+          console.log("Real-time banner update received:", payload);
+          setBanner(payload.new);
+        }
+      )
+      .subscribe((status) => {
+        console.log("Subscription status:", status);
+      });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchBannerData = async () => {
@@ -18,12 +37,11 @@ export default function HeroBanner() {
       setLoading(true);
       setError(null);
 
-      // Fetch with proper error handling
       const { data, error: fetchError } = await supabase
         .from("hero_banner")
         .select("*")
         .eq("is_active", true)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no data
+        .maybeSingle();
 
       if (fetchError) {
         console.error("Supabase fetch error:", fetchError);
@@ -32,10 +50,10 @@ export default function HeroBanner() {
       }
 
       if (data) {
+        console.log("Banner loaded:", data);
         setBanner(data);
       } else {
-        // No active banner found - this is OK, use default
-        console.log("No active banner found in database");
+        console.log("No active banner found");
         setBanner(null);
       }
     } catch (err: any) {
@@ -46,7 +64,6 @@ export default function HeroBanner() {
     }
   };
 
-  // Default values if no banner in database
   const defaultBanner = {
     banner_image_url: "/about/banner.jpg",
     banner_height: 500,
@@ -68,24 +85,21 @@ export default function HeroBanner() {
     cta_button_color: "bg-blue-600",
   };
 
-  // Use database banner if available, otherwise use defaults
   const displayBanner = banner || defaultBanner;
 
   if (loading) {
-    // Show minimal banner while loading
     return (
       <section
         className="relative w-full overflow-hidden bg-gradient-to-r from-gray-200 to-gray-300"
         style={{ height: `${defaultBanner.banner_height}px` }}
       >
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="animate-pulse text-gray-500">Loading...</div>
+          <div className="animate-pulse text-gray-500">Loading banner...</div>
         </div>
       </section>
     );
   }
 
-  // If error, show fallback but don't break the page
   if (error) {
     console.warn("Banner error, showing fallback:", error);
   }
