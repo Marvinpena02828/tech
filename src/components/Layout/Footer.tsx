@@ -239,7 +239,7 @@ export default function Footer() {
           content: '';
           position: absolute;
           inset: 0;
-          background: rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 1);
           transform: scaleY(0);
           transform-origin: bottom;
           transition: transform 0.3s ease;
