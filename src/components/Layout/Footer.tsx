@@ -73,38 +73,9 @@ export default function Footer() {
 
   return (
     <>
-      {/* 🔥 HOVER ANIMATION (ADDED LANG) */}
       <style>{`
         .social-hover {
-          position: relative;
-          overflow: hidden;
-        }
-
-        .icon-default,
-        .icon-hover {
-          position: absolute;
-          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-                      opacity 0.3s ease;
-        }
-
-        .icon-default {
-          transform: translateY(0);
-          opacity: 1;
-        }
-
-        .icon-hover {
-          transform: translateY(100%);
-          opacity: 0;
-        }
-
-        .social-hover:hover .icon-default {
-          transform: translateY(-100%);
-          opacity: 0;
-        }
-
-        .social-hover:hover .icon-hover {
-          transform: translateY(0);
-          opacity: 1;
+          transition: all 0.3s ease;
         }
       `}</style>
 
@@ -151,7 +122,7 @@ export default function Footer() {
             />
           </div>
 
-          {/* 🔥 SOCIAL WITH HOVER SLIDE */}
+          {/* SOCIAL WITH HOVER */}
           <div>
             <h3 className="mb-4 font-semibold">Follow</h3>
 
@@ -163,22 +134,12 @@ export default function Footer() {
                   target="_blank"
                   className="aspect-square border border-white border-opacity-50 flex items-center justify-center hover:bg-white hover:bg-opacity-10 transition-all duration-300 social-hover"
                 >
-                  {/* DEFAULT ICON */}
                   <AppImage
                     src={social.image}
                     alt={social.name}
                     width={20}
                     height={20}
-                    className="object-contain w-5 h-5 brightness-0 invert icon-default"
-                  />
-
-                  {/* HOVER ICON */}
-                  <AppImage
-                    src={social.image}
-                    alt={social.name}
-                    width={20}
-                    height={20}
-                    className="object-contain w-5 h-5 icon-hover"
+                    className="object-contain w-5 h-5 brightness-0 invert"
                   />
                 </Link>
               ))}
