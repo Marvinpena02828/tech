@@ -502,7 +502,7 @@ export default function Footer() {
           style={{ animationDelay: "0.6s", opacity: 0 }}
         >
           <p className="text-sm text-white text-opacity-90 font-arial">
-            All rights reserved. Ayyan Technology Co., Limited
+            All rights reserved. Tech-On Technology Co., Limited
           </p>
         </div>
 
