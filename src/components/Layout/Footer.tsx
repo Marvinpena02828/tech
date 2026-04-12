@@ -239,7 +239,7 @@ export default function Footer() {
           content: '';
           position: absolute;
           inset: 0;
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.2);
           transform: scaleY(0);
           transform-origin: bottom;
           transition: transform 0.3s ease;
@@ -288,10 +288,6 @@ export default function Footer() {
           position: relative;
           z-index: 1;
           transition: filter 0.3s ease;
-        }
-
-        .social-icon:hover .social-icon-img {
-          filter: brightness(0.7);
         }
       `}</style>
 
