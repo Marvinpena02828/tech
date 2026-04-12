@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import AppImage from "@/components/ui/AppImage";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getPublicCategories } from "@/app/(private)/admin/categories/models/categories-model";
@@ -170,20 +169,16 @@ export default function Footer() {
                   className="social-hover"
                 >
                   {/* DEFAULT ICON */}
-                  <AppImage
+                  <img
                     src={social.image}
                     alt={social.name}
-                    width={20}
-                    height={20}
                     className="object-contain w-5 h-5 brightness-0 invert icon-default"
                   />
 
                   {/* HOVER ICON */}
-                  <AppImage
+                  <img
                     src={social.image}
                     alt={social.name}
-                    width={20}
-                    height={20}
                     className="object-contain w-5 h-5 icon-hover"
                   />
                 </Link>
