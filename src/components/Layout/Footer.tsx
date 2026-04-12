@@ -239,7 +239,7 @@ export default function Footer() {
           content: '';
           position: absolute;
           inset: 0;
-          background: rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 1);
           transform: scaleY(0);
           transform-origin: bottom;
           transition: transform 0.3s ease;
@@ -475,7 +475,7 @@ export default function Footer() {
                     target="_blank"
                     key={social.name}
                     href={social.href}
-                    className="aspect-square flex items-center justify-center social-icon"
+                    className="aspect-square border border-white border-opacity-50 flex items-center justify-center social-icon"
                     aria-label={social.name}
                     title={social.name}
                   >
