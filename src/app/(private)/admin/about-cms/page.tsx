@@ -117,12 +117,12 @@ export default function AboutSectionsAdmin() {
           .from("hero_banner")
           .select("*")
           .eq("is_active", true)
-          .single(),
+          .maybeSingle(),
         supabase
           .from("company_profile")
           .select("*")
           .eq("is_active", true)
-          .single(),
+          .maybeSingle(),
         supabase
           .from("timeline_milestones")
           .select("*")
@@ -142,46 +142,58 @@ export default function AboutSectionsAdmin() {
           .from("global_marketing")
           .select("*")
           .eq("is_active", true)
-          .single(),
+          .maybeSingle(),
       ]);
 
+      // Handle banner
       if (bannerData.data) {
         setBanner(bannerData.data);
         setEditedBanner(bannerData.data);
-        setBannerImagePreview(bannerData.data.banner_image_url);
-      } else if (bannerData.error?.code === "PGRST116") {
+        setBannerImagePreview(bannerData.data.banner_image_url || "");
+      } else if (bannerData.error?.code === "PGRST116" || !bannerData.data) {
+        // Create default banner if none exists
         const defaultBanner = {
           ...editedBanner,
           is_active: true,
           created_at: new Date().toISOString(),
         };
-        const { data: newBanner } = await supabase
+        const { data: newBanner, error: insertError } = await supabase
           .from("hero_banner")
           .insert([defaultBanner])
           .select()
-          .single();
+          .maybeSingle();
 
-        if (newBanner) {
+        if (newBanner && !insertError) {
           setBanner(newBanner);
           setEditedBanner(newBanner);
+          setBannerImagePreview(newBanner.banner_image_url || "");
         }
       }
 
+      // Handle profile
       if (profileData.data) {
         setProfile(profileData.data);
         setEditedProfile(profileData.data.content);
         setEditedProfileTitle(profileData.data.title);
       }
 
+      // Handle timelines
       if (timelinesData.data) setTimelines(timelinesData.data);
+
+      // Handle achievements
       if (achievementsData.data) setAchievements(achievementsData.data);
+
+      // Handle honors
       if (honorsData.data) setHonors(honorsData.data);
+
+      // Handle marketing
       if (marketingData.data) {
         setMarketing(marketingData.data);
         setEditedMarketing(marketingData.data);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      toast.error("Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -210,28 +222,44 @@ export default function AboutSectionsAdmin() {
 
     try {
       setLoading(true);
-      const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
-      const filePath = `${bucket}/${fileName}`;
+      const timestamp = Date.now();
+      const fileName = file.name.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9.-]/g, "");
+      const filePath = `${bucket}/${timestamp}-${fileName}`;
+
+      console.log("Uploading file to:", filePath);
 
       // Upload file to Supabase Storage
-      const { data, error } = await supabase.storage
+      const { data, error: uploadError } = await supabase.storage
         .from("images")
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-      if (error) {
-        throw error;
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
+      console.log("Upload success, data:", data);
+
       // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("images").getPublicUrl(filePath);
+      const { data: urlData } = supabase.storage
+        .from("images")
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+      console.log("Generated public URL:", publicUrl);
+
+      if (!publicUrl) {
+        throw new Error("Failed to generate public URL");
+      }
 
       onSuccess(publicUrl);
       toast.success("Image uploaded successfully");
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Failed to upload image");
+    } catch (error: any) {
+      console.error("Upload error details:", error);
+      toast.error(error.message || "Failed to upload image");
     } finally {
       setLoading(false);
     }
@@ -248,24 +276,35 @@ export default function AboutSectionsAdmin() {
       const updateData = {
         ...editedBanner,
         updated_at: new Date().toISOString(),
+        is_active: true,
       };
 
-      if (banner) {
-        await supabase
+      console.log("Saving banner with data:", updateData);
+
+      if (banner?.id) {
+        const { error } = await supabase
           .from("hero_banner")
           .update(updateData)
           .eq("id", banner.id);
+
+        if (error) {
+          throw error;
+        }
       } else {
-        await supabase
+        const { error } = await supabase
           .from("hero_banner")
-          .insert([{ ...updateData, is_active: true }]);
+          .insert([updateData]);
+
+        if (error) {
+          throw error;
+        }
       }
 
       toast.success("Banner saved successfully");
-      fetchAllData();
-    } catch (error) {
+      await fetchAllData();
+    } catch (error: any) {
       console.error("Error saving banner:", error);
-      toast.error("Failed to save banner");
+      toast.error(error.message || "Failed to save banner");
     }
   };
 
@@ -277,8 +316,8 @@ export default function AboutSectionsAdmin() {
     }
 
     try {
-      if (profile) {
-        await supabase
+      if (profile?.id) {
+        const { error } = await supabase
           .from("company_profile")
           .update({
             title: editedProfileTitle,
@@ -287,12 +326,34 @@ export default function AboutSectionsAdmin() {
           })
           .eq("id", profile.id);
 
+        if (error) {
+          throw error;
+        }
+
         toast.success("Profile updated");
+      } else {
+        const { error } = await supabase
+          .from("company_profile")
+          .insert([
+            {
+              title: editedProfileTitle,
+              content: editedProfile,
+              is_active: true,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+
+        if (error) {
+          throw error;
+        }
+
+        toast.success("Profile created");
       }
 
-      fetchAllData();
-    } catch (error) {
-      toast.error("Failed to save profile");
+      await fetchAllData();
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      toast.error(error.message || "Failed to save profile");
     }
   };
 
@@ -305,20 +366,24 @@ export default function AboutSectionsAdmin() {
 
     try {
       const maxSort = Math.max(0, ...timelines.map((t) => t.sort_order || 0));
-      await supabase.from("timeline_milestones").insert([
+      const { error } = await supabase.from("timeline_milestones").insert([
         {
           year: newTimeline.year,
           details: newTimeline.details,
           sort_order: maxSort + 1,
           is_active: true,
+          created_at: new Date().toISOString(),
         },
       ]);
 
+      if (error) throw error;
+
       setNewTimeline({ year: "", details: "" });
       toast.success("Timeline added");
-      fetchAllData();
-    } catch (error) {
-      toast.error("Failed to add timeline");
+      await fetchAllData();
+    } catch (error: any) {
+      console.error("Error adding timeline:", error);
+      toast.error(error.message || "Failed to add timeline");
     }
   };
 
@@ -326,11 +391,18 @@ export default function AboutSectionsAdmin() {
     if (!confirm("Delete this timeline?")) return;
 
     try {
-      await supabase.from("timeline_milestones").delete().eq("id", id);
+      const { error } = await supabase
+        .from("timeline_milestones")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
       toast.success("Timeline deleted");
-      fetchAllData();
-    } catch (error) {
-      toast.error("Failed to delete timeline");
+      await fetchAllData();
+    } catch (error: any) {
+      console.error("Error deleting timeline:", error);
+      toast.error(error.message || "Failed to delete timeline");
     }
   };
 
@@ -346,13 +418,16 @@ export default function AboutSectionsAdmin() {
         0,
         ...achievements.map((a) => a.sort_order || 0)
       );
-      await supabase.from("company_achievements").insert([
+      const { error } = await supabase.from("company_achievements").insert([
         {
           ...newAchievement,
           sort_order: maxSort + 1,
           is_active: true,
+          created_at: new Date().toISOString(),
         },
       ]);
+
+      if (error) throw error;
 
       setNewAchievement({
         stats: "",
@@ -362,9 +437,10 @@ export default function AboutSectionsAdmin() {
       });
       setAchievementImagePreview("");
       toast.success("Achievement added");
-      fetchAllData();
-    } catch (error) {
-      toast.error("Failed to add achievement");
+      await fetchAllData();
+    } catch (error: any) {
+      console.error("Error adding achievement:", error);
+      toast.error(error.message || "Failed to add achievement");
     }
   };
 
@@ -372,11 +448,18 @@ export default function AboutSectionsAdmin() {
     if (!confirm("Delete this achievement?")) return;
 
     try {
-      await supabase.from("company_achievements").delete().eq("id", id);
+      const { error } = await supabase
+        .from("company_achievements")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
       toast.success("Achievement deleted");
-      fetchAllData();
-    } catch (error) {
-      toast.error("Failed to delete achievement");
+      await fetchAllData();
+    } catch (error: any) {
+      console.error("Error deleting achievement:", error);
+      toast.error(error.message || "Failed to delete achievement");
     }
   };
 
@@ -389,13 +472,16 @@ export default function AboutSectionsAdmin() {
 
     try {
       const maxSort = Math.max(0, ...honors.map((h) => h.sort_order || 0));
-      await supabase.from("company_honors").insert([
+      const { error } = await supabase.from("company_honors").insert([
         {
           ...newHonor,
           sort_order: maxSort + 1,
           is_active: true,
+          created_at: new Date().toISOString(),
         },
       ]);
+
+      if (error) throw error;
 
       setNewHonor({
         title: "",
@@ -405,9 +491,10 @@ export default function AboutSectionsAdmin() {
       });
       setHonorImagePreview("");
       toast.success("Honor added");
-      fetchAllData();
-    } catch (error) {
-      toast.error("Failed to add honor");
+      await fetchAllData();
+    } catch (error: any) {
+      console.error("Error adding honor:", error);
+      toast.error(error.message || "Failed to add honor");
     }
   };
 
@@ -415,19 +502,23 @@ export default function AboutSectionsAdmin() {
     if (!confirm("Delete this honor?")) return;
 
     try {
-      await supabase.from("company_honors").delete().eq("id", id);
+      const { error } = await supabase.from("company_honors").delete().eq("id", id);
+
+      if (error) throw error;
+
       toast.success("Honor deleted");
-      fetchAllData();
-    } catch (error) {
-      toast.error("Failed to delete honor");
+      await fetchAllData();
+    } catch (error: any) {
+      console.error("Error deleting honor:", error);
+      toast.error(error.message || "Failed to delete honor");
     }
   };
 
   // ===== MARKETING HANDLERS =====
   const handleSaveMarketing = async () => {
     try {
-      if (marketing) {
-        await supabase
+      if (marketing?.id) {
+        const { error } = await supabase
           .from("global_marketing")
           .update({
             countries_count: editedMarketing.countries_count,
@@ -438,12 +529,29 @@ export default function AboutSectionsAdmin() {
           })
           .eq("id", marketing.id);
 
+        if (error) throw error;
+
         toast.success("Marketing stats updated");
+      } else {
+        const { error } = await supabase
+          .from("global_marketing")
+          .insert([
+            {
+              ...editedMarketing,
+              is_active: true,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+
+        if (error) throw error;
+
+        toast.success("Marketing stats created");
       }
 
-      fetchAllData();
-    } catch (error) {
-      toast.error("Failed to save marketing stats");
+      await fetchAllData();
+    } catch (error: any) {
+      console.error("Error saving marketing:", error);
+      toast.error(error.message || "Failed to save marketing stats");
     }
   };
 
