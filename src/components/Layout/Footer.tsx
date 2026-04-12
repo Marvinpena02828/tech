@@ -78,6 +78,10 @@ export default function Footer() {
           transition: all 0.3s ease;
         }
 
+        .icon-social {
+          transition: filter 0.3s ease;
+        }
+
         .social-hover:hover .icon-social {
           filter: brightness(0.7);
         }
