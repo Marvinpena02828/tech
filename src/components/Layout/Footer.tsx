@@ -74,34 +74,26 @@ export default function Footer() {
   return (
     <>
       <style>{`
-        .social-icon-box {
+        .social-hover {
           position: relative;
-          aspect-ratio: 1;
+          overflow: hidden;
+          aspect-square;
+          border: 1px solid rgba(255, 255, 255, 0.5);
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid rgba(255, 255, 255, 0.6);
-          overflow: hidden;
-          transition: all 0.3s ease;
-        }
-
-        .social-icon-box:hover {
-          background-color: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.9);
         }
 
         .icon-default,
         .icon-hover {
           position: absolute;
-          transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
-          width: 24px;
-          height: 24px;
+          transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+            opacity 0.4s ease;
         }
 
         .icon-default {
           transform: translateY(0);
           opacity: 1;
-          filter: brightness(0) invert(1);
         }
 
         .icon-hover {
@@ -109,12 +101,12 @@ export default function Footer() {
           opacity: 0;
         }
 
-        .social-icon-box:hover .icon-default {
+        .social-hover:hover .icon-default {
           transform: translateY(-100%);
           opacity: 0;
         }
 
-        .social-icon-box:hover .icon-hover {
+        .social-hover:hover .icon-hover {
           transform: translateY(0);
           opacity: 1;
         }
@@ -175,25 +167,24 @@ export default function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="social-icon-box"
-                  title={social.name}
+                  className="social-hover"
                 >
                   {/* DEFAULT ICON */}
                   <AppImage
                     src={social.image}
                     alt={social.name}
-                    width={24}
-                    height={24}
-                    className="icon-default"
+                    width={20}
+                    height={20}
+                    className="object-contain w-5 h-5 brightness-0 invert icon-default"
                   />
 
                   {/* HOVER ICON */}
                   <AppImage
                     src={social.image}
                     alt={social.name}
-                    width={24}
-                    height={24}
-                    className="icon-hover"
+                    width={20}
+                    height={20}
+                    className="object-contain w-5 h-5 icon-hover"
                   />
                 </Link>
               ))}
