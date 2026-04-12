@@ -77,6 +77,10 @@ export default function Footer() {
         .social-hover {
           transition: all 0.3s ease;
         }
+
+        .social-hover:hover .icon-social {
+          filter: brightness(0.7);
+        }
       `}</style>
 
       <footer className="bg-[#d6202a] w-full text-white px-6 py-16">
@@ -139,7 +143,7 @@ export default function Footer() {
                     alt={social.name}
                     width={20}
                     height={20}
-                    className="object-contain w-5 h-5 brightness-0 invert"
+                    className="object-contain w-5 h-5 brightness-0 invert icon-social"
                   />
                 </Link>
               ))}
