@@ -73,23 +73,35 @@ export default function Footer() {
 
   return (
     <>
-      {/* 🔥 HOVER ANIMATION (ADDED LANG) */}
       <style>{`
-        .social-hover {
+        .social-icon-box {
           position: relative;
+          aspect-ratio: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255, 255, 255, 0.6);
           overflow: hidden;
+          transition: all 0.3s ease;
+        }
+
+        .social-icon-box:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.9);
         }
 
         .icon-default,
         .icon-hover {
           position: absolute;
-    transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1),
-            opacity 0.4s ease;
+          transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
+          width: 24px;
+          height: 24px;
         }
 
         .icon-default {
           transform: translateY(0);
           opacity: 1;
+          filter: brightness(0) invert(1);
         }
 
         .icon-hover {
@@ -97,12 +109,12 @@ export default function Footer() {
           opacity: 0;
         }
 
-        .social-hover:hover .icon-default {
+        .social-icon-box:hover .icon-default {
           transform: translateY(-100%);
           opacity: 0;
         }
 
-        .social-hover:hover .icon-hover {
+        .social-icon-box:hover .icon-hover {
           transform: translateY(0);
           opacity: 1;
         }
@@ -117,6 +129,7 @@ export default function Footer() {
               <img
                 src={footerLogos.footerLogo || footerLogos.mainLogo || ""}
                 className="w-32 mb-4"
+                alt="Footer Logo"
               />
             ) : null}
             <p className="text-sm">{companyInfo.description}</p>
@@ -146,39 +159,41 @@ export default function Footer() {
           <div>
             <h3 className="mb-4 font-semibold">Newsletter</h3>
             <input
-              className="w-full p-2 rounded bg-white/10"
+              className="w-full p-2 rounded bg-white/10 text-white placeholder-white/50 border border-white/20"
               placeholder="Your email"
             />
           </div>
 
-          {/* 🔥 SOCIAL WITH HOVER SLIDE */}
+          {/* SOCIAL ICONS */}
           <div>
             <h3 className="mb-4 font-semibold">Follow</h3>
 
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-3">
               {socialLinks.map((social) => (
                 <Link
                   key={social.name}
                   href={social.href}
                   target="_blank"
-                  className="aspect-square border border-white border-opacity-50 flex items-center justify-center hover:bg-white hover:bg-opacity-10 transition-all duration-300 social-hover"
+                  rel="noopener noreferrer"
+                  className="social-icon-box"
+                  title={social.name}
                 >
                   {/* DEFAULT ICON */}
                   <AppImage
                     src={social.image}
                     alt={social.name}
-                    width={20}
-                    height={20}
-                    className="object-contain w-5 h-5 brightness-0 invert icon-default"
+                    width={24}
+                    height={24}
+                    className="icon-default"
                   />
 
                   {/* HOVER ICON */}
                   <AppImage
                     src={social.image}
                     alt={social.name}
-                    width={20}
-                    height={20}
-                    className="object-contain w-5 h-5 icon-hover"
+                    width={24}
+                    height={24}
+                    className="icon-hover"
                   />
                 </Link>
               ))}
