@@ -38,7 +38,7 @@ export default async function ContactPage() {
 
           {/* Right Column - Addresses */}
           <div className="space-y-3 flex-1 text-center">
-            <h1 className="heading">Mytechon Innovations</h1>
+            <h1 className="heading">TechOn Innovations</h1>
             {addresses.map((address, idx) => {
               return (
                 <div key={address.id}>
@@ -85,7 +85,7 @@ export default async function ContactPage() {
             })}
             <p>
               <span className="font-semibold text-base">Email:</span>{" "}
-              sales@mytechon.net
+              sales@tech-on.net
             </p>
           </div>
         </div>
