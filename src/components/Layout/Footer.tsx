@@ -75,6 +75,151 @@ export default function Footer() {
     <>
       <style>{`
         .social-hover {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .social-hover::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: rgba(255, 255, 255, 0.1);
+          transform: scaleY(0);
+          transform-origin: bottom;
+          transition: transform 0.3s ease;
+        }
+
+        .social-hover:hover::before {
+          transform: scaleY(1);
+        }
+
+        .icon-social {
+          position: relative;
+          z-index: 1;
+          transition: filter 0.3s ease;
+        }
+
+        .social-hover:hover .icon-social {
+          filter: brightness(0.7);
+        }
+      `}</style>
+
+      <footer className="bg-[#d6202a] w-full text-white px-6 py-16">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-5 gap-10">
+
+          {/* LOGO */}
+          <div>
+            {footerLogos.footerLogo || footerLogos.mainLogo ? (
+              <img
+                src={footerLogos.footerLogo || footerLogos.mainLogo || ""}
+                className="w-32 mb-4"
+              />
+            ) : null}
+            <p className="text-sm">{companyInfo.description}</p>
+          </div>
+
+          {/* CATEGORIES */}
+          <div>
+            <h3 className="mb-4 font-semibold">Categories</h3>
+            {categories.slice(0, 4).map((c) => (
+              <p key={c.id} className="text-sm mb-2">
+                {c.title}
+              </p>
+            ))}
+          </div>
+
+          {/* COMPANY */}
+          <div>
+            <h3 className="mb-4 font-semibold">Company</h3>
+            {["About", "Contact", "Privacy"].map((l) => (
+              <p key={l} className="text-sm mb-2">
+                {l}
+              </p>
+            ))}
+          </div>
+
+          {/* NEWSLETTER */}
+          <div>
+            <h3 className="mb-4 font-semibold">Newsletter</h3>
+            <input
+              className="w-full p-2 rounded bg-white/10"
+              placeholder="Your email"
+            />
+          </div>
+
+          {/* SOCIAL WITH HOVER */}
+          <div>
+            <h3 className="mb-4 font-semibold">Follow</h3>
+
+            <div className="grid grid-cols-5 gap-2">
+              {socialLinks.map((social) => (
+                <Link
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  className="aspect-square border border-white border-opacity-50 flex items-center justify-center hover:bg-white hover:bg-opacity-10 social-hover"
+                >
+                  <AppImage
+                    src={social.image}
+                    alt={social.name}
+                    width={20}
+                    height={20}
+                    className="object-contain w-5 h-5 brightness-0 invert icon-social"
+                  />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* BOTTOM */}
+        <div className="mt-12 text-sm">
+          © TechOn Technology Co., Limited
+        </div>
+      </footer>
+    </>
+  );
+}  const [footerLogos, setFooterLogos] = useState<FooterLogos>({
+    mainLogo: null,
+    footerLogo: null,
+    footerImage: null,
+  });
+
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient();
+
+      const { data } = await supabase
+        .from("logos")
+        .select("logo_type, url");
+
+      const map: any = {};
+      data?.forEach((l) => (map[l.logo_type] = l.url));
+
+      setFooterLogos({
+        mainLogo: map["main"],
+        footerLogo: map["footer_logo"],
+        footerImage: map["footer_image"],
+      });
+
+      const { data: company } = await supabase
+        .from("company_info")
+        .select("description")
+        .single();
+
+      if (company) setCompanyInfo(company);
+
+      const categories = await getPublicCategories();
+      if (categories.success) setCategories(categories.data);
+    };
+
+    load();
+  }, [currentPath]);
+
+  return (
+    <>
+      <style>{`
+        .social-hover {
           transition: all 0.3s ease;
         }
 
