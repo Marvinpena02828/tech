@@ -83,8 +83,8 @@ export default function Footer() {
         .icon-default,
         .icon-hover {
           position: absolute;
-          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-                      opacity 0.3s ease;
+    transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+            opacity 0.4s ease;
         }
 
         .icon-default {
