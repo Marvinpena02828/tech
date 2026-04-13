@@ -22,7 +22,7 @@ interface Achievement {
 // - "techon-images"
 // - "images"
 // - "assets"
-const STORAGE_BUCKET = "achievements"; // ← Change this!
+const STORAGE_BUCKET = "achievements"; // ← Change this to your bucket name!
 
 export default function AdminAchievements() {
   const supabase = createClient();
@@ -368,7 +368,7 @@ export default function AdminAchievements() {
                 </div>
               ) : (
                 <p className="text-sm text-red-600 mt-1">
-                  ❌ No buckets found. Create a PUBLIC bucket in Supabase Dashboard > Storage
+                  ❌ No buckets found. Create a PUBLIC bucket in Supabase Dashboard &gt; Storage
                 </p>
               )}
             </div>
