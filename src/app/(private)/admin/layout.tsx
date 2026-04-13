@@ -47,6 +47,7 @@ export default function AdminLayout({
       href: "/admin/guaranteed-quality",
       icon: Award,
     },
+    { name: "Achievements", href: "/admin/achievements", icon: Star },
     { name: "Awards", href: "/admin/awards", icon: Award },
     { name: "Services", href: "/admin/services", icon: Briefcase },
     { name: "Products", href: "/admin/products", icon: Package },
