@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
-import { Upload, Trash2, Edit2, Plus, Loader, AlertCircle } from "lucide-react";
+import { Upload, Trash2, Edit2, Plus, Loader, AlertCircle, CheckCircle } from "lucide-react";
 import Image from "next/image";
 
 interface Achievement {
@@ -16,8 +16,6 @@ interface Achievement {
   is_active: boolean;
 }
 
-// DIRECTLY SET YOUR BUCKET NAME
-// No need to list buckets - just use the name directly!
 const STORAGE_BUCKET = "achievements";
 
 export default function AdminAchievements() {
@@ -25,6 +23,8 @@ export default function AdminAchievements() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -43,20 +43,43 @@ export default function AdminAchievements() {
     console.log(log);
   };
 
-  // Test bucket access on mount
+  // Check authentication and bucket access
   useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        addDebugLog("🔐 Checking authentication status...");
+        
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          addDebugLog("❌ Not authenticated - please log in");
+          setIsAuthenticated(false);
+          return;
+        }
+
+        addDebugLog(`✅ Authenticated as: ${user.email}`);
+        setUserEmail(user.email || "Unknown");
+        setIsAuthenticated(true);
+
+        // Now test bucket access
+        testBucketAccess();
+      } catch (error: any) {
+        addDebugLog(`❌ Auth check error: ${error.message}`);
+      }
+    };
+
     const testBucketAccess = async () => {
       try {
         addDebugLog(`🔍 Testing bucket access for: '${STORAGE_BUCKET}'`);
         
-        // Try to list files in the bucket (even empty list is a success)
         const { data, error } = await supabase.storage
           .from(STORAGE_BUCKET)
           .list("", { limit: 1 });
 
         if (error) {
           addDebugLog(`❌ Cannot access bucket: ${error.message}`);
-          toast.error(`Cannot access '${STORAGE_BUCKET}' bucket. Check if it's PUBLIC and exists.`);
+          toast.error(`Cannot access '${STORAGE_BUCKET}' bucket.`);
+          setBucketReady(false);
           return;
         }
 
@@ -64,10 +87,11 @@ export default function AdminAchievements() {
         setBucketReady(true);
       } catch (error: any) {
         addDebugLog(`❌ Exception: ${error.message}`);
+        setBucketReady(false);
       }
     };
 
-    testBucketAccess();
+    checkAuth();
   }, []);
 
   // Fetch achievements
@@ -83,6 +107,7 @@ export default function AdminAchievements() {
 
       if (error) {
         addDebugLog(`❌ Database error: ${error.message}`);
+        toast.error(`Database error: ${error.message}`);
         throw error;
       }
 
@@ -90,15 +115,16 @@ export default function AdminAchievements() {
       setAchievements(data || []);
     } catch (error: any) {
       addDebugLog(`❌ Error: ${error.message}`);
-      toast.error("Failed to load achievements");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAchievements();
-  }, []);
+    if (isAuthenticated) {
+      fetchAchievements();
+    }
+  }, [isAuthenticated]);
 
   // Handle image upload
   const handleImageUpload = async (file: File) => {
@@ -106,7 +132,6 @@ export default function AdminAchievements() {
       setUploadingImage(true);
       addDebugLog(`📤 Starting upload: ${file.name} (${(file.size / 1024).toFixed(2)}KB)`);
 
-      // Validate file
       if (!file.type.startsWith("image/")) {
         addDebugLog(`❌ Invalid file type: ${file.type}`);
         toast.error("Please select a valid image file");
@@ -126,7 +151,6 @@ export default function AdminAchievements() {
       addDebugLog(`📁 Using bucket: ${STORAGE_BUCKET}`);
       addDebugLog(`📍 File path: ${filePath}`);
 
-      // Upload file
       addDebugLog("🚀 Uploading to Supabase Storage...");
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKET)
@@ -142,7 +166,6 @@ export default function AdminAchievements() {
 
       addDebugLog(`✅ Upload successful: ${uploadData?.path}`);
 
-      // Get public URL
       const { data: publicUrlData } = supabase.storage
         .from(STORAGE_BUCKET)
         .getPublicUrl(filePath);
@@ -202,22 +225,29 @@ export default function AdminAchievements() {
       }
 
       if (editingId) {
-        addDebugLog(`Updating ID: ${editingId}`);
+        addDebugLog(`📝 Updating ID: ${editingId}`);
         const { error } = await supabase
           .from("achievements")
           .update(payload)
           .eq("id", editingId);
 
-        if (error) throw error;
+        if (error) {
+          addDebugLog(`❌ Update error: ${error.message}`);
+          throw error;
+        }
         addDebugLog("✅ Achievement updated in database");
         toast.success("Achievement updated!");
       } else {
-        addDebugLog("Inserting new achievement into database");
+        addDebugLog("📝 Inserting new achievement into database");
         const { error } = await supabase
           .from("achievements")
           .insert([payload]);
 
-        if (error) throw error;
+        if (error) {
+          addDebugLog(`❌ Insert error: ${error.message}`);
+          addDebugLog("💡 This might be an RLS policy issue - check: Supabase > Database > Policies");
+          throw error;
+        }
         addDebugLog("✅ Achievement created in database");
         toast.success("Achievement created!");
       }
@@ -292,6 +322,33 @@ export default function AdminAchievements() {
     addDebugLog("❌ Edit cancelled");
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="p-8 bg-white min-h-screen">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <AlertCircle size={48} className="mx-auto mb-4 text-red-600" />
+            <h1 className="text-2xl font-bold mb-2">Not Authenticated</h1>
+            <p className="text-gray-600">Please log in to access this page.</p>
+            <a href="/admin" className="mt-4 inline-block text-blue-600 hover:underline">
+              Go to Login →
+            </a>
+          </div>
+          {debugInfo.length > 0 && (
+            <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mt-8 font-mono text-xs max-h-40 overflow-y-auto">
+              <p className="text-gray-500 mb-2">📋 Debug Log:</p>
+              {debugInfo.map((log, i) => (
+                <p key={i} className="text-gray-300">
+                  {log}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 bg-white min-h-screen">
       <div className="max-w-6xl mx-auto">
@@ -306,6 +363,19 @@ export default function AdminAchievements() {
             </button>
           )}
         </div>
+
+        {/* Auth Status */}
+        {isAuthenticated && userEmail && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <CheckCircle size={20} className="text-green-600" />
+              <div>
+                <p className="text-sm font-medium text-green-900">Authenticated</p>
+                <p className="text-sm text-green-700">{userEmail}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Storage Status */}
         <div className={`rounded-lg p-4 mb-6 border-2 ${
