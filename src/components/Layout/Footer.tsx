@@ -21,37 +21,37 @@ interface FooterLogos {
 const socialLinks = [
   {
     name: "Facebook",
-    href: "https://www.facebook.com/AyyanInnovations/",
+    href: "#",
     image: "/socials/FB.png",
   },
   {
     name: "X",
-    href: "https://x.com/AyyanInnov12181",
+    href: "#",
     image: "/socials/X.png",
   },
   {
     name: "Instagram",
-    href: "https://www.instagram.com/ayyan_innovations/",
+    href: "#",
     image: "/socials/Instagram.png",
   },
   {
     name: "LinkedIn",
-    href: "https://www.linkedin.com/company/ayyan-innovations/",
+    href: "#",
     image: "/socials/Linked.png",
   },
   {
     name: "YouTube",
-    href: "https://www.youtube.com/@AyyanInnovations",
+    href: "#",
     image: "/socials/youtube.png",
   },
   {
     name: "TikTok",
-    href: "https://www.tiktok.com/@ayyan_innovations",
+    href: "#",
     image: "/socials/tiktok.png",
   },
   {
     name: "SnapChat",
-    href: "https://snapchat.com/t/RSuD7Sx3",
+    href: "#",
     image: "/socials/Snapchat.png",
   },
 ];
