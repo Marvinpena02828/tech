@@ -16,13 +16,9 @@ interface Achievement {
   is_active: boolean;
 }
 
-// CHANGE THIS TO YOUR BUCKET NAME
-// Supabase doesn't allow "public" - use something like:
-// - "achievements" 
-// - "techon-images"
-// - "images"
-// - "assets"
-const STORAGE_BUCKET = "achievements"; // ← Change this to your bucket name!
+// DIRECTLY SET YOUR BUCKET NAME
+// No need to list buckets - just use the name directly!
+const STORAGE_BUCKET = "achievements";
 
 export default function AdminAchievements() {
   const supabase = createClient();
@@ -37,9 +33,8 @@ export default function AdminAchievements() {
   });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [bucketsList, setBucketsList] = useState<string[]>([]);
-  const [selectedBucket, setSelectedBucket] = useState(STORAGE_BUCKET);
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const [bucketReady, setBucketReady] = useState(false);
 
   const addDebugLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -48,48 +43,37 @@ export default function AdminAchievements() {
     console.log(log);
   };
 
-  // Fetch available buckets on mount
+  // Test bucket access on mount
   useEffect(() => {
-    const fetchBuckets = async () => {
+    const testBucketAccess = async () => {
       try {
-        addDebugLog("Fetching available storage buckets...");
-        const { data, error } = await supabase.storage.listBuckets();
+        addDebugLog(`🔍 Testing bucket access for: '${STORAGE_BUCKET}'`);
         
+        // Try to list files in the bucket (even empty list is a success)
+        const { data, error } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .list("", { limit: 1 });
+
         if (error) {
-          addDebugLog(`❌ Error fetching buckets: ${error.message}`);
-          toast.error("Could not load storage buckets");
+          addDebugLog(`❌ Cannot access bucket: ${error.message}`);
+          toast.error(`Cannot access '${STORAGE_BUCKET}' bucket. Check if it's PUBLIC and exists.`);
           return;
         }
 
-        const bucketNames = data.map((b: any) => b.name);
-        setBucketsList(bucketNames);
-        addDebugLog(`✅ Found buckets: ${bucketNames.join(", ")}`);
-
-        // Check if our default bucket exists
-        if (bucketNames.includes(STORAGE_BUCKET)) {
-          setSelectedBucket(STORAGE_BUCKET);
-          addDebugLog(`✅ Using bucket: '${STORAGE_BUCKET}'`);
-        } else if (bucketNames.length > 0) {
-          setSelectedBucket(bucketNames[0]);
-          addDebugLog(`⚠️ Default bucket '${STORAGE_BUCKET}' not found!`);
-          addDebugLog(`Using first available: '${bucketNames[0]}'`);
-          addDebugLog(`💡 Create a bucket named '${STORAGE_BUCKET}' to use as default`);
-        } else {
-          addDebugLog("❌ No buckets found! Create one in Supabase Dashboard.");
-          toast.error("No storage buckets found. Create one in Supabase Dashboard.");
-        }
+        addDebugLog(`✅ Bucket '${STORAGE_BUCKET}' is accessible!`);
+        setBucketReady(true);
       } catch (error: any) {
         addDebugLog(`❌ Exception: ${error.message}`);
       }
     };
 
-    fetchBuckets();
+    testBucketAccess();
   }, []);
 
   // Fetch achievements
   const fetchAchievements = async () => {
     try {
-      addDebugLog("Fetching achievements from database...");
+      addDebugLog("📚 Fetching achievements from database...");
       setLoading(true);
       
       const { data, error } = await supabase
@@ -139,28 +123,13 @@ export default function AdminAchievements() {
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `achievements/${fileName}`;
 
-      addDebugLog(`📁 Bucket: ${selectedBucket}`);
-      addDebugLog(`📍 Path: ${filePath}`);
-
-      // Check if bucket exists by trying to list it
-      addDebugLog("🔍 Checking bucket access...");
-      const { data: listData, error: listError } = await supabase.storage
-        .from(selectedBucket)
-        .list("", { limit: 1 });
-
-      if (listError) {
-        addDebugLog(`❌ Cannot access bucket '${selectedBucket}': ${listError.message}`);
-        addDebugLog(`💡 Make sure the bucket '${selectedBucket}' is PUBLIC in Supabase Dashboard`);
-        toast.error(`Cannot access bucket '${selectedBucket}'. Is it PUBLIC?`);
-        return null;
-      }
-
-      addDebugLog("✅ Bucket is accessible");
+      addDebugLog(`📁 Using bucket: ${STORAGE_BUCKET}`);
+      addDebugLog(`📍 File path: ${filePath}`);
 
       // Upload file
-      addDebugLog("📤 Uploading to Supabase Storage...");
+      addDebugLog("🚀 Uploading to Supabase Storage...");
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(selectedBucket)
+        .from(STORAGE_BUCKET)
         .upload(filePath, file, {
           cacheControl: "3600",
           upsert: false,
@@ -175,7 +144,7 @@ export default function AdminAchievements() {
 
       // Get public URL
       const { data: publicUrlData } = supabase.storage
-        .from(selectedBucket)
+        .from(STORAGE_BUCKET)
         .getPublicUrl(filePath);
 
       const publicUrl = publicUrlData.publicUrl;
@@ -183,7 +152,7 @@ export default function AdminAchievements() {
 
       return { url: publicUrl, path: filePath };
     } catch (error: any) {
-      addDebugLog(`❌ Exception during upload: ${error.message}`);
+      addDebugLog(`❌ Upload exception: ${error.message}`);
       toast.error(`Upload failed: ${error.message}`);
       return null;
     } finally {
@@ -289,7 +258,7 @@ export default function AdminAchievements() {
       if (imagePath) {
         addDebugLog(`Deleting image: ${imagePath}`);
         const { error: deleteError } = await supabase.storage
-          .from(selectedBucket)
+          .from(STORAGE_BUCKET)
           .remove([imagePath]);
 
         if (deleteError) {
@@ -338,39 +307,28 @@ export default function AdminAchievements() {
           )}
         </div>
 
-        {/* Storage Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        {/* Storage Status */}
+        <div className={`rounded-lg p-4 mb-6 border-2 ${
+          bucketReady 
+            ? "bg-green-50 border-green-200" 
+            : "bg-yellow-50 border-yellow-200"
+        }`}>
           <div className="flex items-start gap-3">
-            <AlertCircle size={20} className="text-blue-600 mt-0.5 flex-shrink-0" />
+            <AlertCircle size={20} className={`mt-0.5 flex-shrink-0 ${
+              bucketReady ? "text-green-600" : "text-yellow-600"
+            }`} />
             <div className="flex-1">
-              <p className="text-sm font-medium text-blue-900">Storage Bucket</p>
-              {bucketsList.length > 0 ? (
-                <div className="mt-2">
-                  <p className="text-sm text-blue-800">
-                    Current: <span className="font-mono font-bold">{selectedBucket}</span>
-                  </p>
-                  {bucketsList.length > 1 && (
-                    <select
-                      value={selectedBucket}
-                      onChange={(e) => setSelectedBucket(e.target.value)}
-                      className="mt-2 px-2 py-1 border border-blue-300 rounded text-sm"
-                    >
-                      {bucketsList.map((bucket) => (
-                        <option key={bucket} value={bucket}>
-                          {bucket}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  <p className="text-xs text-blue-700 mt-2">
-                    Available: {bucketsList.join(", ")}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm text-red-600 mt-1">
-                  ❌ No buckets found. Create a PUBLIC bucket in Supabase Dashboard &gt; Storage
-                </p>
-              )}
+              <p className="text-sm font-medium text-gray-900">Storage Status</p>
+              <p className={`text-sm mt-1 ${
+                bucketReady 
+                  ? "text-green-700" 
+                  : "text-yellow-700"
+              }`}>
+                {bucketReady 
+                  ? `✅ Bucket '${STORAGE_BUCKET}' is ready` 
+                  : `⏳ Checking bucket access...`
+                }
+              </p>
             </div>
           </div>
         </div>
@@ -468,7 +426,7 @@ export default function AdminAchievements() {
 
             <button
               onClick={handleSave}
-              disabled={loading || uploadingImage || bucketsList.length === 0}
+              disabled={loading || uploadingImage || !bucketReady}
               className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {(loading || uploadingImage) && (
@@ -493,7 +451,7 @@ export default function AdminAchievements() {
 
         {/* List */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Achievements</h2>
+          <h2 className="text-xl font-semibold mb-4">Achievements ({achievements.length})</h2>
 
           {loading && achievements.length === 0 ? (
             <div className="text-center py-8">
@@ -531,7 +489,7 @@ export default function AdminAchievements() {
                       </p>
                       <div className="flex gap-2 mt-2">
                         <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                          {achievement.order_index}
+                          Order: {achievement.order_index}
                         </span>
                         <span
                           className={`text-xs px-2 py-1 rounded ${
