@@ -1,6 +1,9 @@
+"use client";
+
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { useEffect, useState } from "react";
 
 interface Service {
   id: string;
@@ -10,72 +13,88 @@ interface Service {
   order: number;
 }
 
-async function getServices(): Promise<Service[]> {
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("services")
-      .select("*")
-      .order("order", { ascending: true })
-      .limit(4);
+export default function ServicesSection() {
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.3 });
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    if (error) {
-      console.error("Supabase error:", error);
-      return [];
-    }
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch("/api/services");
+        if (!response.ok) throw new Error("Failed to fetch");
+        const data = await response.json();
+        // Limit to 4 services and sort by order
+        setServices(data.sort((a: Service, b: Service) => a.order - b.order).slice(0, 4));
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return data || [];
-  } catch (error) {
-    console.error("Error fetching services:", error);
-    return [];
-  }
-}
+    fetchServices();
+  }, []);
 
-export default async function ServicesSection() {
-  const services = await getServices();
-
-  if (services.length === 0) {
-    return null;
+  if (loading) {
+    return (
+      <section className="w-full py-20 bg-white border-t border-gray-100 mt-2">
+        <div className="container">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mx-auto mb-12 animate-pulse"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-100 rounded animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
-    <section className="w-full py-16 bg-white border-t border-gray-100 mt-2">
-      <div className="container px-4">
-        {/* Header */}
-        <h2 className="heading text-center text-gray-800 mb-12 font-arial">
+    <section
+      ref={ref as React.RefObject<HTMLElement>}
+      className="w-full py-20 bg-white border-t border-gray-100 mt-2"
+    >
+      <div className="container">
+        <h2
+          className={`heading text-center text-gray-800 mb-12 font-arial transition-all duration-700 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
           Our Services
         </h2>
 
-        {/* Grid */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-4">
           {services.map((service, idx) => (
             <Link
               href={`/services#service-${idx}`}
               key={service.id}
-              className="group flex flex-col gap-3 p-4 hover:bg-gray-50 rounded-lg transition"
+              className={`flex items-start gap-2 transition-all duration-700 ${
+                isVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8"
+              }`}
+              style={{
+                transitionDelay: `${idx * 100 + 200}ms`,
+                transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)",
+              }}
             >
-              {/* Image */}
-              {service.image && (
-                <div className="relative w-full h-24 rounded-lg overflow-hidden bg-gray-200 border-2 border-gray-300 group-hover:border-blue-500 transition-colors">
-                  <Image
-                    src={service.image}
-                    alt={service.title}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    sizes="100px"
-                  />
-                </div>
-              )}
-
-              {/* Title */}
-              <h3 className="font-bold text-sm md:text-base text-gray-900 group-hover:text-blue-600 transition-colors">
-                {service.title}
-              </h3>
-
-              {/* Description */}
-              <p className="text-xs text-gray-600 line-clamp-2 group-hover:text-gray-800 transition-colors">
-                {service.description.replace(/<[^>]*>/g, "")}
-              </p>
+              <div className="relative min-w-22 h-22 overflow-hidden rounded-full aspect-square group hover:bg-primary-blue">
+                <Image
+                  src={service.image}
+                  alt={service.title}
+                  width={1000}
+                  height={1000}
+                  className="object-cover aspect-square group-hover:brightness-0 group-hover:invert transition-all duration-300"
+                />
+              </div>
+              <div className="flex flex-col">
+                <h3 className="font-bold text-sm md:text-[17px] text-gray-800 leading-5">
+                  {service.title}
+                </h3>
+                <p className="text-xs text-gray-600 line-clamp-2">{service.description}</p>
+              </div>
             </Link>
           ))}
         </div>
