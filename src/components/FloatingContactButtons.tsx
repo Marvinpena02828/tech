@@ -44,7 +44,6 @@ export default function FloatingContactButtons() {
     fetchContactOptions();
   }, []);
 
-  // Don't render if loading or no options
   if (loading || contactOptions.length === 0) {
     return null;
   }
@@ -54,12 +53,21 @@ export default function FloatingContactButtons() {
       {contactOptions.map((option) => {
         const iconSrc = option.icon_file_path || "/Icons/default.png";
         const isInternalLink = option.link.startsWith("/");
+        const isWhatsAppOrWeChat =
+          option.name.toLowerCase().includes("whatsapp") ||
+          option.name.toLowerCase().includes("wechat");
 
-        // Use Link for internal routes, regular <a> for external URLs
-        const LinkComponent = isInternalLink ? Link : "a";
-        const linkProps = isInternalLink
+        // Force external link for WhatsApp/WeChat, otherwise check if internal
+        const shouldOpenNewTab = !isInternalLink || isWhatsAppOrWeChat;
+        const LinkComponent = isInternalLink && !isWhatsAppOrWeChat ? Link : "a";
+
+        const linkProps = isInternalLink && !isWhatsAppOrWeChat
           ? { href: option.link }
-          : { href: option.link, target: "_blank", rel: "noopener noreferrer" };
+          : {
+              href: option.link,
+              target: "_blank",
+              rel: "noopener noreferrer",
+            };
 
         return (
           <LinkComponent
@@ -84,7 +92,6 @@ export default function FloatingContactButtons() {
                   }}
                 />
               </div>
-
               {/* Tooltip Text - shown on hover */}
               <div className="text-[#1e2742] hidden group-hover:block pl-4 pr-4 whitespace-nowrap">
                 <p className="text-sm font-medium leading-tight">
