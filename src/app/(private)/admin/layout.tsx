@@ -19,6 +19,7 @@ import {
   FileText,
   Megaphone,
   Briefcase,
+  MessageCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -58,6 +59,7 @@ export default function AdminLayout({
     { name: "News", href: "/admin/news", icon: Newspaper },
     { name: "Newsletter", href: "/admin/newsletter", icon: Mail },
     { name: "Promotional Bars", href: "/admin/promotional-bars", icon: Megaphone },
+    { name: "Floating Contact Buttons", href: "/admin/floating-contact-buttons", icon: MessageCircle },
     { name: "Contact Info", href: "/admin/contact-info", icon: Phone },
     { name: "Address", href: "/admin/address", icon: MapPin },
     { name: "Logo Settings", href: "/admin/logos", icon: ImageIcon },
