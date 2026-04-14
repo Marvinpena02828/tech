@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import toast, { Toaster } from "react-hot-toast";
-import { Edit, Trash2, Plus, ChevronUp, ChevronDown, Upload } from "lucide-react";
+import { Edit, Trash2, Plus, ChevronUp, ChevronDown, Upload, AlertCircle } from "lucide-react";
 
 interface ContactButton {
   id: number;
@@ -23,6 +23,7 @@ export default function FloatingContactButtonsAdminPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -116,6 +117,7 @@ export default function FloatingContactButtonsAdminPage() {
       is_active: button.is_active,
     });
     setShowForm(true);
+    setUploadError(null);
   };
 
   const handleDelete = async (id: number) => {
@@ -171,33 +173,71 @@ export default function FloatingContactButtonsAdminPage() {
 
   const handleImageUpload = async (file: File) => {
     try {
+      setUploadError(null);
       setUploading(true);
+
+      // Validate file
+      if (!file.type.startsWith("image/")) {
+        throw new Error("File must be an image (PNG, JPG, WebP, GIF, SVG)");
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("File size must be less than 5MB");
+      }
+
       const supabase = createClient();
+
+      // Check if authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("You must be logged in to upload files");
+      }
+
       const fileName = `${Date.now()}-${file.name}`;
       const bucket = "contact-buttons";
 
+      console.log("🚀 Starting upload...");
+      console.log("  Bucket:", bucket);
+      console.log("  File:", fileName);
+      console.log("  Size:", (file.size / 1024).toFixed(2), "KB");
+
       // Upload to storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(`icons/${fileName}`, file, {
           cacheControl: "3600",
           upsert: false,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("❌ Upload error:", uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      console.log("✅ Upload successful:", uploadData);
 
       // Get public URL
-      const { data } = supabase.storage.from(bucket).getPublicUrl(`icons/${fileName}`);
+      const { data: publicUrlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(`icons/${fileName}`);
+
+      if (!publicUrlData?.publicUrl) {
+        throw new Error("Could not generate public URL");
+      }
+
+      console.log("✅ Public URL:", publicUrlData.publicUrl);
 
       setFormData((prev) => ({
         ...prev,
-        icon_file_path: data.publicUrl,
+        icon_file_path: publicUrlData.publicUrl,
       }));
 
-      toast.success("Image uploaded successfully");
-    } catch (err) {
-      toast.error("Failed to upload image");
-      console.error(err);
+      toast.success("Image uploaded successfully!");
+    } catch (err: any) {
+      const errorMessage = err?.message || "Failed to upload image";
+      console.error("❌ Upload error:", errorMessage);
+      setUploadError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
@@ -214,6 +254,7 @@ export default function FloatingContactButtonsAdminPage() {
     });
     setEditingId(null);
     setShowForm(false);
+    setUploadError(null);
   };
 
   return (
@@ -309,6 +350,28 @@ export default function FloatingContactButtonsAdminPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Icon Image
               </label>
+
+              {/* Upload Error Display */}
+              {uploadError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
+                  <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-red-800">Upload Failed</p>
+                    <p className="text-xs text-red-700 mt-1">{uploadError}</p>
+                    <div className="text-xs text-red-600 mt-2 space-y-1">
+                      <p>💡 Quick fixes:</p>
+                      <ul className="list-disc list-inside">
+                        <li>Create bucket <code className="bg-red-100 px-1">"contact-buttons"</code> in Supabase Storage</li>
+                        <li>Make the bucket PUBLIC</li>
+                        <li>Add RLS policies to storage</li>
+                        <li>File must be an image (PNG, JPG, WebP, GIF)</li>
+                        <li>File size must be under 5MB</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-2 items-center">
                 <div className="relative flex-1">
                   <input
@@ -364,6 +427,20 @@ export default function FloatingContactButtonsAdminPage() {
                   </button>
                 </div>
               )}
+
+              {/* Alternative: Use public URL */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600 mb-2">Or paste an icon URL:</p>
+                <input
+                  type="text"
+                  value={formData.icon_file_path}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, icon_file_path: e.target.value }))
+                  }
+                  placeholder="https://example.com/icon.png or /Icons/whatsapp.png"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+                />
+              </div>
             </div>
 
             {/* Active Status */}
@@ -411,7 +488,6 @@ export default function FloatingContactButtonsAdminPage() {
           </div>
         ) : buttons.length === 0 ? (
           <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
-            <MessageCircle size={48} className="mx-auto text-gray-400 mb-3" />
             <p className="text-gray-600 mb-4">No contact buttons created yet</p>
             <button
               onClick={() => {
@@ -460,6 +536,9 @@ export default function FloatingContactButtonsAdminPage() {
                         src={button.icon_file_path}
                         alt={button.name}
                         className="w-8 h-8 object-contain rounded"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
                       />
                     </div>
                   )}
@@ -510,6 +589,3 @@ export default function FloatingContactButtonsAdminPage() {
     </div>
   );
 }
-
-// Import MessageCircle at the top if not already imported
-import { MessageCircle } from "lucide-react";
