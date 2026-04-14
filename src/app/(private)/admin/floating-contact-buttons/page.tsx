@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import toast, { Toaster } from "react-hot-toast";
-import { Edit, Trash2, Plus, ChevronUp, ChevronDown, Upload, AlertCircle } from "lucide-react";
+import { Edit, Trash2, Plus, ChevronUp, ChevronDown, Folder } from "lucide-react";
 
 interface ContactButton {
   id: number;
@@ -21,9 +21,8 @@ export default function FloatingContactButtonsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [availableIcons, setAvailableIcons] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -36,6 +35,7 @@ export default function FloatingContactButtonsAdminPage() {
 
   useEffect(() => {
     fetchButtons();
+    fetchAvailableIcons();
   }, []);
 
   const fetchButtons = async () => {
@@ -54,6 +54,24 @@ export default function FloatingContactButtonsAdminPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAvailableIcons = async () => {
+    try {
+      // List all files in public/Icons folder
+      const response = await fetch("/api/list-icons");
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableIcons(data.icons || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch available icons:", err);
+      // Set some default icons if API fails
+      setAvailableIcons([
+        "/Icons/whatsapp icon (1).png",
+        "/Icons/wechat icon.png",
+      ]);
     }
   };
 
@@ -117,7 +135,6 @@ export default function FloatingContactButtonsAdminPage() {
       is_active: button.is_active,
     });
     setShowForm(true);
-    setUploadError(null);
   };
 
   const handleDelete = async (id: number) => {
@@ -152,7 +169,6 @@ export default function FloatingContactButtonsAdminPage() {
     const supabase = createClient();
 
     try {
-      // Swap order indexes
       await supabase
         .from("floating_contact_buttons")
         .update({ order_index: swapButton.order_index })
@@ -171,78 +187,6 @@ export default function FloatingContactButtonsAdminPage() {
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-    try {
-      setUploadError(null);
-      setUploading(true);
-
-      // Validate file
-      if (!file.type.startsWith("image/")) {
-        throw new Error("File must be an image (PNG, JPG, WebP, GIF, SVG)");
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error("File size must be less than 5MB");
-      }
-
-      const supabase = createClient();
-
-      // Check if authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("You must be logged in to upload files");
-      }
-
-      const fileName = `${Date.now()}-${file.name}`;
-      const bucket = "contact-buttons";
-
-      console.log("🚀 Starting upload...");
-      console.log("  Bucket:", bucket);
-      console.log("  File:", fileName);
-      console.log("  Size:", (file.size / 1024).toFixed(2), "KB");
-
-      // Upload to storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(`icons/${fileName}`, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error("❌ Upload error:", uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
-
-      console.log("✅ Upload successful:", uploadData);
-
-      // Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(`icons/${fileName}`);
-
-      if (!publicUrlData?.publicUrl) {
-        throw new Error("Could not generate public URL");
-      }
-
-      console.log("✅ Public URL:", publicUrlData.publicUrl);
-
-      setFormData((prev) => ({
-        ...prev,
-        icon_file_path: publicUrlData.publicUrl,
-      }));
-
-      toast.success("Image uploaded successfully!");
-    } catch (err: any) {
-      const errorMessage = err?.message || "Failed to upload image";
-      console.error("❌ Upload error:", errorMessage);
-      setUploadError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const resetForm = () => {
     setFormData({
       name: "",
@@ -254,7 +198,6 @@ export default function FloatingContactButtonsAdminPage() {
     });
     setEditingId(null);
     setShowForm(false);
-    setUploadError(null);
   };
 
   return (
@@ -345,73 +288,84 @@ export default function FloatingContactButtonsAdminPage() {
               </p>
             </div>
 
-            {/* Icon Upload */}
+            {/* Icon Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Icon Image
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Icon <span className="text-red-500">*</span>
               </label>
-
-              {/* Upload Error Display */}
-              {uploadError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
-                  <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-red-800">Upload Failed</p>
-                    <p className="text-xs text-red-700 mt-1">{uploadError}</p>
-                    <div className="text-xs text-red-600 mt-2 space-y-1">
-                      <p>💡 Quick fixes:</p>
-                      <ul className="list-disc list-inside">
-                        <li>Create bucket <code className="bg-red-100 px-1">"contact-buttons"</code> in Supabase Storage</li>
-                        <li>Make the bucket PUBLIC</li>
-                        <li>Add RLS policies to storage</li>
-                        <li>File must be an image (PNG, JPG, WebP, GIF)</li>
-                        <li>File size must be under 5MB</li>
-                      </ul>
-                    </div>
+              
+              {/* Available Icons Grid */}
+              {availableIcons.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-3">Select from available icons:</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {availableIcons.map((icon) => (
+                      <button
+                        key={icon}
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            icon_file_path: icon,
+                          }))
+                        }
+                        className={`p-3 border-2 rounded-lg transition flex flex-col items-center gap-2 ${
+                          formData.icon_file_path === icon
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <img
+                          src={icon}
+                          alt={icon}
+                          className="w-8 h-8 object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                        <span className="text-xs text-gray-600 text-center truncate w-full">
+                          {icon.split("/").pop()}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
 
-              <div className="flex gap-2 items-center">
-                <div className="relative flex-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        handleImageUpload(file);
-                      }
-                    }}
-                    disabled={uploading}
-                    className="hidden"
-                    id="icon-upload"
-                  />
-                  <label
-                    htmlFor="icon-upload"
-                    className={`flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer transition ${
-                      uploading
-                        ? "bg-gray-50 opacity-50 cursor-not-allowed"
-                        : "hover:border-blue-500 hover:bg-blue-50"
-                    }`}
-                  >
-                    <Upload size={18} className="text-gray-600" />
-                    <span className="text-gray-700">
-                      {uploading ? "Uploading..." : "Click to upload icon"}
-                    </span>
-                  </label>
-                </div>
+              {/* Manual Icon Path Input */}
+              <div className="border-t pt-4">
+                <p className="text-sm text-gray-600 mb-2">Or enter icon path manually:</p>
+                <input
+                  type="text"
+                  value={formData.icon_file_path}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      icon_file_path: e.target.value,
+                    }))
+                  }
+                  placeholder="/Icons/your-icon.png"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  📁 Icons are stored in: <code className="bg-gray-100 px-2 py-1 rounded">public/Icons/</code>
+                </p>
               </div>
 
+              {/* Icon Preview */}
               {formData.icon_file_path && (
                 <div className="mt-4 flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <img
                     src={formData.icon_file_path}
                     alt="Icon preview"
-                    className="w-10 h-10 object-contain"
+                    className="w-12 h-12 object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999'%3E%3Crect x='2' y='2' width='20' height='20' rx='2'/%3E%3Cline x1='7' y1='7' x2='17' y2='17'/%3E%3Cline x1='17' y1='7' x2='7' y2='17'/%3E%3C/svg%3E";
+                    }}
                   />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">Icon uploaded</p>
+                    <p className="text-sm font-medium text-gray-900">Icon selected</p>
                     <p className="text-xs text-gray-600 truncate">
                       {formData.icon_file_path}
                     </p>
@@ -423,24 +377,10 @@ export default function FloatingContactButtonsAdminPage() {
                     }
                     className="text-red-600 hover:text-red-700 text-sm font-medium"
                   >
-                    Remove
+                    Clear
                   </button>
                 </div>
               )}
-
-              {/* Alternative: Use public URL */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600 mb-2">Or paste an icon URL:</p>
-                <input
-                  type="text"
-                  value={formData.icon_file_path}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, icon_file_path: e.target.value }))
-                  }
-                  placeholder="https://example.com/icon.png or /Icons/whatsapp.png"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
-                />
-              </div>
             </div>
 
             {/* Active Status */}
