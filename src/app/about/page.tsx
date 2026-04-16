@@ -11,11 +11,11 @@ import { getMarketingPhotos } from "../(private)/admin/about-marketing/models/ma
 import { transformImageToProxy } from "@/lib/utils/image-proxy";
 
 export const metadata = {
-  title: "About AyyanTech – Our Story, Mission & Vision | Ayyan Technology",
+  title: "About Tech-On – Our Story, Mission & Vision | Tech-On Technology",
   description:
-    "Learn about AyyanTech (Ayyan Technology), established in 2015. We specialize in R&D, product design, manufacturing, and global distribution of innovative tech accessories.",
+    "Learn about Tech-On (TechOn Technology), established in 2015. We specialize in R&D, product design, manufacturing, and global distribution of innovative tech accessories.",
   alternates: {
-    canonical: "https://ayyantech.net/about",
+    canonical: "https://tech-on.net/about",
   },
 };
 
