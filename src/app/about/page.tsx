@@ -11,9 +11,9 @@ import { getMarketingPhotos } from "../(private)/admin/about-marketing/models/ma
 import { transformImageToProxy } from "@/lib/utils/image-proxy";
 
 export const metadata = {
-  title: "About Tech-On – Our Story, Mission & Vision | Tech-On Technology",
+  title: "About TechOn – Our Story, Mission & Vision | TechOn Technology",
   description:
-    "Learn about Tech-On (TechOn Technology), established in 2015. We specialize in R&D, product design, manufacturing, and global distribution of innovative tech accessories.",
+    "Learn about TechOn (TechOn Technology), established in 2015. We specialize in R&D, product design, manufacturing, and global distribution of innovative tech accessories.",
   alternates: {
     canonical: "https://tech-on.net/about",
   },
