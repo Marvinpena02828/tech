@@ -302,23 +302,27 @@ export default function Header({ logos }: HeaderProps) {
                   transform: translateX(-100%);
                 }
               }
-              .marquee-text {
+              .marquee-wrapper {
                 display: flex;
-                animation: marquee 25s linear infinite;
+                animation: marquee 20s linear infinite;
                 white-space: nowrap;
               }
-              .marquee-text span {
-                padding-right: 50px;
+              .marquee-item {
                 flex-shrink: 0;
+                padding-right: 80px;
               }
             `}</style>
-            <div className="marquee-text">
-              <span style={{ color: promoBar.text_color }} className="text-xs font-medium">
-                {promoBar.message}
-              </span>
-              <span style={{ color: promoBar.text_color }} className="text-xs font-medium">
-                {promoBar.message}
-              </span>
+            <div className="marquee-wrapper">
+              <div className="marquee-item" style={{ color: promoBar.text_color }}>
+                <p className="text-xs font-medium m-0">
+                  {promoBar.message}
+                </p>
+              </div>
+              <div className="marquee-item" style={{ color: promoBar.text_color }}>
+                <p className="text-xs font-medium m-0">
+                  {promoBar.message}
+                </p>
+              </div>
             </div>
           </div>
         )}
