@@ -128,9 +128,9 @@ export default function ProductCategory({
   return (
     <section
       ref={ref as React.RefObject<HTMLElement>}
-      className="w-full  py-20 bg-white flex flex-col items-center overflow-hidden mt-2"
+      className="w-full py-20 bg-white flex flex-col items-center overflow-hidden mt-2"
     >
-      <h2 className="heading px-4 text-center">Product Category</h2>
+      <h2 className="heading px-4 text-center">Explore by Category</h2>
 
       {/* Desktop View */}
       <div className="hidden container lg:block w-full relative mt-12">
@@ -172,7 +172,7 @@ export default function ProductCategory({
 
         <div className="overflow-hidden">
           <div
-            className={`flex items-start justify-between gap-4 xl:gap-6 transition-transform duration-500 ease-in-out`}
+            className={`flex items-start justify-between gap-8 xl:gap-10 transition-transform duration-500 ease-in-out`}
             style={{
               transform: showDesktopNavigation
                 ? `translateX(-${
@@ -193,19 +193,20 @@ export default function ProductCategory({
                   style={{
                     width: showDesktopNavigation
                       ? `calc((100% - ${
-                          (desktopItemsToShow - 1) * 1.5
+                          (desktopItemsToShow - 1) * 2.5
                         }rem) / ${desktopItemsToShow})`
                       : "auto",
                   }}
                 >
-                  <div className="w-48 h-96 xl:w-64 xl:h-[28rem] bg-[#E5E9EC] hover:bg-white  rounded-full mb-4 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                  {/* Reduced size: from w-48 h-96 to w-40 h-80 (desktop), from xl:w-64 xl:h-[28rem] to xl:w-56 xl:h-96 */}
+                  <div className="w-40 h-80 xl:w-56 xl:h-96 bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
                     <AppImage
                       src={
                         cat.image_link || "/Images/categories/placeholder.png"
                       }
                       alt={cat.title}
                       fill
-                      className={`object-contain p-0 transition-transform duration-500 `}
+                      className={`object-contain p-0 transition-transform duration-500`}
                       unoptimized
                     />
                   </div>
@@ -309,12 +310,13 @@ export default function ProductCategory({
               }`}
               style={{ transitionDelay: isAnimating ? `${idx * 50}ms` : "0ms" }}
             >
-              <div className="w-48 h-80 sm:w-56 sm:h-96 md:w-60 md:h-[27rem] bg-[#E5E9EC] rounded-full mb-4 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300">
+              {/* Reduced size: from w-48 h-80 to w-40 h-72 (mobile), from sm:w-56 sm:h-96 to sm:w-48 sm:h-80, from md:w-60 md:h-[27rem] to md:w-52 md:h-96 */}
+              <div className="w-40 h-72 sm:w-48 sm:h-80 md:w-52 md:h-96 bg-[#E5E9EC] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300">
                 <AppImage
                   src={cat.image_link || "/Images/categories/placeholder.png"}
                   alt={cat.title}
                   fill
-                  className={`object-contain p-0 transition-transform duration-500 `}
+                  className={`object-contain p-0 transition-transform duration-500`}
                   unoptimized
                 />
               </div>
