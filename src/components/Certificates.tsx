@@ -15,7 +15,7 @@ interface Certificate {
 }
 
 export default function Certificates({
-  heading = "Certificates",
+  heading = "Certified Excellence",
 }: {
   heading?: string;
 }) {
