@@ -9,7 +9,7 @@ const LatestNews = ({ news }: { news: News[] }) => {
 
   return (
     <div className="py-12 mt-2 container">
-      <h1 className="text-center text-4xl font-semibold">Latest News</h1>
+      <h1 className="text-center text-4xl font-semibold">Corporate News</h1>
       <div className="flex flex-wrap items-start justify-between gap-2 mt-12">
         {news.map((item) => (
           <Link
@@ -17,10 +17,10 @@ const LatestNews = ({ news }: { news: News[] }) => {
             key={item.id}
             className="w-full max-w-2xl group"
           >
-            <div className="relative w-full aspect-13/9 overflow-hidden rounded-lg bg-gray-200">
+            <div className="relative w-full h-96 overflow-hidden rounded-lg bg-gray-200">
               <Image
                 width={500}
-                height={350}
+                height={400}
                 src={item.image_url}
                 alt={item.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
