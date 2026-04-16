@@ -51,7 +51,7 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
     <section className="w-full py-20 mt-2 bg-white">
       <div className="container">
         <h2 className="heading mb-8 md:mb-12 tracking-tight text-center">
-          Latest News
+          Corporate News
         </h2>
 
         <div className="flex items-start justify-center gap-6 md:gap-8">
