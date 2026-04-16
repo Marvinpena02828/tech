@@ -286,7 +286,7 @@ export default function Header({ logos }: HeaderProps) {
         {/* PROMO BAR - ALWAYS VISIBLE WHEN SHOWING */}
         {promoBar?.is_active && (
           <div
-            className="w-full transition-all duration-300 overflow-hidden"
+            className="w-full transition-all duration-300 overflow-hidden flex items-center"
             style={{
               backgroundColor: promoBar.background_color,
               height: "30px",
@@ -296,25 +296,29 @@ export default function Header({ logos }: HeaderProps) {
             <style>{`
               @keyframes marquee {
                 0% {
-                  transform: translateX(100%);
+                  transform: translateX(0);
                 }
                 100% {
-                  transform: translateX(-100%);
+                  transform: translateX(-50%);
                 }
               }
               .marquee-text {
-                display: inline-block;
-                animation: marquee 20s linear infinite;
+                display: flex;
+                animation: marquee 25s linear infinite;
                 white-space: nowrap;
               }
+              .marquee-text span {
+                padding-right: 40px;
+                flex-shrink: 0;
+              }
             `}</style>
-            <div className="px-4 md:px-8 py-0.5 flex items-center h-[30px]">
-              <p
-                className="text-xs font-medium marquee-text"
-                style={{ color: promoBar.text_color }}
-              >
+            <div className="marquee-text">
+              <span style={{ color: promoBar.text_color }} className="text-xs font-medium">
                 {promoBar.message}
-              </p>
+              </span>
+              <span style={{ color: promoBar.text_color }} className="text-xs font-medium">
+                {promoBar.message}
+              </span>
             </div>
           </div>
         )}
