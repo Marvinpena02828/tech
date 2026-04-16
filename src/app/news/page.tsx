@@ -3,11 +3,11 @@ import Banner from "./components/Banner";
 import NewsHomeSection from "@/components/NewsHomeSection";
 
 export const metadata: Metadata = {
-  title: "AyyanTech News – Latest Updates from Ayyan Technology",
+  title: "TechOn News – Latest Updates from TechOn Technology",
   description:
     "Stay up to date with the latest news, product launches, and industry insights from AyyanTech. Discover what's new at Ayyan Technology.",
   alternates: {
-    canonical: "https://ayyantech.net/news",
+    canonical: "https://tech-on.net/news",
   },
 };
 
