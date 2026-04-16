@@ -296,10 +296,10 @@ export default function Header({ logos }: HeaderProps) {
             <style>{`
               @keyframes marquee {
                 0% {
-                  transform: translateX(0);
+                  transform: translateX(100%);
                 }
                 100% {
-                  transform: translateX(-50%);
+                  transform: translateX(-100%);
                 }
               }
               .marquee-text {
@@ -308,7 +308,7 @@ export default function Header({ logos }: HeaderProps) {
                 white-space: nowrap;
               }
               .marquee-text span {
-                padding-right: 40px;
+                padding-right: 50px;
                 flex-shrink: 0;
               }
             `}</style>
