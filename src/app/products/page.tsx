@@ -7,11 +7,11 @@ import { getBannersByPageType } from "../(private)/admin/banners/models/banners-
 import { getPublicProductsPageData } from "@/features/products";
 
 export const metadata: Metadata = {
-  title: "AyyanTech Products – Wholesale Electronics & Smart Accessories",
+  title: "Tech-On Products – Wholesale Electronics & Smart Accessories",
   description:
-    "Browse AyyanTech's full range of innovative smartphone accessories, electronics, and smart tech products. Quality B2B wholesale available worldwide.",
+    "Browse TechOn's full range of innovative smartphone accessories, electronics, and smart tech products. Quality B2B wholesale available worldwide.",
   alternates: {
-    canonical: "https://ayyantech.net/products",
+    canonical: "https://tech-on.net/products",
   },
 };
 
