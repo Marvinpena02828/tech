@@ -286,16 +286,31 @@ export default function Header({ logos }: HeaderProps) {
         {/* PROMO BAR - ALWAYS VISIBLE WHEN SHOWING */}
         {promoBar?.is_active && (
           <div
-            className="w-full transition-all duration-300"
+            className="w-full transition-all duration-300 overflow-hidden"
             style={{
               backgroundColor: promoBar.background_color,
               height: "30px",
               margin: 0,
             }}
           >
-            <div className="px-4 md:px-8 py-0.5 flex items-center justify-center h-[30px]">
+            <style>{`
+              @keyframes marquee {
+                0% {
+                  transform: translateX(100%);
+                }
+                100% {
+                  transform: translateX(-100%);
+                }
+              }
+              .marquee-text {
+                display: inline-block;
+                animation: marquee 20s linear infinite;
+                white-space: nowrap;
+              }
+            `}</style>
+            <div className="px-4 md:px-8 py-0.5 flex items-center h-[30px]">
               <p
-                className="text-xs font-medium text-center whitespace-nowrap"
+                className="text-xs font-medium marquee-text"
                 style={{ color: promoBar.text_color }}
               >
                 {promoBar.message}
