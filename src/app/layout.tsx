@@ -122,7 +122,7 @@ export const metadata: Metadata = {
     description:
       "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
     images: ["/techon.png"],
-    site: "@AyyanInnov12181",
+    site: "@TechOn",
   },
   alternates: {
     canonical: "https://tech-on.net",
