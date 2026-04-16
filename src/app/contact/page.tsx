@@ -8,11 +8,11 @@ import * as LucideIcons from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Contact AyyanTech – Get in Touch with Ayyan Technology",
+  title: "Contact TechOn – Get in Touch with Ayyan Technology",
   description:
-    "Contact AyyanTech for B2B electronics inquiries, wholesale smartphone accessories, and partnership opportunities. Reach Ayyan Technology today.",
+    "Contact TechOn for B2B electronics inquiries, wholesale smartphone accessories, and partnership opportunities. Reach Ayyan Technology today.",
   alternates: {
-    canonical: "https://ayyantech.net/contact",
+    canonical: "https://tech-on.net/contact",
   },
 };
 
