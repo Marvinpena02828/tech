@@ -34,8 +34,9 @@ export default async function Home() {
         Techon – Innovative Electronics & Smart Tech Accessories
       </h1>
       <Hero banners={homepageBanners} />
+            <PopularProductLineup />
       <FeatureSection featuredBanner={featuredBanner} />
-      <PopularProductLineup />
+
       <AchievementsSection />
       <ProductCategory showDesktopNavigation={true} />
       <ServicesSection />
