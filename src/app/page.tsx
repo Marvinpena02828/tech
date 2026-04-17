@@ -10,7 +10,7 @@ import NewsHomeSection from "@/components/NewsHomeSection";
 import BusinessNeedsSection from "@/components/BusinessNeedsSection";
 import AchievementsSection from "@/components/AchievementsSection";
 import { getAllBannersByPageType } from "./(private)/admin/banners/models/banners-model";
-
+ 
 export const metadata: Metadata = {
   title:
     "Techon – Innovative Electronics & Smart Tech Accessories | Official Site",
