@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { createClient } from "@/lib/supabase/client";
@@ -25,13 +25,12 @@ export default function Certificates({
   const [loading, setLoading] = useState(true);
   const [selectedCert, setSelectedCert] = useState<number | null>(null);
   const [startIndex, setStartIndex] = useState(0);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right">(
-    "right"
-  );
+  const [slideDirection, setSlideDirection] = useState<"left" | "right">("right");
   const [isAnimating, setIsAnimating] = useState(false);
+
+  const itemsToShow = 5;
   const mobileItemsToShow = 1;
 
-  // Fetch certificates from CMS
   useEffect(() => {
     fetchCertificates();
   }, []);
@@ -53,22 +52,24 @@ export default function Certificates({
     }
   };
 
-  const handleNext = () => {
-    if (selectedCert === null) return;
-    const currentIndex = certificates.findIndex((c) => c.id === selectedCert);
-    const nextIndex =
-      currentIndex === certificates.length - 1 ? 0 : currentIndex + 1;
-    setSelectedCert(certificates[nextIndex].id);
+  const nextSlide = () => {
+    if (startIndex < certificates.length - itemsToShow) {
+      setSlideDirection("right");
+      setIsAnimating(true);
+      setStartIndex((prev) => prev + 1);
+      setTimeout(() => setIsAnimating(false), 500);
+    }
   };
 
-  const handlePrev = () => {
-    if (selectedCert === null) return;
-    const currentIndex = certificates.findIndex((c) => c.id === selectedCert);
-    const prevIndex = currentIndex === 0 ? certificates.length - 1 : currentIndex - 1;
-    setSelectedCert(certificates[prevIndex].id);
+  const prevSlide = () => {
+    if (startIndex > 0) {
+      setSlideDirection("left");
+      setIsAnimating(true);
+      setStartIndex((prev) => prev - 1);
+      setTimeout(() => setIsAnimating(false), 500);
+    }
   };
 
-  // Mobile carousel handlers
   const handleMobileNext = () => {
     if (startIndex < certificates.length - mobileItemsToShow) {
       setSlideDirection("right");
@@ -87,11 +88,6 @@ export default function Certificates({
     }
   };
 
-  const visibleMobileCerts = certificates.slice(
-    startIndex,
-    startIndex + mobileItemsToShow
-  );
-
   if (loading) {
     return (
       <section className="w-full py-20 bg-white flex flex-col items-center mx-auto overflow-hidden mt-2">
@@ -106,8 +102,14 @@ export default function Certificates({
   }
 
   if (certificates.length === 0) {
-    return null; // Don't show section if no certificates
+    return null;
   }
+
+  const visibleCerts = certificates.slice(startIndex, startIndex + itemsToShow);
+  const visibleMobileCerts = certificates.slice(
+    startIndex,
+    startIndex + mobileItemsToShow
+  );
 
   const selectedCertData = certificates.find((c) => c.id === selectedCert);
 
@@ -121,24 +123,80 @@ export default function Certificates({
           {heading}
         </h2>
 
-        {/* Desktop/Tablet Grid View */}
-        <div className="hidden w-full sm:grid grid-cols-2 lg:grid-cols-5 gap-12 md:gap-20">
-          {certificates.map((cert) => (
-            <div
-              key={cert.id}
-              className="flex flex-col items-center group cursor-pointer"
-              onClick={() => setSelectedCert(cert.id)}
-            >
-              <div className="relative w-full max-w-sm aspect-[4/6] bg-white border-2 border-gray-200 p-2 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden rounded-lg hover:border-[#232250] hover:scale-105">
-                <Image
-                  src={cert.image_url}
-                  alt={cert.alt_text}
-                  fill
-                  className="w-full h-full object-contain transition-transform duration-300"
-                />
-              </div>
-            </div>
-          ))}
+        {/* Desktop/Tablet View */}
+        <div className="hidden sm:block relative">
+          {/* Navigation Arrows */}
+          <button
+            onClick={prevSlide}
+            disabled={startIndex === 0}
+            className={`absolute flex items-center gap-1 -left-1 md:left-2 top-1/2 -translate-y-1/2 p-2 text-black rounded-full z-10 transition-all ${
+              startIndex === 0
+                ? "opacity-30 cursor-not-allowed"
+                : "hover:bg-gray-800"
+            }`}
+            aria-label="Previous certificates"
+          >
+            <ChevronLeft size={24} className="absolute left-0" />
+            <ChevronLeft size={24} className="absolute left-2" />
+          </button>
+
+          <button
+            onClick={nextSlide}
+            disabled={startIndex >= certificates.length - itemsToShow}
+            className={`absolute flex items-center gap-1 -right-1 md:right-2 top-1/2 -translate-y-1/2 p-2 text-black transition-all ${
+              startIndex >= certificates.length - itemsToShow
+                ? "opacity-30 cursor-not-allowed"
+                : "hover:bg-gray-800"
+            }`}
+            aria-label="Next certificates"
+          >
+            <ChevronRight size={24} className="absolute right-0" />
+            <ChevronRight size={24} className="absolute right-2" />
+          </button>
+
+          {/* Certificate Grid */}
+          <div
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6"
+            key={`grid-${startIndex}`}
+          >
+            {visibleCerts.map((cert, idx) => (
+              <button
+                key={`${startIndex}-${idx}`}
+                onClick={() => setSelectedCert(cert.id)}
+                className={`group flex flex-col bg-white overflow-hidden transition-all duration-300 cursor-pointer ${
+                  isAnimating
+                    ? slideDirection === "right"
+                      ? "opacity-100 translate-x-0 animate-slideInRight"
+                      : "opacity-100 translate-x-0 animate-slideInLeft"
+                    : "opacity-100 translate-x-0"
+                } ${
+                  isVisible && !isAnimating
+                    ? "opacity-100 translate-y-0"
+                    : isVisible
+                    ? ""
+                    : "opacity-0 translate-y-8"
+                }`}
+                style={{
+                  transitionDelay: isAnimating ? `${idx * 80}ms` : "0ms",
+                }}
+              >
+                <div className="w-full aspect-square bg-white p-4 md:p-6 flex items-center justify-center relative overflow-hidden border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all">
+                  <Image
+                    src={cert.image_url}
+                    alt={cert.alt_text}
+                    width={600}
+                    height={600}
+                    className="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
+                  />
+                </div>
+                <div className="p-3 md:p-4 text-center">
+                  <h3 className="text-sm font-normal text-gray-900 leading-snug line-clamp-2">
+                    {cert.title}
+                  </h3>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Mobile Horizontal Scroll */}
@@ -147,7 +205,7 @@ export default function Certificates({
           <button
             onClick={handleMobilePrev}
             disabled={startIndex === 0}
-            className={`absolute -left-5 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
+            className={`absolute left-0 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
               startIndex === 0
                 ? "opacity-30 cursor-not-allowed"
                 : "hover:bg-gray-800 active:scale-95"
@@ -161,7 +219,7 @@ export default function Certificates({
           <button
             onClick={handleMobileNext}
             disabled={startIndex >= certificates.length - mobileItemsToShow}
-            className={`absolute -right-5 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
+            className={`absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
               startIndex >= certificates.length - mobileItemsToShow
                 ? "opacity-30 cursor-not-allowed"
                 : "hover:bg-gray-800 active:scale-95"
@@ -173,13 +231,14 @@ export default function Certificates({
 
           {/* Certificates Carousel */}
           <div
-            className="flex gap-4 px-4 overflow-hidden"
-            key={`carousel-${startIndex}`}
+            className="flex gap-4 items-center justify-center overflow-hidden"
+            key={`mobile-${startIndex}`}
           >
             {visibleMobileCerts.map((cert, idx) => (
-              <div
+              <button
                 key={`${startIndex}-${idx}`}
-                className={`flex flex-col items-center group cursor-pointer shrink-0 w-full transition-all duration-500 ${
+                onClick={() => setSelectedCert(cert.id)}
+                className={`group bg-white w-full shadow-sm hover:shadow-lg overflow-hidden transition-all duration-300 cursor-pointer ${
                   isAnimating
                     ? slideDirection === "right"
                       ? "opacity-100 translate-x-0 animate-slideInRight"
@@ -192,21 +251,24 @@ export default function Certificates({
                     ? ""
                     : "opacity-0 translate-y-8"
                 }`}
-                onClick={() => setSelectedCert(cert.id)}
                 style={{
-                  transitionDelay: isAnimating ? `${idx * 50}ms` : "0ms",
+                  transitionDelay: isAnimating ? `${idx * 80}ms` : "0ms",
                 }}
               >
-                <div className="w-56 aspect-[3/4] bg-white border-2 border-gray-200 p-2 shadow-md active:shadow-lg transition-all duration-300 overflow-hidden rounded-lg active:border-purple-400">
+                <div className="w-full relative aspect-square border-2 border-gray-200 rounded-lg overflow-hidden">
                   <Image
                     src={cert.image_url}
                     alt={cert.alt_text}
-                    width={250}
-                    height={333}
-                    className="w-full h-full object-contain transition-transform duration-300"
+                    fill
+                    className="w-full h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105"
                   />
                 </div>
-              </div>
+                <div className="p-3 text-center">
+                  <h3 className="text-sm font-normal text-gray-900 leading-snug line-clamp-2">
+                    {cert.title}
+                  </h3>
+                </div>
+              </button>
             ))}
           </div>
 
@@ -254,7 +316,16 @@ export default function Certificates({
               {/* Navigation and Info */}
               <div className="p-3 md:p-5 bg-white border-t border-gray-200 flex items-center justify-between flex-shrink-0">
                 <button
-                  onClick={handlePrev}
+                  onClick={() => {
+                    const currentIndex = certificates.findIndex(
+                      (c) => c.id === selectedCert
+                    );
+                    const prevIndex =
+                      currentIndex === 0
+                        ? certificates.length - 1
+                        : currentIndex - 1;
+                    setSelectedCert(certificates[prevIndex].id);
+                  }}
                   className="px-3 py-2 md:px-6 md:py-2 bg-primary-blue text-white rounded-lg hover:bg-purple-700 active:bg-purple-800 transition-colors font-medium text-sm md:text-base"
                 >
                   <span className="hidden sm:inline">← Previous</span>
@@ -267,7 +338,16 @@ export default function Certificates({
                 </span>
 
                 <button
-                  onClick={handleNext}
+                  onClick={() => {
+                    const currentIndex = certificates.findIndex(
+                      (c) => c.id === selectedCert
+                    );
+                    const nextIndex =
+                      currentIndex === certificates.length - 1
+                        ? 0
+                        : currentIndex + 1;
+                    setSelectedCert(certificates[nextIndex].id);
+                  }}
                   className="px-3 py-2 md:px-6 md:py-2 bg-primary-blue text-white rounded-lg hover:bg-purple-700 active:bg-purple-800 transition-colors font-medium text-sm md:text-base"
                 >
                   <span className="hidden sm:inline">Next →</span>
