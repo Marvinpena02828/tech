@@ -13,6 +13,7 @@ import {
   Star,
   Upload,
   Link as LinkIcon,
+  Film,
 } from "lucide-react";
 import Image from "next/image";
 import { ProductBanner, BannerPageType } from "@/lib/types";
@@ -36,6 +37,8 @@ function BannerDialog({
   onSave: (
     mobileFile: File | null,
     desktopFile: File | null,
+    mobileVideoFile: File | null,
+    desktopVideoFile: File | null,
     pageType: BannerPageType,
     itemLink: string | undefined,
     headingLine1?: string,
@@ -56,6 +59,8 @@ function BannerDialog({
 }) {
   const [mobileFile, setMobileFile] = useState<File | null>(null);
   const [desktopFile, setDesktopFile] = useState<File | null>(null);
+  const [mobileVideoFile, setMobileVideoFile] = useState<File | null>(null);
+  const [desktopVideoFile, setDesktopVideoFile] = useState<File | null>(null);
   const [pageType, setPageType] = useState<BannerPageType>(
     selectedBanner?.page_type || "products",
   );
@@ -112,6 +117,12 @@ function BannerDialog({
   const [desktopPreview, setDesktopPreview] = useState<string>(
     selectedBanner?.desktop_banner || "",
   );
+  const [mobileVideoPreview, setMobileVideoPreview] = useState<string>(
+    selectedBanner?.mobile_video || "",
+  );
+  const [desktopVideoPreview, setDesktopVideoPreview] = useState<string>(
+    selectedBanner?.desktop_video || "",
+  );
   const [isUploading, setIsUploading] = useState(false);
 
   // Reset state when dialog opens/closes or selectedBanner changes
@@ -119,6 +130,8 @@ function BannerDialog({
     if (isOpen) {
       setMobileFile(null);
       setDesktopFile(null);
+      setMobileVideoFile(null);
+      setDesktopVideoFile(null);
       setPageType(selectedBanner?.page_type || "products");
       setItemLink(selectedBanner?.item_link || "");
 
@@ -139,11 +152,15 @@ function BannerDialog({
 
       setMobilePreview(selectedBanner?.mobile_banner || "");
       setDesktopPreview(selectedBanner?.desktop_banner || "");
+      setMobileVideoPreview(selectedBanner?.mobile_video || "");
+      setDesktopVideoPreview(selectedBanner?.desktop_video || "");
       setIsUploading(false);
     } else {
       // Reset when dialog closes
       setMobileFile(null);
       setDesktopFile(null);
+      setMobileVideoFile(null);
+      setDesktopVideoFile(null);
       setPageType("products");
       setItemLink("");
 
@@ -164,6 +181,8 @@ function BannerDialog({
 
       setMobilePreview("");
       setDesktopPreview("");
+      setMobileVideoPreview("");
+      setDesktopVideoPreview("");
       setIsUploading(false);
     }
   }, [isOpen, selectedBanner]);
@@ -172,7 +191,6 @@ function BannerDialog({
     const file = e.target.files?.[0];
     if (file) {
       setMobileFile(file);
-      // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setMobilePreview(previewUrl);
     }
@@ -182,9 +200,26 @@ function BannerDialog({
     const file = e.target.files?.[0];
     if (file) {
       setDesktopFile(file);
-      // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setDesktopPreview(previewUrl);
+    }
+  };
+
+  const handleMobileVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setMobileVideoFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setMobileVideoPreview(previewUrl);
+    }
+  };
+
+  const handleDesktopVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setDesktopVideoFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setDesktopVideoPreview(previewUrl);
     }
   };
 
@@ -192,7 +227,7 @@ function BannerDialog({
     e.preventDefault();
 
     // For updates, files are optional (only update if new file provided)
-    // For new banners, both files are required
+    // For new banners, both image files are required (videos are optional)
     if (!selectedBanner) {
       if (!mobileFile || !desktopFile) {
         return;
@@ -204,6 +239,8 @@ function BannerDialog({
       await onSave(
         mobileFile,
         desktopFile,
+        mobileVideoFile,
+        desktopVideoFile,
         pageType,
         itemLink || undefined,
         headingLine1 || undefined,
@@ -746,6 +783,62 @@ function BannerDialog({
             )}
           </div>
 
+          {/* Mobile Video Section (Optional) */}
+          <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+            <div className="flex items-center gap-2 mb-3">
+              <Film className="text-red-600" size={24} />
+              <h3 className="text-lg font-semibold text-red-900">
+                Mobile Video (Optional)
+              </h3>
+            </div>
+
+            <div className="mb-3 p-3 bg-white border border-red-200 rounded-lg">
+              <p className="text-sm text-red-900 font-medium mb-2">
+                🎬 Upload a video as fallback for mobile
+              </p>
+              <p className="text-xs text-red-800">
+                MP4, WebM, OGG. If provided, video plays instead of static image on mobile.
+              </p>
+            </div>
+
+            <div className="mb-3">
+              <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 transition-colors bg-white">
+                <div className="text-center">
+                  <Upload className="mx-auto text-red-600 mb-2" size={32} />
+                  <p className="text-sm text-red-900 font-medium">
+                    {mobileVideoFile
+                      ? mobileVideoFile.name
+                      : mobileVideoPreview
+                        ? "Change Mobile Video"
+                        : "Upload Mobile Video"}
+                  </p>
+                  <p className="text-xs text-red-700 mt-1">
+                    MP4, WebM, OGG up to 50MB
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleMobileVideoChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {mobileVideoPreview && (
+              <div className="border border-gray-200 rounded-lg p-3 bg-white">
+                <p className="text-xs font-medium text-gray-600 mb-2">
+                  Mobile Video Preview:
+                </p>
+                <video
+                  src={mobileVideoPreview}
+                  controls
+                  className="w-full max-w-md mx-auto rounded-lg bg-black"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Desktop Banner Section */}
           <div className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-3">
@@ -808,6 +901,62 @@ function BannerDialog({
             )}
           </div>
 
+          {/* Desktop Video Section (Optional) */}
+          <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+            <div className="flex items-center gap-2 mb-3">
+              <Film className="text-red-600" size={24} />
+              <h3 className="text-lg font-semibold text-red-900">
+                Desktop Video (Optional)
+              </h3>
+            </div>
+
+            <div className="mb-3 p-3 bg-white border border-red-200 rounded-lg">
+              <p className="text-sm text-red-900 font-medium mb-2">
+                🎬 Upload a video as fallback for desktop
+              </p>
+              <p className="text-xs text-red-800">
+                MP4, WebM, OGG. If provided, video plays instead of static image on desktop.
+              </p>
+            </div>
+
+            <div className="mb-3">
+              <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 transition-colors bg-white">
+                <div className="text-center">
+                  <Upload className="mx-auto text-red-600 mb-2" size={32} />
+                  <p className="text-sm text-red-900 font-medium">
+                    {desktopVideoFile
+                      ? desktopVideoFile.name
+                      : desktopVideoPreview
+                        ? "Change Desktop Video"
+                        : "Upload Desktop Video"}
+                  </p>
+                  <p className="text-xs text-red-700 mt-1">
+                    MP4, WebM, OGG up to 50MB
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleDesktopVideoChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {desktopVideoPreview && (
+              <div className="border border-gray-200 rounded-lg p-3 bg-white">
+                <p className="text-xs font-medium text-gray-600 mb-2">
+                  Desktop Video Preview:
+                </p>
+                <video
+                  src={desktopVideoPreview}
+                  controls
+                  className="w-full rounded-lg bg-black"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t">
             <button
@@ -861,8 +1010,10 @@ export default function BannersContent({
   const handleSave = async (
     mobileFile: File | null,
     desktopFile: File | null,
+    mobileVideoFile: File | null,
+    desktopVideoFile: File | null,
     pageType: BannerPageType,
-    itemLink: string | undefined, // Added itemLink
+    itemLink: string | undefined,
     headingLine1?: string,
     line1Color?: string,
     line1FontSize?: string,
@@ -879,6 +1030,8 @@ export default function BannersContent({
     try {
       let mobileUrl = selectedBanner?.mobile_banner || "";
       let desktopUrl = selectedBanner?.desktop_banner || "";
+      let mobileVideoUrl = selectedBanner?.mobile_video || "";
+      let desktopVideoUrl = selectedBanner?.desktop_video || "";
 
       // Upload mobile banner if new file provided
       if (mobileFile) {
@@ -898,6 +1051,24 @@ export default function BannersContent({
         );
       }
 
+      // Upload mobile video if new file provided
+      if (mobileVideoFile) {
+        mobileVideoUrl = await uploadBannerImageClient(
+          mobileVideoFile,
+          "mobile_video",
+          selectedBanner?.id,
+        );
+      }
+
+      // Upload desktop video if new file provided
+      if (desktopVideoFile) {
+        desktopVideoUrl = await uploadBannerImageClient(
+          desktopVideoFile,
+          "desktop_video",
+          selectedBanner?.id,
+        );
+      }
+
       // Save to database
       if (selectedBanner) {
         await updateBanner(
@@ -905,6 +1076,8 @@ export default function BannersContent({
           {
             ...(mobileFile && { mobile_banner: mobileUrl }),
             ...(desktopFile && { desktop_banner: desktopUrl }),
+            ...(mobileVideoFile && { mobile_video: mobileVideoUrl }),
+            ...(desktopVideoFile && { desktop_video: desktopVideoUrl }),
             page_type: pageType,
             item_link: itemLink || null,
             heading_line1: headingLine1 || null,
@@ -931,7 +1104,7 @@ export default function BannersContent({
           mobileUrl,
           desktopUrl,
           pageType,
-          itemLink, // Added itemLink
+          itemLink,
           headingLine1,
           line1Color,
           line1FontSize,
@@ -944,12 +1117,13 @@ export default function BannersContent({
           line3Color,
           line3FontSize,
           line3FontFamily,
+          mobileVideoUrl,
+          desktopVideoUrl,
         );
       }
       setShowDialog(false);
     } catch (error: any) {
       console.error("Error saving banner:", error);
-      // Error is already handled by toast in useBanners
     }
   };
 
@@ -987,8 +1161,8 @@ export default function BannersContent({
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-900">
           💡 <strong>Note:</strong> Only one banner per page type will be
-          displayed at a time. Mobile users see the mobile banner, desktop users
-          see the desktop banner. If multiple banners exist for the same page,
+          displayed at a time. Mobile users see the mobile banner/video, desktop users
+          see the desktop banner/video. If multiple banners exist for the same page,
           the most recent one will be shown.
         </p>
       </div>
@@ -1193,6 +1367,14 @@ export default function BannersContent({
                       unoptimized
                     />
                   </div>
+                  {banner.mobile_video && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-xs text-red-700 font-medium flex items-center gap-1">
+                        <Film size={14} /> Video (Mobile)
+                      </p>
+                      <video src={banner.mobile_video} controls className="w-full h-20 rounded mt-1" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Desktop Banner Preview */}
@@ -1212,6 +1394,14 @@ export default function BannersContent({
                       unoptimized
                     />
                   </div>
+                  {banner.desktop_video && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-xs text-red-700 font-medium flex items-center gap-1">
+                        <Film size={14} /> Video (Desktop)
+                      </p>
+                      <video src={banner.desktop_video} controls className="w-full h-20 rounded mt-1" />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
