@@ -352,7 +352,7 @@ export default function Footer() {
                     <li key={category.id} className="category-item">
                       <Link
                         href={category.id}
-                        className="text-sm text-white text-opacity-90 hover:text-opacity-100 transition-all duration-300 font-arial"
+                        className="text-sm text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
                       >
                         {category.title}
                       </Link>
@@ -375,7 +375,7 @@ export default function Footer() {
                   >
                     <Link
                       href={link.href}
-                      className="text-sm text-white text-opacity-90 hover:text-opacity-100 transition-all duration-300 font-arial"
+                      className="text-sm text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
                     >
                       {link.label}
                     </Link>
