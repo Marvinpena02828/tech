@@ -58,10 +58,10 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
               className="group flex-1 max-w-[350px] rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col"
             >
               {/* Image Container - Fixed Size */}
-              <div className="relative w-full h-[250px] overflow-hidden flex-shrink-0">
+              <div className="relative w-full h-[400px] overflow-hidden flex-shrink-0">
                 <AppImage
                   width={350}
-                  height={250}
+                  height={400}
                   src={item.image_url}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
