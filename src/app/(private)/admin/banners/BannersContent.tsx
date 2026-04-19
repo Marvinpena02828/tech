@@ -19,7 +19,7 @@ import Image from "next/image";
 import { ProductBanner, BannerPageType } from "@/lib/types";
 import { useBanners } from "./hooks/use-banners";
 import { useState, useEffect } from "react";
-import { uploadBannerImageClient } from "@/lib/storage/bannersStorageClient";
+import { uploadBannerImageClient, deleteBannerFileClient } from "@/lib/storage/bannersStorageClient";
 
 interface BannersContentProps {
   banners: ProductBanner[];
@@ -1033,7 +1033,21 @@ export default function BannersContent({
       let mobileVideoUrl = selectedBanner?.mobile_video || "";
       let desktopVideoUrl = selectedBanner?.desktop_video || "";
 
-      // Upload mobile banner if new file provided
+      // Delete old files if replacing
+      if (mobileFile && selectedBanner?.mobile_banner) {
+        await deleteBannerFileClient(selectedBanner.mobile_banner);
+      }
+      if (desktopFile && selectedBanner?.desktop_banner) {
+        await deleteBannerFileClient(selectedBanner.desktop_banner);
+      }
+      if (mobileVideoFile && selectedBanner?.mobile_video) {
+        await deleteBannerFileClient(selectedBanner.mobile_video);
+      }
+      if (desktopVideoFile && selectedBanner?.desktop_video) {
+        await deleteBannerFileClient(selectedBanner.desktop_video);
+      }
+
+      // Upload new files
       if (mobileFile) {
         mobileUrl = await uploadBannerImageClient(
           mobileFile,
@@ -1042,7 +1056,6 @@ export default function BannersContent({
         );
       }
 
-      // Upload desktop banner if new file provided
       if (desktopFile) {
         desktopUrl = await uploadBannerImageClient(
           desktopFile,
@@ -1051,7 +1064,6 @@ export default function BannersContent({
         );
       }
 
-      // Upload mobile video if new file provided
       if (mobileVideoFile) {
         mobileVideoUrl = await uploadBannerImageClient(
           mobileVideoFile,
@@ -1060,7 +1072,6 @@ export default function BannersContent({
         );
       }
 
-      // Upload desktop video if new file provided
       if (desktopVideoFile) {
         desktopVideoUrl = await uploadBannerImageClient(
           desktopVideoFile,
@@ -1117,13 +1128,14 @@ export default function BannersContent({
           line3Color,
           line3FontSize,
           line3FontFamily,
-          mobileVideoUrl,
-          desktopVideoUrl,
+          mobileVideoUrl || undefined,
+          desktopVideoUrl || undefined,
         );
       }
       setShowDialog(false);
     } catch (error: any) {
       console.error("Error saving banner:", error);
+      // Toast error handling should be in useBanners hook
     }
   };
 
