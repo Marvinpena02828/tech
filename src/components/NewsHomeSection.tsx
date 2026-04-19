@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import AppImage from "@/components/ui/AppImage";
 import { News } from "@/lib/types";
@@ -15,7 +14,6 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
       try {
         const response = await getNews();
         if (response.success) {
-          // Get only the latest 2 news items for home page
           setNews(response.data);
         }
       } catch (error) {
@@ -24,7 +22,6 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
         setLoading(false);
       }
     };
-
     fetchNews();
   }, []);
 
@@ -44,7 +41,7 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
   }
 
   if (news.length === 0) {
-    return null; // Don't show section if no news
+    return null;
   }
 
   return (
@@ -53,32 +50,30 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
         <h2 className="heading mb-8 md:mb-12 tracking-tight text-center">
           Corporate News
         </h2>
-
-        <div className="flex items-start justify-center gap-6 md:gap-8">
+        <div className="flex items-stretch justify-center gap-6 md:gap-8">
           {news.map((item) => (
             <Link
               href={`/news/${item.id}`}
               key={item.id}
-              className="group flex-1 h-[500px] w-full max-w-[350px] rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100"
+              className="group flex-1 max-w-[350px] rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col"
             >
-              {/* Image Container */}
-              <div className="relative aspect-square overflow-hidden">
-                {/* Image */}
+              {/* Image Container - Fixed Size */}
+              <div className="relative w-full h-[250px] overflow-hidden flex-shrink-0">
                 <AppImage
-                  width={600}
-                  height={300}
+                  width={350}
+                  height={250}
                   src={item.image_url}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
 
-              {/* Text Overlay */}
-              <div className="inset-0 flex flex-col  z-20 text-left px-1 py-2">
-                <h1 className="text-xl font-semibold font-arial text-black line-clamp-1 no-ellipsis">
+              {/* Text Content */}
+              <div className="flex flex-col flex-grow p-4 text-left">
+                <h1 className="text-lg font-semibold font-arial text-black line-clamp-2">
                   {item.title}
                 </h1>
-                <h3 className="text-sm mt-2 text-black font-arial text-left w-full group-hover:text-[#4A90E2] transition-colors line-clamp-5">
+                <h3 className="text-sm mt-3 text-gray-600 font-arial text-left flex-grow group-hover:text-[#4A90E2] transition-colors line-clamp-4">
                   {item.caption}
                 </h3>
               </div>
