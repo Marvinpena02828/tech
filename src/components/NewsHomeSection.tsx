@@ -53,10 +53,10 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
               className="group rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full hover:border-gray-200"
             >
               {/* Image Container - Responsive Height */}
-              <div className="relative w-full h-48 sm:h-60 md:h-80 overflow-hidden flex-shrink-0">
+              <div className="relative w-full overflow-hidden flex-shrink-0 bg-gray-100" style={{ aspectRatio: '16/9' }}>
                 <AppImage
-                  width={350}
-                  height={320}
+                  width={400}
+                  height={225}
                   src={item.image_url}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
