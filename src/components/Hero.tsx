@@ -6,18 +6,16 @@ import { ProductBanner } from "@/lib/types";
 
 export const parseFontSetting = (fontSetting: string | null | undefined) => {
   if (!fontSetting)
-    return { fontFamily: '"Arial", sans-serif', fontWeight: "700" }; // Default to Arial Bold for legacy
+    return { fontFamily: '"Arial", sans-serif', fontWeight: "700" };
 
   const [familyRaw, weightRaw] = fontSetting.split(":");
   const family = familyRaw;
   let weight = weightRaw || "400";
 
-  // Handle special cases where weight is implied by the name or needs adjustment
   if (family === "Arial_bold") {
     weight = "700";
   }
 
-  // Quote the family name to properly handle spaces (e.g., "MyriadPro Condensed")
   return {
     fontFamily: `"${family}", Arial, sans-serif`,
     fontWeight: weight,
@@ -33,13 +31,12 @@ export default function HeroBanner({ banners }: HeroProps) {
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [isHoveringDots, setIsHoveringDots] = useState(false);
 
-  // Auto-play functionality - respects isAutoPlay and isHoveringDots
   useEffect(() => {
     if (banners.length <= 1 || !isAutoPlay || isHoveringDots) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
-    }, 3000); // Change slide every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [banners.length, isAutoPlay, isHoveringDots]);
@@ -54,10 +51,9 @@ export default function HeroBanner({ banners }: HeroProps) {
 
   const handleDotsMouseLeave = () => {
     setIsHoveringDots(false);
-    setIsAutoPlay(true); // Resume autoplay when mouse leaves dots
+    setIsAutoPlay(true);
   };
 
-  // Show placeholder if no banners
   if (banners.length === 0) {
     return (
       <section className="relative h-[550px] w-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center">
@@ -66,7 +62,7 @@ export default function HeroBanner({ banners }: HeroProps) {
             Add Homepage Banners
           </p>
           <p className="text-lg sm:text-xl text-gray-500 mt-4">
-            Go to Admin → Banners to add homepage carousel images
+            Go to Admin → Banners to add homepage carousel images or videos
           </p>
         </div>
       </section>
@@ -74,47 +70,69 @@ export default function HeroBanner({ banners }: HeroProps) {
   }
 
   return (
-    <section className="relative h-[700px] md:h-[900px] lg:h-[700px] w-full aspect-video overflow-hidden">
-      {/* Carousel Images */}
+    <section className="relative h-[700px] md:h-[900px] lg:h-[700px] w-full aspect-video overflow-hidden bg-black">
+      {/* Carousel - Images and Videos */}
       {banners.map((banner, index) => (
         <React.Fragment key={banner.id}>
-          {/* Mobile Banner - visible on screens smaller than lg (1024px) */}
+          {/* MOBILE - Video if available, else image */}
           <div
             className={`absolute inset-0 z-0 transition-opacity duration-1000 lg:hidden ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           >
-            <Image
-              src={banner.mobile_banner}
-              alt={`Mobile Banner ${index + 1}`}
-              fill
-              sizes="100vw"
-              className="object-fill"
-              priority={index === 0}
-              quality={75}
-              unoptimized
-            />
+            {banner.mobile_video ? (
+              <video
+                src={banner.mobile_video}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            ) : banner.mobile_banner ? (
+              <Image
+                src={banner.mobile_banner}
+                alt={`Mobile Banner ${index + 1}`}
+                fill
+                sizes="100vw"
+                className="object-fill"
+                priority={index === 0}
+                quality={75}
+                unoptimized
+              />
+            ) : null}
           </div>
 
-          {/* Desktop Banner - visible on screens lg (1024px) and larger */}
+          {/* DESKTOP - Video if available, else image */}
           <div
             className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden lg:block ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           >
-            <Image
-              src={banner.desktop_banner}
-              alt={`Desktop Banner ${index + 1}`}
-              fill
-              sizes="100vw"
-              className="object-center lg:aspect-8/3"
-              priority={index === 0}
-              quality={100}
-              unoptimized
-            />
+            {banner.desktop_video ? (
+              <video
+                src={banner.desktop_video}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            ) : banner.desktop_banner ? (
+              <Image
+                src={banner.desktop_banner}
+                alt={`Desktop Banner ${index + 1}`}
+                fill
+                sizes="100vw"
+                className="object-center lg:aspect-8/3"
+                priority={index === 0}
+                quality={100}
+                unoptimized
+              />
+            ) : null}
           </div>
 
-          {/* 3-Line Banner Heading Overlay - Only show if banner has any heading lines */}
+          {/* 3-Line Banner Heading Overlay */}
           {(banner.heading_line1 ||
             banner.heading_line2 ||
             banner.heading_line3) && (
@@ -171,7 +189,7 @@ export default function HeroBanner({ banners }: HeroProps) {
         </React.Fragment>
       ))}
 
-      {/* Dots Navigation - Only show if more than 1 banner */}
+      {/* Dots Navigation */}
       {banners.length > 1 && (
         <div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex gap-3"
