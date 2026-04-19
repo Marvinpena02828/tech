@@ -475,7 +475,7 @@ export default function Footer() {
                     target="_blank"
                     key={social.name}
                     href={social.href}
-                    className="aspect-square border border-white border-opacity-40 flex items-center justify-center social-icon bg-gray-700 bg-opacity-20"
+                    className="aspect-square border border-white border-opacity-40 flex items-center justify-center social-icon"
                     aria-label={social.name}
                     title={social.name}
                   >
