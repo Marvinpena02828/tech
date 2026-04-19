@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ProductBanner, BannerPageType } from "@/lib/types";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
-import { deleteBannerImageClient } from "@/lib/storage/bannersStorageClient";
+import { deleteBannerFileClient } from "@/lib/storage/bannersStorageClient";
 
 export function useBanners(initialBanners: ProductBanner[]) {
   const router = useRouter();
@@ -29,6 +29,8 @@ export function useBanners(initialBanners: ProductBanner[]) {
     line3Color?: string,
     line3FontSize?: string,
     line3FontFamily?: string,
+    mobileVideo?: string,
+    desktopVideo?: string,
   ) => {
     setIsLoading(true);
     try {
@@ -53,6 +55,8 @@ export function useBanners(initialBanners: ProductBanner[]) {
           line3_color: line3Color || null,
           line3_font_size: line3FontSize || null,
           line3_font_family: line3FontFamily || null,
+          mobile_video: mobileVideo || null,
+          desktop_video: desktopVideo || null,
         })
         .select()
         .single();
@@ -90,20 +94,40 @@ export function useBanners(initialBanners: ProductBanner[]) {
 
       if (error) throw error;
 
-      // Delete old images from storage if new ones were uploaded
+      // Delete old files from storage if new ones were uploaded
       if (
         oldMobileUrl &&
         updates.mobile_banner &&
         oldMobileUrl !== updates.mobile_banner
       ) {
-        await deleteBannerImageClient(oldMobileUrl);
+        await deleteBannerFileClient(oldMobileUrl);
       }
       if (
         oldDesktopUrl &&
         updates.desktop_banner &&
         oldDesktopUrl !== updates.desktop_banner
       ) {
-        await deleteBannerImageClient(oldDesktopUrl);
+        await deleteBannerFileClient(oldDesktopUrl);
+      }
+
+      // Delete old videos from storage if new ones were uploaded
+      if (
+        updates.mobile_video &&
+        banners.find((b) => b.id === id)?.mobile_video &&
+        banners.find((b) => b.id === id)!.mobile_video !== updates.mobile_video
+      ) {
+        await deleteBannerFileClient(
+          banners.find((b) => b.id === id)!.mobile_video!
+        );
+      }
+      if (
+        updates.desktop_video &&
+        banners.find((b) => b.id === id)?.desktop_video &&
+        banners.find((b) => b.id === id)!.desktop_video !== updates.desktop_video
+      ) {
+        await deleteBannerFileClient(
+          banners.find((b) => b.id === id)!.desktop_video!
+        );
       }
 
       setBanners(banners.map((b) => (b.id === id ? data : b)));
@@ -130,10 +154,16 @@ export function useBanners(initialBanners: ProductBanner[]) {
 
       if (error) throw error;
 
-      // Delete images from storage
+      // Delete all files from storage (images + videos)
       if (banner) {
-        await deleteBannerImageClient(banner.mobile_banner);
-        await deleteBannerImageClient(banner.desktop_banner);
+        await deleteBannerFileClient(banner.mobile_banner);
+        await deleteBannerFileClient(banner.desktop_banner);
+        if (banner.mobile_video) {
+          await deleteBannerFileClient(banner.mobile_video);
+        }
+        if (banner.desktop_video) {
+          await deleteBannerFileClient(banner.desktop_video);
+        }
       }
 
       setBanners(banners.filter((b) => b.id !== id));
