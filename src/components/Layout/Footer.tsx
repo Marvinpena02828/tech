@@ -468,14 +468,14 @@ export default function Footer() {
                 FOLLOW US
               </h3>
               
-              {/* Social Links Grid */}
-              <div className="grid grid-cols-5 gap-2 w-full">
+              {/* Social Links Grid - Reduced gap, no spacing between icons */}
+              <div className="grid grid-cols-5 gap-0 w-full">
                 {socialLinks.map((social) => (
                   <Link
                     target="_blank"
                     key={social.name}
                     href={social.href}
-                    className="aspect-square border border-white border-opacity-50 flex items-center justify-center social-icon"
+                    className="aspect-square border border-white border-opacity-40 flex items-center justify-center social-icon bg-gray-700 bg-opacity-20"
                     aria-label={social.name}
                     title={social.name}
                   >
