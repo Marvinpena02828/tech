@@ -220,13 +220,13 @@ function BannerDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // For new banners, at least need either image or video for each breakpoint
+    // For new banners, need EITHER image OR video for each breakpoint
     if (!selectedBanner) {
       const hasMobileContent = mobileFile || mobileVideoFile;
       const hasDesktopContent = desktopFile || desktopVideoFile;
 
       if (!hasMobileContent || !hasDesktopContent) {
-        alert("Please upload at least an image or video for both mobile and desktop");
+        alert("Please upload an image OR video for both mobile and desktop");
         return;
       }
     }
@@ -277,6 +277,7 @@ function BannerDialog({
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
+            type="button"
           >
             <X size={24} />
           </button>
@@ -334,7 +335,7 @@ function BannerDialog({
             </div>
           </div>
 
-          {/* Featured Item Link - Only for Featured products */}
+          {/* Featured Item Link */}
           {pageType === "featured" && (
             <div className="border-2 border-yellow-200 rounded-lg p-4 bg-yellow-50">
               <div className="flex items-center gap-2 mb-3">
@@ -343,9 +344,6 @@ function BannerDialog({
                   Featured Product Link *
                 </h3>
               </div>
-              <p className="text-sm text-yellow-800 mb-3 block">
-                Enter the product ID or complete URL for the featured item.
-              </p>
               <input
                 type="text"
                 value={itemLink}
@@ -356,7 +354,7 @@ function BannerDialog({
             </div>
           )}
 
-          {/* 3-Line Banner Heading Section */}
+          {/* 3-Line Banner Heading */}
           <div className="border-2 border-orange-200 rounded-lg p-4 bg-orange-50">
             <div className="flex items-center gap-2 mb-3">
               <Package className="text-orange-600" size={24} />
@@ -368,10 +366,6 @@ function BannerDialog({
             <div className="mb-4 p-3 bg-white border border-orange-200 rounded-lg">
               <p className="text-sm text-orange-900 font-medium mb-2">
                 ✍️ Create a multi-line banner heading with individual styling
-              </p>
-              <p className="text-xs text-orange-800">
-                Each line can have its own text, color, font size, and font
-                family. Use &lt;b&gt;&lt;/b&gt; tags for bold text.
               </p>
             </div>
 
@@ -409,7 +403,7 @@ function BannerDialog({
                         line1Color.startsWith("#") ? line1Color : "#ffffff"
                       }
                       onChange={(e) => setLine1Color(e.target.value)}
-                      className="w-full h-10 cursor-pointer rounded border-2 border-orange-300 col-span-1"
+                      className="w-full h-10 cursor-pointer rounded border-2 border-orange-300"
                     />
                   </div>
                 </div>
@@ -436,38 +430,7 @@ function BannerDialog({
                     className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white text-gray-900 text-sm"
                   >
                     <option value="Arial">Arial</option>
-                    <option value="Arial_bold">Arial Bold</option>
-                    <option value="Mukta Mahee">Mukta Mahee</option>
-                    <option value="MyriadPro:300">Myriad Pro Light</option>
-                    <option value="MyriadPro:400">Myriad Pro Regular</option>
-                    <option value="MyriadPro:600">Myriad Pro Semibold</option>
-                    <option value="MyriadPro:700">Myriad Pro Bold</option>
-                    <option value="MyriadPro Condensed:400">
-                      Myriad Pro Condensed
-                    </option>
-                    <option value="MyriadPro Condensed:700">
-                      Myriad Pro Condensed Bold
-                    </option>
-                    <option value="Neuropol">Neuropol</option>
-                    <option value="Play:400">Play Regular</option>
-                    <option value="Play:700">Play Bold</option>
-                    <option value="Poppins:300">Poppins Light</option>
-                    <option value="Poppins:400">Poppins Regular</option>
-                    <option value="Poppins:500">Poppins Medium</option>
-                    <option value="Poppins:600">Poppins Semibold</option>
                     <option value="Poppins:700">Poppins Bold</option>
-                    <option value="SF Pro Display:400">
-                      SF Pro Display Regular
-                    </option>
-                    <option value="SF Pro Display:500">
-                      SF Pro Display Medium
-                    </option>
-                    <option value="SF Pro Display:600">
-                      SF Pro Display Semibold
-                    </option>
-                    <option value="SF Pro Display:700">
-                      SF Pro Display Bold
-                    </option>
                   </select>
                 </div>
               </div>
@@ -507,7 +470,7 @@ function BannerDialog({
                         line2Color.startsWith("#") ? line2Color : "#ffffff"
                       }
                       onChange={(e) => setLine2Color(e.target.value)}
-                      className="w-full h-10 cursor-pointer rounded border-2 border-orange-300 col-span-1"
+                      className="w-full h-10 cursor-pointer rounded border-2 border-orange-300"
                     />
                   </div>
                 </div>
@@ -534,38 +497,7 @@ function BannerDialog({
                     className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white text-gray-900 text-sm"
                   >
                     <option value="Arial">Arial</option>
-                    <option value="Arial_bold">Arial Bold</option>
-                    <option value="Mukta Mahee">Mukta Mahee</option>
-                    <option value="MyriadPro:300">Myriad Pro Light</option>
-                    <option value="MyriadPro:400">Myriad Pro Regular</option>
-                    <option value="MyriadPro:600">Myriad Pro Semibold</option>
-                    <option value="MyriadPro:700">Myriad Pro Bold</option>
-                    <option value="MyriadPro Condensed:400">
-                      Myriad Pro Condensed
-                    </option>
-                    <option value="MyriadPro Condensed:700">
-                      Myriad Pro Condensed Bold
-                    </option>
-                    <option value="Neuropol">Neuropol</option>
-                    <option value="Play:400">Play Regular</option>
-                    <option value="Play:700">Play Bold</option>
-                    <option value="Poppins:300">Poppins Light</option>
-                    <option value="Poppins:400">Poppins Regular</option>
-                    <option value="Poppins:500">Poppins Medium</option>
-                    <option value="Poppins:600">Poppins Semibold</option>
                     <option value="Poppins:700">Poppins Bold</option>
-                    <option value="SF Pro Display:400">
-                      SF Pro Display Regular
-                    </option>
-                    <option value="SF Pro Display:500">
-                      SF Pro Display Medium
-                    </option>
-                    <option value="SF Pro Display:600">
-                      SF Pro Display Semibold
-                    </option>
-                    <option value="SF Pro Display:700">
-                      SF Pro Display Bold
-                    </option>
                   </select>
                 </div>
               </div>
@@ -605,7 +537,7 @@ function BannerDialog({
                         line3Color.startsWith("#") ? line3Color : "#ffffff"
                       }
                       onChange={(e) => setLine3Color(e.target.value)}
-                      className="w-full h-10 cursor-pointer rounded border-2 border-orange-300 col-span-1"
+                      className="w-full h-10 cursor-pointer rounded border-2 border-orange-300"
                     />
                   </div>
                 </div>
@@ -632,123 +564,39 @@ function BannerDialog({
                     className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white text-gray-900 text-sm"
                   >
                     <option value="Arial">Arial</option>
-                    <option value="Arial_bold">Arial Bold</option>
-                    <option value="Mukta Mahee">Mukta Mahee</option>
-                    <option value="MyriadPro:300">Myriad Pro Light</option>
-                    <option value="MyriadPro:400">Myriad Pro Regular</option>
-                    <option value="MyriadPro:600">Myriad Pro Semibold</option>
-                    <option value="MyriadPro:700">Myriad Pro Bold</option>
-                    <option value="MyriadPro Condensed:400">
-                      Myriad Pro Condensed
-                    </option>
-                    <option value="MyriadPro Condensed:700">
-                      Myriad Pro Condensed Bold
-                    </option>
-                    <option value="Neuropol">Neuropol</option>
-                    <option value="Play:400">Play Regular</option>
-                    <option value="Play:700">Play Bold</option>
-                    <option value="Poppins:300">Poppins Light</option>
-                    <option value="Poppins:400">Poppins Regular</option>
-                    <option value="Poppins:500">Poppins Medium</option>
-                    <option value="Poppins:600">Poppins Semibold</option>
                     <option value="Poppins:700">Poppins Bold</option>
-                    <option value="SF Pro Display:400">
-                      SF Pro Display Regular
-                    </option>
-                    <option value="SF Pro Display:500">
-                      SF Pro Display Medium
-                    </option>
-                    <option value="SF Pro Display:600">
-                      SF Pro Display Semibold
-                    </option>
-                    <option value="SF Pro Display:700">
-                      SF Pro Display Bold
-                    </option>
                   </select>
                 </div>
               </div>
             </div>
-
-            {/* Live Preview */}
-            {(headingLine1 || headingLine2 || headingLine3) && (
-              <div className="border border-gray-200 rounded-lg p-3 bg-white">
-                <p className="text-xs font-medium text-gray-600 mb-3">
-                  Preview (as it will appear):
-                </p>
-                <div className="p-4 bg-linear-to-r from-orange-50 to-white rounded-lg space-y-2">
-                  {headingLine1 && (
-                    <div
-                      className="leading-tight"
-                      style={{
-                        color: line1Color,
-                        fontSize: `${line1FontSize}px`,
-                        fontFamily: line1FontFamily.split(":")[0],
-                        fontWeight: line1FontFamily.includes(":")
-                          ? line1FontFamily.split(":")[1]
-                          : "normal",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: headingLine1 }}
-                    />
-                  )}
-                  {headingLine2 && (
-                    <div
-                      className="leading-tight"
-                      style={{
-                        color: line2Color,
-                        fontSize: `${line2FontSize}px`,
-                        fontFamily: line2FontFamily.split(":")[0],
-                        fontWeight: line2FontFamily.includes(":")
-                          ? line2FontFamily.split(":")[1]
-                          : "normal",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: headingLine2 }}
-                    />
-                  )}
-                  {headingLine3 && (
-                    <div
-                      className="leading-tight"
-                      style={{
-                        color: line3Color,
-                        fontSize: `${line3FontSize}px`,
-                        fontFamily: line3FontFamily.split(":")[0],
-                        fontWeight: line3FontFamily.includes(":")
-                          ? line3FontFamily.split(":")[1]
-                          : "normal",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: headingLine3 }}
-                    />
-                  )}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Mobile Banner Section - OPTIONAL */}
+          {/* MOBILE - Image OR Video */}
           <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
             <div className="flex items-center gap-2 mb-3">
               <Smartphone className="text-blue-600" size={24} />
               <h3 className="text-lg font-semibold text-blue-900">
-                Mobile - Image or Video (Optional)
+                Mobile - Image OR Video *
               </h3>
             </div>
 
-            <div className="mb-3 p-3 bg-white border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-900 font-medium mb-2">
-                📱 Upload image (768x400px) or video, or both
+            <div className="mb-4 p-3 bg-white border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-900 font-medium mb-1">
+                📱 Upload EITHER an image (768x400px) OR a video
               </p>
               <p className="text-xs text-blue-800">
-                Images and videos stored in Supabase. Choose whichever works best for your design.
+                Choose image for static banner, video for animated
               </p>
             </div>
 
             {/* Mobile Image */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-blue-900 mb-2">Image</p>
-              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors bg-white">
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-gray-700 mb-2">Image</p>
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:bg-blue-100 bg-white">
                 <div className="text-center">
                   <Upload className="mx-auto text-blue-600 mb-2" size={24} />
-                  <p className="text-sm text-blue-900 font-medium">
-                    {mobileFile ? mobileFile.name : "Upload mobile image"}
+                  <p className="text-sm text-blue-900">
+                    {mobileFile ? mobileFile.name : "Upload image"}
                   </p>
                 </div>
                 <input
@@ -759,7 +607,7 @@ function BannerDialog({
                 />
               </label>
               {mobilePreview && (
-                <div className="mt-2 relative w-full max-w-md h-24 bg-gray-100 rounded-lg overflow-hidden border border-blue-200">
+                <div className="mt-2 relative w-full max-w-xs h-24 rounded overflow-hidden border border-blue-300">
                   <Image
                     src={mobilePreview}
                     alt="Preview"
@@ -773,11 +621,11 @@ function BannerDialog({
 
             {/* Mobile Video */}
             <div>
-              <p className="text-xs font-semibold text-red-900 mb-2">Video (Optional)</p>
-              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 transition-colors bg-white">
+              <p className="text-xs font-semibold text-gray-700 mb-2">OR Video</p>
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 bg-white">
                 <div className="text-center">
                   <Film className="mx-auto text-red-600 mb-2" size={24} />
-                  <p className="text-sm text-red-900 font-medium">
+                  <p className="text-sm text-red-900">
                     {mobileVideoFile ? mobileVideoFile.name : "Upload video"}
                   </p>
                 </div>
@@ -789,39 +637,41 @@ function BannerDialog({
                 />
               </label>
               {mobileVideoPreview && (
-                <div className="mt-2">
-                  <video src={mobileVideoPreview} controls className="w-full max-w-md h-24 rounded bg-black" />
-                </div>
+                <video
+                  src={mobileVideoPreview}
+                  controls
+                  className="w-full max-w-xs h-24 rounded mt-2 bg-black border border-red-300"
+                />
               )}
             </div>
           </div>
 
-          {/* Desktop Banner Section - OPTIONAL */}
+          {/* DESKTOP - Image OR Video */}
           <div className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-3">
               <Monitor className="text-purple-600" size={24} />
               <h3 className="text-lg font-semibold text-purple-900">
-                Desktop - Image or Video (Optional)
+                Desktop - Image OR Video *
               </h3>
             </div>
 
-            <div className="mb-3 p-3 bg-white border border-purple-200 rounded-lg">
-              <p className="text-sm text-purple-900 font-medium mb-2">
-                🖥️ Upload image (1920x400px) or video, or both
+            <div className="mb-4 p-3 bg-white border border-purple-200 rounded-lg">
+              <p className="text-sm text-purple-900 font-medium mb-1">
+                🖥️ Upload EITHER an image (1920x400px) OR a video
               </p>
               <p className="text-xs text-purple-800">
-                Images and videos stored in Supabase. Choose whichever works best for your design.
+                Choose image for static banner, video for animated
               </p>
             </div>
 
             {/* Desktop Image */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-purple-900 mb-2">Image</p>
-              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 transition-colors bg-white">
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-gray-700 mb-2">Image</p>
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 bg-white">
                 <div className="text-center">
                   <Upload className="mx-auto text-purple-600 mb-2" size={24} />
-                  <p className="text-sm text-purple-900 font-medium">
-                    {desktopFile ? desktopFile.name : "Upload desktop image"}
+                  <p className="text-sm text-purple-900">
+                    {desktopFile ? desktopFile.name : "Upload image"}
                   </p>
                 </div>
                 <input
@@ -832,7 +682,7 @@ function BannerDialog({
                 />
               </label>
               {desktopPreview && (
-                <div className="mt-2 relative w-full h-24 bg-gray-100 rounded-lg overflow-hidden border border-purple-200">
+                <div className="mt-2 relative w-full h-24 rounded overflow-hidden border border-purple-300">
                   <Image
                     src={desktopPreview}
                     alt="Preview"
@@ -846,11 +696,11 @@ function BannerDialog({
 
             {/* Desktop Video */}
             <div>
-              <p className="text-xs font-semibold text-red-900 mb-2">Video (Optional)</p>
-              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 transition-colors bg-white">
+              <p className="text-xs font-semibold text-gray-700 mb-2">OR Video</p>
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 bg-white">
                 <div className="text-center">
                   <Film className="mx-auto text-red-600 mb-2" size={24} />
-                  <p className="text-sm text-red-900 font-medium">
+                  <p className="text-sm text-red-900">
                     {desktopVideoFile ? desktopVideoFile.name : "Upload video"}
                   </p>
                 </div>
@@ -862,9 +712,11 @@ function BannerDialog({
                 />
               </label>
               {desktopVideoPreview && (
-                <div className="mt-2">
-                  <video src={desktopVideoPreview} controls className="w-full h-24 rounded bg-black" />
-                </div>
+                <video
+                  src={desktopVideoPreview}
+                  controls
+                  className="w-full h-24 rounded mt-2 bg-black border border-red-300"
+                />
               )}
             </div>
           </div>
@@ -874,21 +726,17 @@ function BannerDialog({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               disabled={isSaving || isUploading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
               disabled={isSaving || isUploading}
             >
-              {isSaving || isUploading
-                ? "Uploading..."
-                : selectedBanner
-                  ? "Update Banner"
-                  : "Create Banner"}
+              {isSaving || isUploading ? "Uploading..." : selectedBanner ? "Update" : "Create"}
             </button>
           </div>
         </form>
@@ -904,9 +752,7 @@ export default function BannersContent({
     useBanners(initialBanners);
 
   const [showDialog, setShowDialog] = useState(false);
-  const [selectedBanner, setSelectedBanner] = useState<ProductBanner | null>(
-    null,
-  );
+  const [selectedBanner, setSelectedBanner] = useState<ProductBanner | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const handleCreate = () => {
@@ -946,35 +792,16 @@ export default function BannersContent({
       let desktopVideoUrl = selectedBanner?.desktop_video || "";
 
       if (mobileFile) {
-        mobileUrl = await uploadBannerImageClient(
-          mobileFile,
-          "mobile",
-          selectedBanner?.id,
-        );
+        mobileUrl = await uploadBannerImageClient(mobileFile, "mobile", selectedBanner?.id);
       }
-
       if (desktopFile) {
-        desktopUrl = await uploadBannerImageClient(
-          desktopFile,
-          "desktop",
-          selectedBanner?.id,
-        );
+        desktopUrl = await uploadBannerImageClient(desktopFile, "desktop", selectedBanner?.id);
       }
-
       if (mobileVideoFile) {
-        mobileVideoUrl = await uploadBannerImageClient(
-          mobileVideoFile,
-          "mobile_video",
-          selectedBanner?.id,
-        );
+        mobileVideoUrl = await uploadBannerImageClient(mobileVideoFile, "mobile_video", selectedBanner?.id);
       }
-
       if (desktopVideoFile) {
-        desktopVideoUrl = await uploadBannerImageClient(
-          desktopVideoFile,
-          "desktop_video",
-          selectedBanner?.id,
-        );
+        desktopVideoUrl = await uploadBannerImageClient(desktopVideoFile, "desktop_video", selectedBanner?.id);
       }
 
       if (selectedBanner) {
@@ -1004,9 +831,6 @@ export default function BannersContent({
           desktopFile ? selectedBanner.desktop_banner : undefined,
         );
       } else {
-        if (!mobileUrl && !desktopUrl) {
-          throw new Error("Please upload at least an image for mobile and desktop");
-        }
         await createBanner(
           mobileUrl || "",
           desktopUrl || "",
@@ -1035,7 +859,7 @@ export default function BannersContent({
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this banner?")) {
+    if (confirm("Delete this banner?")) {
       setIsDeleting(id);
       await deleteBanner(id);
       setIsDeleting(null);
@@ -1048,15 +872,13 @@ export default function BannersContent({
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
             <ImageIcon className="text-purple-600" size={32} />
-            Product Banners
+            Banners
           </h1>
-          <p className="text-gray-600 mt-1">
-            Manage responsive banners with images and videos
-          </p>
+          <p className="text-gray-600 mt-1">Image or video banners</p>
         </div>
         <button
           onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
         >
           <Plus size={20} />
           Add Banner
@@ -1065,126 +887,74 @@ export default function BannersContent({
 
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-900">
-          💡 <strong>Upload either images or videos</strong>—choose what works best for your banner. You can upload both if needed. Minimum: 1 image or video per breakpoint (mobile/desktop).
+          💡 Upload an image OR video for each breakpoint—pick whichever fits your design
         </p>
       </div>
 
       {banners.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-lg border-2 border-dashed border-gray-300">
           <ImageIcon className="mx-auto w-16 h-16 text-gray-400 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No banners yet
-          </h3>
-          <p className="text-gray-600 mb-4">
-            Create your first banner to get started
-          </p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No banners</h3>
           <button
             onClick={handleCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             <Plus size={20} />
-            Add Your First Banner
+            Create First Banner
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
           {banners.map((banner) => (
-            <div
-              key={banner.id}
-              className="bg-white rounded-lg border-2 border-gray-200 p-6"
-            >
+            <div key={banner.id} className="bg-white rounded-lg border-2 border-gray-200 p-6">
               <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Banner #{banner.id.slice(0, 8)}
-                    </h3>
-                    <span
-                      className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                        banner.page_type === "homepage"
-                          ? "bg-green-100 text-green-800"
-                          : banner.page_type === "products"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-purple-100 text-purple-800"
-                      }`}
-                    >
-                      {banner.page_type === "homepage"
-                        ? "🏠 Homepage"
-                        : banner.page_type === "products"
-                          ? "📦 Products"
-                          : "⭐ Featured"}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Created: {new Date(banner.created_at).toLocaleDateString()}
-                  </p>
-                </div>
                 <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900">#{banner.id.slice(0, 8)}</h3>
+                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                    banner.page_type === "homepage" ? "bg-green-100 text-green-800" :
+                    banner.page_type === "products" ? "bg-blue-100 text-blue-800" : 
+                    "bg-purple-100 text-purple-800"
+                  }`}>
+                    {banner.page_type === "homepage" ? "🏠" : banner.page_type === "products" ? "📦" : "⭐"}
+                  </span>
+                </div>
+                <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(banner)}
-                    className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                    className="p-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                     disabled={isLoading}
                   >
-                    <Edit size={20} />
+                    <Edit size={18} />
                   </button>
                   <button
                     onClick={() => handleDelete(banner.id)}
-                    className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                    disabled={isLoading || isDeleting === banner.id}
+                    className="p-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    disabled={isDeleting === banner.id}
                   >
-                    <Trash2 size={20} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Mobile */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <Smartphone size={16} /> Mobile
-                  </h4>
                   {banner.mobile_banner && (
-                    <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-blue-200 mb-2">
-                      <Image
-                        src={banner.mobile_banner}
-                        alt="Mobile"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
+                    <div className="relative w-full h-24 rounded overflow-hidden border border-blue-200">
+                      <Image src={banner.mobile_banner} alt="Mobile" fill className="object-cover" unoptimized />
                     </div>
                   )}
                   {banner.mobile_video && (
-                    <video
-                      src={banner.mobile_video}
-                      controls
-                      className="w-full h-20 rounded bg-black border border-red-200"
-                    />
+                    <video src={banner.mobile_video} controls className="w-full h-24 rounded bg-black border border-red-200" />
                   )}
                 </div>
-
-                {/* Desktop */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <Monitor size={16} /> Desktop
-                  </h4>
                   {banner.desktop_banner && (
-                    <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-purple-200 mb-2">
-                      <Image
-                        src={banner.desktop_banner}
-                        alt="Desktop"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
+                    <div className="relative w-full h-24 rounded overflow-hidden border border-purple-200">
+                      <Image src={banner.desktop_banner} alt="Desktop" fill className="object-cover" unoptimized />
                     </div>
                   )}
                   {banner.desktop_video && (
-                    <video
-                      src={banner.desktop_video}
-                      controls
-                      className="w-full h-20 rounded bg-black border border-red-200"
-                    />
+                    <video src={banner.desktop_video} controls className="w-full h-24 rounded bg-black border border-red-200" />
                   )}
                 </div>
               </div>
