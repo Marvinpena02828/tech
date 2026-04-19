@@ -22,37 +22,37 @@ const socialLinks = [
   {
     name: "Facebook",
     href: "#",
-    image: "/socials/FB.png",
+    image: "/Icons/FaceBook.png",
   },
   {
     name: "X",
     href: "#",
-    image: "/socials/X.png",
+    image: "/Icons/Twitter.png",
   },
   {
     name: "Instagram",
     href: "#",
-    image: "/socials/Instagram.png",
+    image: "/Icons/instagram.png",
   },
   {
     name: "LinkedIn",
     href: "#",
-    image: "/socials/Linked.png",
+    image: "/Icons/Linkdin.png",
   },
   {
     name: "YouTube",
     href: "#",
-    image: "/socials/youtube.png",
+    image: "/Icons/Youtube.png",
   },
   {
     name: "TikTok",
     href: "#",
-    image: "/socials/tiktok.png",
+    image: "/Icons/Tiktok.png",
   },
   {
     name: "SnapChat",
     href: "#",
-    image: "/socials/Snapchat.png",
+    image: "/Icons/SnapChat.png",
   },
 ];
 
