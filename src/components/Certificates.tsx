@@ -138,42 +138,42 @@ export default function Certificates({
       className="w-full py-20 bg-white flex flex-col items-center mx-auto overflow-hidden mt-2"
     >
       <div className="container">
-        <h2 className="heading mb-8 md:mb-10 lg:mb-12 px-4 text-center">
+        <h2 className="heading mb-12 md:mb-14 lg:mb-16 px-4 text-center">
           {heading}
         </h2>
 
         {/* Desktop/Tablet Carousel View */}
-        <div className="hidden sm:block relative px-12">
+        <div className="hidden sm:block relative px-8 md:px-12">
           {/* Previous Button */}
           <button
             onClick={handleDesktopPrev}
             disabled={startIndex === 0}
-            className={`absolute -left-4 top-1/2 -translate-y-1/2 p-2 text-gray-600 z-10 transition-all duration-300 ${
+            className={`absolute -left-6 md:-left-8 top-1/2 -translate-y-1/2 p-2 text-gray-600 z-10 transition-all duration-300 ${
               startIndex === 0
                 ? "opacity-30 cursor-not-allowed"
                 : "hover:text-black hover:bg-gray-100 rounded-full"
             }`}
             aria-label="Previous certificates"
           >
-            <ChevronLeft size={28} />
+            <ChevronLeft size={32} />
           </button>
 
           {/* Next Button */}
           <button
             onClick={handleDesktopNext}
             disabled={startIndex >= certificates.length - itemsToShow}
-            className={`absolute -right-4 top-1/2 -translate-y-1/2 p-2 text-gray-600 z-10 transition-all duration-300 ${
+            className={`absolute -right-6 md:-right-8 top-1/2 -translate-y-1/2 p-2 text-gray-600 z-10 transition-all duration-300 ${
               startIndex >= certificates.length - itemsToShow
                 ? "opacity-30 cursor-not-allowed"
                 : "hover:text-black hover:bg-gray-100 rounded-full"
             }`}
             aria-label="Next certificates"
           >
-            <ChevronRight size={28} />
+            <ChevronRight size={32} />
           </button>
 
           {/* Certificates Grid */}
-          <div className="w-full grid grid-cols-2 lg:grid-cols-5 gap-8 md:gap-12 overflow-hidden">
+          <div className="w-full grid grid-cols-2 lg:grid-cols-5 gap-6 md:gap-10 overflow-hidden">
             {visibleCerts.map((cert) => (
               <div
                 key={cert.id}
@@ -181,35 +181,27 @@ export default function Certificates({
                 onClick={() => setSelectedCert(cert.id)}
               >
                 {/* Certificate Card */}
-                <div className="relative w-full max-w-sm aspect-[4/6] rounded-xl overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-3 group-hover:shadow-2xl">
+                <div className="relative w-full aspect-[4/6] rounded-2xl overflow-hidden transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-4 group-hover:shadow-2xl">
                   {/* Base background with gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 border-2 border-gray-200 group-hover:border-indigo-300 transition-all duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 border-2 border-gray-200 group-hover:border-indigo-400 transition-all duration-300" />
 
                   {/* Image container */}
-                  <div className="relative w-full h-full p-3 bg-white/80 backdrop-blur-sm">
-                    <div className="absolute inset-3 bg-white rounded-lg shadow-inner overflow-hidden">
+                  <div className="relative w-full h-full p-4 bg-white/85 backdrop-blur-md">
+                    <div className="absolute inset-4 bg-white rounded-xl shadow-lg overflow-hidden">
                       <Image
                         src={cert.image_url}
                         alt={cert.alt_text}
                         fill
-                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                       />
                     </div>
                   </div>
 
                   {/* Shine/gloss effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl" />
 
-                  {/* Bottom accent */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-
-                {/* Status indicator */}
-                <div className="mt-4 flex items-center justify-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-gray-300 group-hover:bg-indigo-500 transition-colors duration-300" />
-                  <span className="text-xs text-gray-500 group-hover:text-indigo-600 transition-colors duration-300 font-medium">
-                    Click to view
-                  </span>
+                  {/* Bottom accent glow */}
+                  <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" />
                 </div>
               </div>
             ))}
@@ -273,13 +265,13 @@ export default function Certificates({
                 }}
               >
                 {/* Mobile Certificate Card */}
-                <div className="w-56 aspect-[3/4] rounded-xl overflow-hidden transition-all duration-300 active:scale-95 active:shadow-lg shadow-md">
+                <div className="w-64 aspect-[3/4] rounded-2xl overflow-hidden transition-all duration-300 active:scale-95 active:shadow-lg shadow-md relative">
                   {/* Base background */}
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 border-2 border-gray-200 active:border-indigo-400 transition-all duration-300" />
 
                   {/* Image container */}
-                  <div className="relative w-full h-full p-3 bg-white/80 backdrop-blur-sm">
-                    <div className="absolute inset-3 bg-white rounded-lg shadow-inner overflow-hidden">
+                  <div className="relative w-full h-full p-4 bg-white/85 backdrop-blur-md">
+                    <div className="absolute inset-4 bg-white rounded-xl shadow-lg overflow-hidden">
                       <Image
                         src={cert.image_url}
                         alt={cert.alt_text}
@@ -291,14 +283,7 @@ export default function Certificates({
                   </div>
 
                   {/* Mobile shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-50 pointer-events-none rounded-xl" />
-                </div>
-
-                {/* Mobile status */}
-                <div className="mt-3 text-center">
-                  <p className="text-xs text-gray-600 font-medium group-active:text-indigo-600 transition-colors">
-                    Tap to enlarge
-                  </p>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-50 pointer-events-none rounded-2xl" />
                 </div>
               </div>
             ))}
@@ -342,7 +327,7 @@ export default function Certificates({
                 </div>
 
                 {/* Image */}
-                <div className="relative z-10 shadow-2xl rounded-xl overflow-hidden bg-white p-4 border border-gray-200">
+                <div className="relative z-10 shadow-2xl rounded-2xl overflow-hidden bg-white p-6 border-2 border-gray-200">
                   <Image
                     src={selectedCertData.image_url}
                     alt={selectedCertData.alt_text}
@@ -358,20 +343,20 @@ export default function Certificates({
               <div className="p-4 md:p-6 bg-white border-t border-gray-200 flex items-center justify-between flex-shrink-0 gap-3">
                 <button
                   onClick={handlePrev}
-                  className="px-3 py-2 md:px-5 md:py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 active:scale-95 transition-all duration-200 font-medium text-sm md:text-base shadow-md hover:shadow-lg"
+                  className="px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 active:scale-95 transition-all duration-200 font-medium text-sm md:text-base shadow-md hover:shadow-lg"
                 >
                   <span className="hidden sm:inline">← Previous</span>
                   <span className="sm:hidden">←</span>
                 </button>
 
-                <span className="text-gray-700 font-bold text-sm md:text-base bg-gray-100 px-3 py-2 rounded-lg">
+                <span className="text-gray-700 font-bold text-sm md:text-base bg-gray-100 px-4 py-2 rounded-lg whitespace-nowrap">
                   {certificates.findIndex((c) => c.id === selectedCert) + 1}/
                   {certificates.length}
                 </span>
 
                 <button
                   onClick={handleNext}
-                  className="px-3 py-2 md:px-5 md:py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 active:scale-95 transition-all duration-200 font-medium text-sm md:text-base shadow-md hover:shadow-lg"
+                  className="px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 active:scale-95 transition-all duration-200 font-medium text-sm md:text-base shadow-md hover:shadow-lg"
                 >
                   <span className="hidden sm:inline">Next →</span>
                   <span className="sm:hidden">→</span>
