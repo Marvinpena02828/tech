@@ -231,23 +231,6 @@ export default function Footer() {
         .social-icon {
           animation: fadeInUp 0.6s ease-out forwards;
           opacity: 0;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .social-icon::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: rgba(255, 255, 255, 1);
-          transform: scaleY(0);
-          transform-origin: bottom;
-          transition: transform 0.3s ease;
-          z-index: 0;
-        }
-
-        .social-icon:hover::before {
-          transform: scaleY(1);
         }
 
         .social-icon:nth-child(1) { animation-delay: 0.1s; }
@@ -287,11 +270,6 @@ export default function Footer() {
         .social-icon-img {
           position: relative;
           z-index: 1;
-          transition: filter 0.3s ease;
-        }
-
-        .social-icon:hover .social-icon-img {
-          filter: brightness(0) invert(0);
         }
       `}</style>
 
