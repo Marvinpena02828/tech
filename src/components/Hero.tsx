@@ -31,21 +31,30 @@ interface HeroProps {
 export default function HeroBanner({ banners }: HeroProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [isHoveringDots, setIsHoveringDots] = useState(false);
 
-  // Auto-play functionality
+  // Auto-play functionality - respects isAutoPlay and isHoveringDots
   useEffect(() => {
-    if (banners.length <= 1 || !isAutoPlay) return;
+    if (banners.length <= 1 || !isAutoPlay || isHoveringDots) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
     }, 3000); // Change slide every 3 seconds
 
     return () => clearInterval(interval);
-  }, [banners.length, isAutoPlay]);
+  }, [banners.length, isAutoPlay, isHoveringDots]);
 
   const goToSlide = (index: number) => {
-    setIsAutoPlay(false);
     setCurrentIndex(index);
+  };
+
+  const handleDotsMouseEnter = () => {
+    setIsHoveringDots(true);
+  };
+
+  const handleDotsMouseLeave = () => {
+    setIsHoveringDots(false);
+    setIsAutoPlay(true); // Resume autoplay when mouse leaves dots
   };
 
   // Show placeholder if no banners
@@ -164,12 +173,16 @@ export default function HeroBanner({ banners }: HeroProps) {
 
       {/* Dots Navigation - Only show if more than 1 banner */}
       {banners.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex gap-3 z-50">
+        <div
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex gap-3"
+          onMouseEnter={handleDotsMouseEnter}
+          onMouseLeave={handleDotsMouseLeave}
+        >
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
                 index === currentIndex
                   ? "bg-white scale-125"
                   : "bg-white/50 hover:bg-white/75"
