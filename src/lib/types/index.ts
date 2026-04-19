@@ -18,7 +18,6 @@ export interface Product {
   images?: string[];
   thumbnail?: string[];
 }
-
 export interface Category {
   id: string;
   title: string;
@@ -30,7 +29,6 @@ export interface Category {
   parent_category_id?: string | null;
   is_highlighted: boolean;
 }
-
 export interface News {
   id: string;
   title: string;
@@ -40,13 +38,13 @@ export interface News {
   content: string;
   image_url: string;
 }
-
 export type BannerPageType = "homepage" | "products" | "featured";
-
 export interface ProductBanner {
   id: string;
   mobile_banner: string;
   desktop_banner: string;
+  mobile_video?: string | null;
+  desktop_video?: string | null;
   page_type: BannerPageType;
   item_link?: string | null;
   // Legacy single-line heading (kept for backward compatibility)
