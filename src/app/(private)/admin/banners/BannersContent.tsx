@@ -19,7 +19,7 @@ import Image from "next/image";
 import { ProductBanner, BannerPageType } from "@/lib/types";
 import { useBanners } from "./hooks/use-banners";
 import { useState, useEffect } from "react";
-import { uploadBannerImageClient, deleteBannerFileClient } from "@/lib/storage/bannersStorageClient";
+import { uploadBannerImageClient } from "@/lib/storage/bannersStorageClient";
 
 interface BannersContentProps {
   banners: ProductBanner[];
@@ -65,12 +65,10 @@ function BannerDialog({
     selectedBanner?.page_type || "products",
   );
 
-  // Item link for featured banners
   const [itemLink, setItemLink] = useState<string>(
     selectedBanner?.item_link || "",
   );
 
-  // Line 1 state
   const [headingLine1, setHeadingLine1] = useState<string>(
     selectedBanner?.heading_line1 || "",
   );
@@ -84,7 +82,6 @@ function BannerDialog({
     selectedBanner?.line1_font_family || "Arial",
   );
 
-  // Line 2 state
   const [headingLine2, setHeadingLine2] = useState<string>(
     selectedBanner?.heading_line2 || "",
   );
@@ -98,7 +95,6 @@ function BannerDialog({
     selectedBanner?.line2_font_family || "Arial",
   );
 
-  // Line 3 state
   const [headingLine3, setHeadingLine3] = useState<string>(
     selectedBanner?.heading_line3 || "",
   );
@@ -125,7 +121,6 @@ function BannerDialog({
   );
   const [isUploading, setIsUploading] = useState(false);
 
-  // Reset state when dialog opens/closes or selectedBanner changes
   useEffect(() => {
     if (isOpen) {
       setMobileFile(null);
@@ -156,7 +151,6 @@ function BannerDialog({
       setDesktopVideoPreview(selectedBanner?.desktop_video || "");
       setIsUploading(false);
     } else {
-      // Reset when dialog closes
       setMobileFile(null);
       setDesktopFile(null);
       setMobileVideoFile(null);
@@ -226,18 +220,22 @@ function BannerDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // For updates, files are optional (only update if new file provided)
-    // For new banners, both image files are required (videos are optional)
+    // For new banners, at least need either image or video for each breakpoint
     if (!selectedBanner) {
-      if (!mobileFile || !desktopFile) {
-        alert("Please upload both mobile and desktop banner images");
+      const hasMobileContent = mobileFile || mobileVideoFile;
+      const hasDesktopContent = desktopFile || desktopVideoFile;
+
+      if (!hasMobileContent || !hasDesktopContent) {
+        alert("Please upload at least an image or video for both mobile and desktop");
         return;
       }
     }
+
+    // For featured banners, require item link
     if (pageType === "featured" && !itemLink) {
-        alert("Please enter a featured product link");
-        return;
-      }
+      alert("Please enter a featured product link");
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -354,7 +352,6 @@ function BannerDialog({
                 onChange={(e) => setItemLink(e.target.value)}
                 placeholder="e.g., /products/my-awesome-product"
                 className="w-full px-4 py-2 border-2 border-yellow-300 rounded-lg focus:outline-none focus:border-yellow-500 bg-white text-gray-900"
-                
               />
             </div>
           )}
@@ -726,38 +723,32 @@ function BannerDialog({
             )}
           </div>
 
-          {/* Mobile Banner Section */}
+          {/* Mobile Banner Section - OPTIONAL */}
           <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
             <div className="flex items-center gap-2 mb-3">
               <Smartphone className="text-blue-600" size={24} />
               <h3 className="text-lg font-semibold text-blue-900">
-                Mobile Banner {!selectedBanner && "*"}
+                Mobile - Image or Video (Optional)
               </h3>
             </div>
 
             <div className="mb-3 p-3 bg-white border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-900 font-medium mb-2">
-                📱 Recommended size: 768 x 400px
+                📱 Upload image (768x400px) or video, or both
               </p>
               <p className="text-xs text-blue-800">
-                Upload a high-quality image for mobile devices. Images are
-                stored in Supabase Storage for optimal performance.
+                Images and videos stored in Supabase. Choose whichever works best for your design.
               </p>
             </div>
 
-            <div className="mb-3">
-              <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors bg-white">
+            {/* Mobile Image */}
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-blue-900 mb-2">Image</p>
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors bg-white">
                 <div className="text-center">
-                  <Upload className="mx-auto text-blue-600 mb-2" size={32} />
+                  <Upload className="mx-auto text-blue-600 mb-2" size={24} />
                   <p className="text-sm text-blue-900 font-medium">
-                    {mobileFile
-                      ? mobileFile.name
-                      : selectedBanner
-                        ? "Change Mobile Banner"
-                        : "Upload Mobile Banner"}
-                  </p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    PNG, JPG, WEBP up to 10MB
+                    {mobileFile ? mobileFile.name : "Upload mobile image"}
                   </p>
                 </div>
                 <input
@@ -765,60 +756,29 @@ function BannerDialog({
                   accept="image/*"
                   onChange={handleMobileFileChange}
                   className="hidden"
-                  
                 />
               </label>
-            </div>
-
-            {mobilePreview && (
-              <div className="border border-gray-200 rounded-lg p-3 bg-white">
-                <p className="text-xs font-medium text-gray-600 mb-2">
-                  Mobile Preview (768px wide):
-                </p>
-                <div className="relative w-full max-w-md mx-auto h-48 bg-gray-100 rounded-lg overflow-hidden">
+              {mobilePreview && (
+                <div className="mt-2 relative w-full max-w-md h-24 bg-gray-100 rounded-lg overflow-hidden border border-blue-200">
                   <Image
                     src={mobilePreview}
-                    alt="Mobile banner preview"
+                    alt="Preview"
                     fill
                     className="object-cover"
                     unoptimized
                   />
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Video Section (Optional) */}
-          <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
-            <div className="flex items-center gap-2 mb-3">
-              <Film className="text-red-600" size={24} />
-              <h3 className="text-lg font-semibold text-red-900">
-                Mobile Video (Optional)
-              </h3>
+              )}
             </div>
 
-            <div className="mb-3 p-3 bg-white border border-red-200 rounded-lg">
-              <p className="text-sm text-red-900 font-medium mb-2">
-                🎬 Upload a video as fallback for mobile
-              </p>
-              <p className="text-xs text-red-800">
-                MP4, WebM, OGG. If provided, video plays instead of static image on mobile.
-              </p>
-            </div>
-
-            <div className="mb-3">
-              <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 transition-colors bg-white">
+            {/* Mobile Video */}
+            <div>
+              <p className="text-xs font-semibold text-red-900 mb-2">Video (Optional)</p>
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 transition-colors bg-white">
                 <div className="text-center">
-                  <Upload className="mx-auto text-red-600 mb-2" size={32} />
+                  <Film className="mx-auto text-red-600 mb-2" size={24} />
                   <p className="text-sm text-red-900 font-medium">
-                    {mobileVideoFile
-                      ? mobileVideoFile.name
-                      : mobileVideoPreview
-                        ? "Change Mobile Video"
-                        : "Upload Mobile Video"}
-                  </p>
-                  <p className="text-xs text-red-700 mt-1">
-                    MP4, WebM, OGG up to 50MB
+                    {mobileVideoFile ? mobileVideoFile.name : "Upload video"}
                   </p>
                 </div>
                 <input
@@ -828,54 +788,40 @@ function BannerDialog({
                   className="hidden"
                 />
               </label>
+              {mobileVideoPreview && (
+                <div className="mt-2">
+                  <video src={mobileVideoPreview} controls className="w-full max-w-md h-24 rounded bg-black" />
+                </div>
+              )}
             </div>
-
-            {mobileVideoPreview && (
-              <div className="border border-gray-200 rounded-lg p-3 bg-white">
-                <p className="text-xs font-medium text-gray-600 mb-2">
-                  Mobile Video Preview:
-                </p>
-                <video
-                  src={mobileVideoPreview}
-                  controls
-                  className="w-full max-w-md mx-auto rounded-lg bg-black"
-                />
-              </div>
-            )}
           </div>
 
-          {/* Desktop Banner Section */}
+          {/* Desktop Banner Section - OPTIONAL */}
           <div className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-3">
               <Monitor className="text-purple-600" size={24} />
               <h3 className="text-lg font-semibold text-purple-900">
-                Desktop Banner {!selectedBanner && "*"}
+                Desktop - Image or Video (Optional)
               </h3>
             </div>
 
             <div className="mb-3 p-3 bg-white border border-purple-200 rounded-lg">
               <p className="text-sm text-purple-900 font-medium mb-2">
-                🖥️ Recommended size: 1920 x 400px
+                🖥️ Upload image (1920x400px) or video, or both
               </p>
               <p className="text-xs text-purple-800">
-                Upload a high-quality image for desktop devices. Images are
-                stored in Supabase Storage for optimal performance.
+                Images and videos stored in Supabase. Choose whichever works best for your design.
               </p>
             </div>
 
-            <div className="mb-3">
-              <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 transition-colors bg-white">
+            {/* Desktop Image */}
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-purple-900 mb-2">Image</p>
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 transition-colors bg-white">
                 <div className="text-center">
-                  <Upload className="mx-auto text-purple-600 mb-2" size={32} />
+                  <Upload className="mx-auto text-purple-600 mb-2" size={24} />
                   <p className="text-sm text-purple-900 font-medium">
-                    {desktopFile
-                      ? desktopFile.name
-                      : selectedBanner
-                        ? "Change Desktop Banner"
-                        : "Upload Desktop Banner"}
-                  </p>
-                  <p className="text-xs text-purple-700 mt-1">
-                    PNG, JPG, WEBP up to 10MB
+                    {desktopFile ? desktopFile.name : "Upload desktop image"}
                   </p>
                 </div>
                 <input
@@ -883,60 +829,29 @@ function BannerDialog({
                   accept="image/*"
                   onChange={handleDesktopFileChange}
                   className="hidden"
-                  
                 />
               </label>
-            </div>
-
-            {desktopPreview && (
-              <div className="border border-gray-200 rounded-lg p-3 bg-white">
-                <p className="text-xs font-medium text-gray-600 mb-2">
-                  Desktop Preview (full width):
-                </p>
-                <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+              {desktopPreview && (
+                <div className="mt-2 relative w-full h-24 bg-gray-100 rounded-lg overflow-hidden border border-purple-200">
                   <Image
                     src={desktopPreview}
-                    alt="Desktop banner preview"
+                    alt="Preview"
                     fill
                     className="object-cover"
                     unoptimized
                   />
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Desktop Video Section (Optional) */}
-          <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
-            <div className="flex items-center gap-2 mb-3">
-              <Film className="text-red-600" size={24} />
-              <h3 className="text-lg font-semibold text-red-900">
-                Desktop Video (Optional)
-              </h3>
+              )}
             </div>
 
-            <div className="mb-3 p-3 bg-white border border-red-200 rounded-lg">
-              <p className="text-sm text-red-900 font-medium mb-2">
-                🎬 Upload a video as fallback for desktop
-              </p>
-              <p className="text-xs text-red-800">
-                MP4, WebM, OGG. If provided, video plays instead of static image on desktop.
-              </p>
-            </div>
-
-            <div className="mb-3">
-              <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 transition-colors bg-white">
+            {/* Desktop Video */}
+            <div>
+              <p className="text-xs font-semibold text-red-900 mb-2">Video (Optional)</p>
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-red-300 rounded-lg cursor-pointer hover:bg-red-100 transition-colors bg-white">
                 <div className="text-center">
-                  <Upload className="mx-auto text-red-600 mb-2" size={32} />
+                  <Film className="mx-auto text-red-600 mb-2" size={24} />
                   <p className="text-sm text-red-900 font-medium">
-                    {desktopVideoFile
-                      ? desktopVideoFile.name
-                      : desktopVideoPreview
-                        ? "Change Desktop Video"
-                        : "Upload Desktop Video"}
-                  </p>
-                  <p className="text-xs text-red-700 mt-1">
-                    MP4, WebM, OGG up to 50MB
+                    {desktopVideoFile ? desktopVideoFile.name : "Upload video"}
                   </p>
                 </div>
                 <input
@@ -946,20 +861,12 @@ function BannerDialog({
                   className="hidden"
                 />
               </label>
+              {desktopVideoPreview && (
+                <div className="mt-2">
+                  <video src={desktopVideoPreview} controls className="w-full h-24 rounded bg-black" />
+                </div>
+              )}
             </div>
-
-            {desktopVideoPreview && (
-              <div className="border border-gray-200 rounded-lg p-3 bg-white">
-                <p className="text-xs font-medium text-gray-600 mb-2">
-                  Desktop Video Preview:
-                </p>
-                <video
-                  src={desktopVideoPreview}
-                  controls
-                  className="w-full rounded-lg bg-black"
-                />
-              </div>
-            )}
           </div>
 
           {/* Action Buttons */}
@@ -1038,21 +945,6 @@ export default function BannersContent({
       let mobileVideoUrl = selectedBanner?.mobile_video || "";
       let desktopVideoUrl = selectedBanner?.desktop_video || "";
 
-      // Delete old files if replacing
-      if (mobileFile && selectedBanner?.mobile_banner) {
-        await deleteBannerFileClient(selectedBanner.mobile_banner);
-      }
-      if (desktopFile && selectedBanner?.desktop_banner) {
-        await deleteBannerFileClient(selectedBanner.desktop_banner);
-      }
-      if (mobileVideoFile && selectedBanner?.mobile_video) {
-        await deleteBannerFileClient(selectedBanner.mobile_video);
-      }
-      if (desktopVideoFile && selectedBanner?.desktop_video) {
-        await deleteBannerFileClient(selectedBanner.desktop_video);
-      }
-
-      // Upload new files
       if (mobileFile) {
         mobileUrl = await uploadBannerImageClient(
           mobileFile,
@@ -1085,7 +977,6 @@ export default function BannersContent({
         );
       }
 
-      // Save to database
       if (selectedBanner) {
         await updateBanner(
           selectedBanner.id,
@@ -1113,12 +1004,12 @@ export default function BannersContent({
           desktopFile ? selectedBanner.desktop_banner : undefined,
         );
       } else {
-        if (!mobileUrl || !desktopUrl) {
-          throw new Error("Both mobile and desktop banners are required");
+        if (!mobileUrl && !desktopUrl) {
+          throw new Error("Please upload at least an image for mobile and desktop");
         }
         await createBanner(
-          mobileUrl,
-          desktopUrl,
+          mobileUrl || "",
+          desktopUrl || "",
           pageType,
           itemLink,
           headingLine1,
@@ -1140,7 +1031,6 @@ export default function BannersContent({
       setShowDialog(false);
     } catch (error: any) {
       console.error("Error saving banner:", error);
-      // Toast error handling should be in useBanners hook
     }
   };
 
@@ -1154,7 +1044,6 @@ export default function BannersContent({
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
@@ -1162,7 +1051,7 @@ export default function BannersContent({
             Product Banners
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage responsive banners for the products page
+            Manage responsive banners with images and videos
           </p>
         </div>
         <button
@@ -1174,17 +1063,12 @@ export default function BannersContent({
         </button>
       </div>
 
-      {/* Info Box */}
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-900">
-          💡 <strong>Note:</strong> Only one banner per page type will be
-          displayed at a time. Mobile users see the mobile banner/video, desktop users
-          see the desktop banner/video. If multiple banners exist for the same page,
-          the most recent one will be shown.
+          💡 <strong>Upload either images or videos</strong>—choose what works best for your banner. You can upload both if needed. Minimum: 1 image or video per breakpoint (mobile/desktop).
         </p>
       </div>
 
-      {/* Banners List */}
       {banners.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-lg border-2 border-dashed border-gray-300">
           <ImageIcon className="mx-auto w-16 h-16 text-gray-400 mb-4" />
@@ -1192,7 +1076,7 @@ export default function BannersContent({
             No banners yet
           </h3>
           <p className="text-gray-600 mb-4">
-            Create your first banner to display on the products page
+            Create your first banner to get started
           </p>
           <button
             onClick={handleCreate}
@@ -1234,12 +1118,6 @@ export default function BannersContent({
                   <p className="text-sm text-gray-500 mt-1">
                     Created: {new Date(banner.created_at).toLocaleDateString()}
                   </p>
-                  {banner.updated_at !== banner.created_at && (
-                    <p className="text-xs text-gray-400">
-                      Updated:{" "}
-                      {new Date(banner.updated_at).toLocaleDateString()}
-                    </p>
-                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -1259,165 +1137,54 @@ export default function BannersContent({
                 </div>
               </div>
 
-              {/* Banner Heading Display - 3 Lines */}
-              {(banner.heading_line1 ||
-                banner.heading_line2 ||
-                banner.heading_line3) && (
-                <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <p className="text-xs font-semibold text-orange-900 mb-3 flex items-center gap-1">
-                    ✍️ Banner Heading (3 Lines):
-                  </p>
-
-                  {/* Line 1 */}
-                  {banner.heading_line1 && (
-                    <div className="mb-3 p-3 bg-white rounded-lg border border-orange-100">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-orange-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                          1
-                        </span>
-                        <span className="text-xs font-semibold text-gray-700">
-                          Line 1
-                        </span>
-                      </div>
-                      <div
-                        className="font-medium leading-tight mb-2"
-                        style={{
-                          color: banner.line1_color || "#ffffff",
-                          fontSize: banner.line1_font_size
-                            ? `${Math.min(Number(banner.line1_font_size) / 3, 24)}px`
-                            : "14px",
-                          fontFamily: banner.line1_font_family || "Arial",
-                        }}
-                        dangerouslySetInnerHTML={{
-                          __html: banner.heading_line1,
-                        }}
-                      />
-                      <div className="flex gap-4 text-xs text-gray-600">
-                        <span>Color: {banner.line1_color || "#ffffff"}</span>
-                        <span>Size: {banner.line1_font_size || "48"}px</span>
-                        <span>Font: {banner.line1_font_family || "Arial"}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Line 2 */}
-                  {banner.heading_line2 && (
-                    <div className="mb-3 p-3 bg-white rounded-lg border border-orange-100">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-orange-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                          2
-                        </span>
-                        <span className="text-xs font-semibold text-gray-700">
-                          Line 2
-                        </span>
-                      </div>
-                      <div
-                        className="font-medium leading-tight mb-2"
-                        style={{
-                          color: banner.line2_color || "#ffffff",
-                          fontSize: banner.line2_font_size
-                            ? `${Math.min(Number(banner.line2_font_size) / 3, 24)}px`
-                            : "14px",
-                          fontFamily: banner.line2_font_family || "Arial",
-                        }}
-                        dangerouslySetInnerHTML={{
-                          __html: banner.heading_line2,
-                        }}
-                      />
-                      <div className="flex gap-4 text-xs text-gray-600">
-                        <span>Color: {banner.line2_color || "#ffffff"}</span>
-                        <span>Size: {banner.line2_font_size || "48"}px</span>
-                        <span>Font: {banner.line2_font_family || "Arial"}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Line 3 */}
-                  {banner.heading_line3 && (
-                    <div className="p-3 bg-white rounded-lg border border-orange-100">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-orange-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                          3
-                        </span>
-                        <span className="text-xs font-semibold text-gray-700">
-                          Line 3
-                        </span>
-                      </div>
-                      <div
-                        className="font-medium leading-tight mb-2"
-                        style={{
-                          color: banner.line3_color || "#ffffff",
-                          fontSize: banner.line3_font_size
-                            ? `${Math.min(Number(banner.line3_font_size) / 3, 24)}px`
-                            : "14px",
-                          fontFamily: banner.line3_font_family || "Arial",
-                        }}
-                        dangerouslySetInnerHTML={{
-                          __html: banner.heading_line3,
-                        }}
-                      />
-                      <div className="flex gap-4 text-xs text-gray-600">
-                        <span>Color: {banner.line3_color || "#ffffff"}</span>
-                        <span>Size: {banner.line3_font_size || "48"}px</span>
-                        <span>Font: {banner.line3_font_family || "Arial"}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Mobile Banner Preview */}
+                {/* Mobile */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Smartphone className="text-blue-600" size={18} />
-                    <h4 className="text-sm font-medium text-gray-700">
-                      Mobile Banner
-                    </h4>
-                  </div>
-                  <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border-2 border-blue-200">
-                    <Image
-                      src={banner.mobile_banner}
-                      alt="Mobile banner"
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </div>
-                  {banner.mobile_video && (
-                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-xs text-red-700 font-medium flex items-center gap-1">
-                        <Film size={14} /> Video (Mobile)
-                      </p>
-                      <video src={banner.mobile_video} controls className="w-full h-20 rounded mt-1" />
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <Smartphone size={16} /> Mobile
+                  </h4>
+                  {banner.mobile_banner && (
+                    <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-blue-200 mb-2">
+                      <Image
+                        src={banner.mobile_banner}
+                        alt="Mobile"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
                     </div>
+                  )}
+                  {banner.mobile_video && (
+                    <video
+                      src={banner.mobile_video}
+                      controls
+                      className="w-full h-20 rounded bg-black border border-red-200"
+                    />
                   )}
                 </div>
 
-                {/* Desktop Banner Preview */}
+                {/* Desktop */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Monitor className="text-purple-600" size={18} />
-                    <h4 className="text-sm font-medium text-gray-700">
-                      Desktop Banner
-                    </h4>
-                  </div>
-                  <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border-2 border-purple-200">
-                    <Image
-                      src={banner.desktop_banner}
-                      alt="Desktop banner"
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </div>
-                  {banner.desktop_video && (
-                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-xs text-red-700 font-medium flex items-center gap-1">
-                        <Film size={14} /> Video (Desktop)
-                      </p>
-                      <video src={banner.desktop_video} controls className="w-full h-20 rounded mt-1" />
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <Monitor size={16} /> Desktop
+                  </h4>
+                  {banner.desktop_banner && (
+                    <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-purple-200 mb-2">
+                      <Image
+                        src={banner.desktop_banner}
+                        alt="Desktop"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
                     </div>
+                  )}
+                  {banner.desktop_video && (
+                    <video
+                      src={banner.desktop_video}
+                      controls
+                      className="w-full h-20 rounded bg-black border border-red-200"
+                    />
                   )}
                 </div>
               </div>
@@ -1426,7 +1193,6 @@ export default function BannersContent({
         </div>
       )}
 
-      {/* Dialog */}
       <BannerDialog
         isOpen={showDialog}
         onClose={() => setShowDialog(false)}
