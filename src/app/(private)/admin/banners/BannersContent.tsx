@@ -230,9 +230,14 @@ function BannerDialog({
     // For new banners, both image files are required (videos are optional)
     if (!selectedBanner) {
       if (!mobileFile || !desktopFile) {
+        alert("Please upload both mobile and desktop banner images");
         return;
       }
     }
+    if (pageType === "featured" && !itemLink) {
+        alert("Please enter a featured product link");
+        return;
+      }
 
     setIsUploading(true);
     try {
@@ -349,7 +354,7 @@ function BannerDialog({
                 onChange={(e) => setItemLink(e.target.value)}
                 placeholder="e.g., /products/my-awesome-product"
                 className="w-full px-4 py-2 border-2 border-yellow-300 rounded-lg focus:outline-none focus:border-yellow-500 bg-white text-gray-900"
-                required={pageType === "featured"}
+                
               />
             </div>
           )}
@@ -760,7 +765,7 @@ function BannerDialog({
                   accept="image/*"
                   onChange={handleMobileFileChange}
                   className="hidden"
-                  required={!selectedBanner}
+                  
                 />
               </label>
             </div>
@@ -878,7 +883,7 @@ function BannerDialog({
                   accept="image/*"
                   onChange={handleDesktopFileChange}
                   className="hidden"
-                  required={!selectedBanner}
+                  
                 />
               </label>
             </div>
