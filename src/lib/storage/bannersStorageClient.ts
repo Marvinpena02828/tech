@@ -1,96 +1,80 @@
 import { createClient } from "@/lib/supabase/client";
 
-const BUCKET_NAME = "banners";
+const BANNERS_BUCKET = "banners";
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for videos, 10MB for images
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg"];
 
-/**
- * Upload a banner image to Supabase Storage (Client-side version)
- * @param file - The image file to upload
- * @param type - 'mobile' or 'desktop'
- * @param bannerId - Optional (not used for path to avoid 400 errors)
- * @returns The public URL of the uploaded image
- */
 export async function uploadBannerImageClient(
   file: File,
-  type: "mobile" | "desktop",
+  type: "mobile" | "desktop" | "mobile_video" | "desktop_video",
   bannerId?: string
 ): Promise<string> {
   const supabase = createClient();
 
-  // Validate file
-  if (!file) {
-    throw new Error("No file provided");
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(
+      `File size exceeds limit. Max: ${MAX_FILE_SIZE / (1024 * 1024)}MB`
+    );
   }
 
-  // Generate unique filename with timestamp
-  // DO NOT use bannerId as subfolder - it causes path issues and 400 errors
-  const fileExt = file.name.split(".").pop();
+  // Validate file type
+  const isVideo = type.includes("video");
+  const allowedTypes = isVideo ? ALLOWED_VIDEO_TYPES : ALLOWED_IMAGE_TYPES;
+
+  if (!allowedTypes.includes(file.type)) {
+    const typeLabel = isVideo ? "Video" : "Image";
+    throw new Error(`${typeLabel} type not supported. Type: ${file.type}`);
+  }
+
+  // Generate unique filename
   const timestamp = Date.now();
-  const fileName = `${type}-${timestamp}.${fileExt}`;
+  const randomString = Math.random().toString(36).substring(2, 8);
+  const extension = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg");
+  const filename = `${type}-${bannerId || "new"}-${timestamp}-${randomString}.${extension}`;
 
-  try {
-    console.log("Uploading banner file:", fileName);
+  // Upload to Supabase Storage
+  const { data, error } = await supabase.storage
+    .from(BANNERS_BUCKET)
+    .upload(filename, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
 
-    // Upload file to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      console.error("Error uploading banner image:", error);
-      throw new Error(`Failed to upload ${type} banner: ${error.message}`);
-    }
-
-    console.log("File uploaded successfully:", fileName, data);
-
-    // Get public URL
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(BUCKET_NAME).getPublicUrl(fileName);
-
-    console.log("Public URL generated:", publicUrl);
-    return publicUrl;
-  } catch (error: any) {
-    console.error("Banner upload failed:", error);
-    throw error;
+  if (error) {
+    console.error("Upload error:", error);
+    throw new Error(`Failed to upload ${isVideo ? "video" : "image"}: ${error.message}`);
   }
+
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from(BANNERS_BUCKET)
+    .getPublicUrl(filename);
+
+  if (!urlData.publicUrl) {
+    throw new Error("Failed to generate public URL");
+  }
+
+  return urlData.publicUrl;
 }
 
-/**
- * Delete a banner image from Supabase Storage (Client-side version)
- * @param imageUrl - The public URL of the image to delete
- */
-export async function deleteBannerImageClient(imageUrl: string): Promise<void> {
-  if (!imageUrl) return;
+// Function to delete old file when replacing
+export async function deleteBannerFileClient(fileUrl: string): Promise<void> {
+  if (!fileUrl) return;
 
   const supabase = createClient();
 
-  try {
-    // Extract file path from URL
-    // URL format: https://[project].supabase.co/storage/v1/object/public/banners/[filename]
-    const urlParts = imageUrl.split(`/object/public/${BUCKET_NAME}/`);
-    if (urlParts.length < 2) {
-      console.warn("Invalid banner image URL format:", imageUrl);
-      return;
-    }
+  // Extract filename from URL
+  const urlParts = fileUrl.split("/");
+  const filename = urlParts[urlParts.length - 1];
 
-    const filePath = decodeURIComponent(urlParts[1]);
-    console.log("Deleting banner image:", filePath);
+  const { error } = await supabase.storage
+    .from(BANNERS_BUCKET)
+    .remove([filename]);
 
-    // Delete file from storage
-    const { error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .remove([filePath]);
-
-    if (error) {
-      console.error("Error deleting banner image:", error);
-      // Don't throw error, just log it
-    } else {
-      console.log("Successfully deleted banner image:", filePath);
-    }
-  } catch (error: any) {
-    console.error("Error in deleteBannerImageClient:", error);
+  if (error) {
+    console.warn("Failed to delete old file:", error);
+    // Don't throw, just log warning
   }
 }
