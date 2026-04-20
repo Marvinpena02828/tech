@@ -5,7 +5,7 @@ import { ChevronDown, Menu, X, Search, Globe } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import ProductsMegaMenu from "../ProductsMegaMenu";
 import SearchDialog from "../SearchDialog";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getPublicCategories } from "@/app/(private)/admin/categories/models/categories-model";
 import { Category } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
@@ -89,6 +89,7 @@ export default function Header({ logos }: HeaderProps) {
   const supabase = createClient();
 
   const currentPath = usePathname();
+  const router = useRouter();
 
   // ✅ USE LOGOS FROM CMS PROP
   const mainLogo = logos?.main || "";
@@ -284,11 +285,24 @@ export default function Header({ logos }: HeaderProps) {
   }, []);
 
   const handleLogoClick = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
     setLastClickedRoute("/");
+    
+    // If already on home page, just scroll to top
+    if (currentPath === "/") {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    } else {
+      // Navigate to home, then scroll to top after navigation completes
+      router.push("/");
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }, 100);
+    }
   };
 
   return (
