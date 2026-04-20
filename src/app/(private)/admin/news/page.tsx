@@ -12,11 +12,22 @@ export default async function NewsPage() {
     redirect("/admin");
   }
 
-  // Fetch news
-  const { data: news } = await supabase
-    .from("news")
-    .select("*")
-    .order("created_at", { ascending: false });
+  // Fetch news and banner in parallel
+  const [newsResult, bannerResult] = await Promise.all([
+    supabase
+      .from("news")
+      .select("*")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("news_banners")
+      .select("*")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .single(),
+  ]);
 
-  return <NewsContent news={news || []} />;
+  const news = newsResult.data || [];
+  const banner = bannerResult.data;
+
+  return <NewsContent news={news} banner={banner} />;
 }
