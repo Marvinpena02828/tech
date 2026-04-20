@@ -9,7 +9,7 @@ import { Category } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 
 interface CompanyInfo {
-  description: string;
+  description: string; 
 }
 
 interface FooterLogos {
