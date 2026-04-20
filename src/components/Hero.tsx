@@ -70,7 +70,7 @@ export default function HeroBanner({ banners }: HeroProps) {
   }
 
   return (
-    <section className="relative h-[500px] md:h-[600px] lg:h-[700px] w-full overflow-hidden bg-black">
+    <section className="relative w-full aspect-video overflow-hidden bg-black md:aspect-video lg:aspect-video">
       {/* Carousel - Images and Videos */}
       {banners.map((banner, index) => (
         <React.Fragment key={banner.id}>
