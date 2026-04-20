@@ -178,7 +178,7 @@ export default function ProductCategory({
 
         <div className="overflow-hidden">
           <div
-            className={`flex items-start justify-between gap-8 xl:gap-10 transition-transform duration-500 ease-in-out`}
+            className={`flex items-start justify-between gap-4 xl:gap-6 transition-transform duration-500 ease-in-out`}
             style={{
               transform: showDesktopNavigation
                 ? `translateX(-${
@@ -204,13 +204,13 @@ export default function ProductCategory({
                       : "auto",
                   }}
                 >
-                  {/* Larger oval for better image display */}
-                  <div className="w-48 h-[28rem] xl:w-64 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                  {/* Tighter oval box - reduced height and padding */}
+                  <div className="w-48 h-60 xl:w-64 xl:h-80 bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300 p-4">
                     <AppImage
                       src={getImageUrl(cat.image_link)}
                       alt={cat.title}
                       fill
-                      className={`object-contain p-0 transition-transform duration-500`}
+                      className={`object-contain p-6 transition-transform duration-500`}
                       unoptimized
                     />
                   </div>
@@ -314,13 +314,13 @@ export default function ProductCategory({
               }`}
               style={{ transitionDelay: isAnimating ? `${idx * 50}ms` : "0ms" }}
             >
-              {/* Larger oval for mobile image display */}
-              <div className="w-48 h-96 sm:w-56 sm:h-[28rem] md:w-64 md:h-[32rem] bg-[#E5E9EC] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300">
+              {/* Tighter oval for mobile - reduced height and padding */}
+              <div className="w-48 h-56 sm:w-56 sm:h-64 md:w-64 md:h-72 bg-[#E5E9EC] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300 p-4">
                 <AppImage
                   src={getImageUrl(cat.image_link)}
                   alt={cat.title}
                   fill
-                  className={`object-contain p-0 transition-transform duration-500`}
+                  className={`object-contain p-6 transition-transform duration-500`}
                   unoptimized
                 />
               </div>
