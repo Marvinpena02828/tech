@@ -107,7 +107,7 @@ export default function AdminLayout({
           {/* Logo */}
           <div className="p-6 border-b border-gray-200">
             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-sm text-gray-600 mt-1">Ayyan B2B</p>
+            <p className="text-sm text-gray-600 mt-1">TechOn B2B</p>
           </div>
 
           {/* Navigation */}
