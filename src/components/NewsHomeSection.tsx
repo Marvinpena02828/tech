@@ -4,9 +4,11 @@ import AppImage from "@/components/ui/AppImage";
 import { News } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { getNews } from "@/app/(private)/admin/news/models/news-model";
+
 const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchNews = async () => {
       try {
@@ -20,8 +22,10 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
         setLoading(false);
       }
     };
+
     fetchNews();
   }, []);
+
   if (loading) {
     return (
       <section className="w-full py-12 sm:py-16 md:py-20 bg-white mt-2">
@@ -36,9 +40,11 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
       </section>
     );
   }
+
   if (news.length === 0) {
     return null;
   }
+
   return (
     <section className="w-full py-12 sm:py-16 md:py-20 mt-2 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,16 +58,17 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
               key={item.id}
               className="group rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full hover:border-gray-200"
             >
-              {/* Image Container - Responsive Height */}
-              <div className="relative w-full overflow-hidden flex-shrink-0 bg-gray-100" style={{ aspectRatio: '16/9' }}>
+              {/* Image Container - Vertical Portrait Aspect Ratio (9/16) */}
+              <div className="relative w-full overflow-hidden flex-shrink-0 bg-gray-100" style={{ aspectRatio: '9/16' }}>
                 <AppImage
-                  width={400}
-                  height={225}
+                  width={300}
+                  height={534}
                   src={item.image_url}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
+
               {/* Text Content */}
               <div className="flex flex-col flex-grow p-3 sm:p-4 md:p-5 text-left">
                 <h1 className="text-base sm:text-lg md:text-xl font-semibold font-arial text-black line-clamp-2 group-hover:text-[#4A90E2] transition-colors">
@@ -74,6 +81,7 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
             </Link>
           ))}
         </div>
+
         {/* View All Link */}
         {showViewAll && (
           <div className="flex justify-center mt-8 sm:mt-10 md:mt-12">
@@ -89,4 +97,5 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
     </section>
   );
 };
+
 export default NewsHomeSection;
