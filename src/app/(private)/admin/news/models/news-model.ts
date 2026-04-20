@@ -1,93 +1,77 @@
 "use server";
 
-// src/app/(private)/admin/news/models/news-model.ts
+// src/app/(private)/admin/news/models/news-banner-model.ts
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { News, ActionResult } from "@/lib/types";
+import type { ActionResult } from "@/lib/types";
 
 /**
  * Type definitions
  */
-export interface NewsItem {
-  id: string; // UUID from database (Supabase returns as string)
-  caption: string;
-  title: string;
-  content: string;
+export interface NewsBannerItem {
+  id: string;
   image_url: string;
+  subtitle: string;
+  main_text: string;
+  title: string;
   created_at: string;
-  edited_at: string;
+  updated_at: string;
 }
 
-export interface NewsInput {
-  title: string;
-  caption: string;
-  content: string;
+export interface NewsBannerInput {
   image_url: string;
+  subtitle: string;
+  main_text: string;
+  title: string;
 }
 
-export interface NewsUpdateInput extends Partial<NewsInput> {}
+export interface NewsBannerUpdateInput extends Partial<NewsBannerInput> {}
 
 /**
- * Get all news items
+ * Get current news banner
  */
-export async function getNews(): Promise<ActionResult<NewsItem[]>> {
+export async function getNewsBanner(): Promise<ActionResult<NewsBannerItem>> {
   try {
     const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from("news")
+      .from("news_banners")
       .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching news:", error);
-      return {
-        success: false,
-        error: "Failed to fetch news. Please try again.",
-      };
-    }
-
-    return {
-      success: true,
-      data: data as NewsItem[],
-    };
-  } catch (error) {
-    console.error("Unexpected error in getNews:", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred. Please try again.",
-    };
-  }
-}
-
-/**
- * Get single news item by ID
- */
-export async function getNewsById(id: string): Promise<ActionResult<NewsItem>> {
-  try {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase
-      .from("news")
-      .select()
-      .eq("id", id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
       .single();
 
     if (error) {
-      console.error("Error fetching news:", error);
+      // No banner exists yet - return default
+      if (error.code === "PGRST116") {
+        return {
+          success: true,
+          data: {
+            id: "",
+            image_url: "/news/banner.jpg",
+            subtitle: "Empowered by",
+            main_text: "INNOVATIONS",
+            title: "News",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        };
+      }
+
+      console.error("Error fetching banner:", error);
       return {
         success: false,
-        error: "Failed to fetch news. Please try again.",
+        error: "Failed to fetch banner. Please try again.",
       };
     }
 
     return {
       success: true,
-      data: data as NewsItem,
+      data: data as NewsBannerItem,
     };
   } catch (error) {
-    console.error("Unexpected error in getNewsById:", error);
+    console.error("Unexpected error in getNewsBanner:", error);
     return {
       success: false,
       error: "An unexpected error occurred. Please try again.",
@@ -96,32 +80,32 @@ export async function getNewsById(id: string): Promise<ActionResult<NewsItem>> {
 }
 
 /**
- * Create a new news item
+ * Create or update news banner (upsert pattern - only one banner)
  * Image should already be uploaded to storage before calling this
  */
-export async function createNews(
-  input: NewsInput
-): Promise<ActionResult<NewsItem>> {
+export async function updateNewsBanner(
+  input: NewsBannerInput
+): Promise<ActionResult<NewsBannerItem>> {
   try {
     // Validate input
+    if (!input.subtitle?.trim()) {
+      return {
+        success: false,
+        error: "Subtitle is required.",
+      };
+    }
+
+    if (!input.main_text?.trim()) {
+      return {
+        success: false,
+        error: "Main text is required.",
+      };
+    }
+
     if (!input.title?.trim()) {
       return {
         success: false,
         error: "Title is required.",
-      };
-    }
-
-    if (!input.caption?.trim()) {
-      return {
-        success: false,
-        error: "Caption is required.",
-      };
-    }
-
-    if (!input.content?.trim()) {
-      return {
-        success: false,
-        error: "Content is required.",
       };
     }
 
@@ -147,37 +131,78 @@ export async function createNews(
       };
     }
 
+    // Get existing banner
+    const { data: existing } = await supabase
+      .from("news_banners")
+      .select("id")
+      .limit(1)
+      .single();
+
     const now = new Date().toISOString();
-    const { data, error } = await supabase
-      .from("news")
-      .insert({
-        title: input.title.trim(),
-        caption: input.caption.trim(),
-        content: input.content.trim(),
-        image_url: input.image_url,
-        created_at: now,
-        edited_at: now,
-      })
-      .select()
-      .single();
 
-    if (error) {
-      console.error("Error creating news:", error);
+    if (existing) {
+      // Update existing banner
+      const { data, error } = await supabase
+        .from("news_banners")
+        .update({
+          image_url: input.image_url,
+          subtitle: input.subtitle.trim(),
+          main_text: input.main_text.trim(),
+          title: input.title.trim(),
+          updated_at: now,
+        })
+        .eq("id", existing.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating banner:", error);
+        return {
+          success: false,
+          error: "Failed to update banner. Please try again.",
+        };
+      }
+
+      revalidatePath("/admin/news");
+      revalidatePath("/news");
+
       return {
-        success: false,
-        error: "Failed to create news item. Please try again.",
+        success: true,
+        data: data as NewsBannerItem,
+      };
+    } else {
+      // Create new banner
+      const { data, error } = await supabase
+        .from("news_banners")
+        .insert({
+          image_url: input.image_url,
+          subtitle: input.subtitle.trim(),
+          main_text: input.main_text.trim(),
+          title: input.title.trim(),
+          created_at: now,
+          updated_at: now,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating banner:", error);
+        return {
+          success: false,
+          error: "Failed to create banner. Please try again.",
+        };
+      }
+
+      revalidatePath("/admin/news");
+      revalidatePath("/news");
+
+      return {
+        success: true,
+        data: data as NewsBannerItem,
       };
     }
-
-    revalidatePath("/admin/news");
-    revalidatePath("/news");
-
-    return {
-      success: true,
-      data: data as NewsItem,
-    };
   } catch (error) {
-    console.error("Unexpected error in createNews:", error);
+    console.error("Unexpected error in updateNewsBanner:", error);
     return {
       success: false,
       error: "An unexpected error occurred. Please try again.",
@@ -186,13 +211,9 @@ export async function createNews(
 }
 
 /**
- * Update an existing news item
- * If updating image, it should already be uploaded to storage
+ * Delete banner and its image
  */
-export async function updateNews(
-  id: string,
-  input: NewsUpdateInput
-): Promise<ActionResult<NewsItem>> {
+export async function deleteNewsBanner(): Promise<ActionResult> {
   try {
     const supabase = await createClient();
 
@@ -209,99 +230,38 @@ export async function updateNews(
       };
     }
 
-    // Build update object - only include provided fields
-    const updateData: Partial<NewsItem> = {
-      edited_at: new Date().toISOString(),
-    };
-
-    if (input.title?.trim()) updateData.title = input.title.trim();
-    if (input.caption?.trim()) updateData.caption = input.caption.trim();
-    if (input.content?.trim()) updateData.content = input.content.trim();
-    if (input.image_url?.trim()) updateData.image_url = input.image_url;
-
-    const { data, error } = await supabase
-      .from("news")
-      .update(updateData)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating news:", error);
-      return {
-        success: false,
-        error: "Failed to update news item. Please try again.",
-      };
-    }
-
-    revalidatePath("/admin/news");
-    revalidatePath("/news");
-
-    return {
-      success: true,
-      data: data as NewsItem,
-    };
-  } catch (error) {
-    console.error("Unexpected error in updateNews:", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred. Please try again.",
-    };
-  }
-}
-
-/**
- * Delete a news item and its associated image
- */
-export async function deleteNews(id: string): Promise<ActionResult> {
-  try {
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return {
-        success: false,
-        error: "Unauthorized. Please sign in to continue.",
-      };
-    }
-
-    // Get the news item to find the image file
-    const { data: newsItem, error: fetchError } = await supabase
-      .from("news")
+    // Get the banner to find the image file
+    const { data: banner, error: fetchError } = await supabase
+      .from("news_banners")
       .select("image_url")
-      .eq("id", id)
+      .limit(1)
       .single();
 
     // Try to delete the image from storage
-    if (!fetchError && newsItem?.image_url) {
+    if (!fetchError && banner?.image_url && !banner.image_url.includes("/news/banner.jpg")) {
       try {
         // Extract file path from public URL
-        // URL format: https://project.supabase.co/storage/v1/object/public/news-images/news/filename.jpg
-        const urlParts = newsItem.image_url.split("/");
-        const filePath = urlParts.slice(-2).join("/"); // Get "news/filename.jpg"
+        // URL format: https://project.supabase.co/storage/v1/object/public/news-images/banner/filename.jpg
+        const urlParts = banner.image_url.split("/");
+        const filePath = urlParts.slice(-2).join("/"); // Get "banner/filename.jpg"
 
         await supabase.storage
           .from("news-images")
           .remove([filePath]);
       } catch (storageError) {
         console.warn("Failed to delete image from storage:", storageError);
-        // Continue with news deletion even if image deletion fails
+        // Continue with banner deletion even if image deletion fails
       }
     }
 
-    // Delete the news record
-    const { error } = await supabase.from("news").delete().eq("id", id);
+    // Delete the banner record
+    const { error } = await supabase.from("news_banners").delete().neq("id", "");
 
     if (error) {
-      console.error("Error deleting news:", error);
+      console.error("Error deleting banner:", error);
       return {
         success: false,
-        error: "Failed to delete news item. Please try again.",
+        error: "Failed to delete banner. Please try again.",
       };
     }
 
@@ -310,10 +270,9 @@ export async function deleteNews(id: string): Promise<ActionResult> {
 
     return {
       success: true,
-      data: undefined,
     };
   } catch (error) {
-    console.error("Unexpected error in deleteNews:", error);
+    console.error("Unexpected error in deleteNewsBanner:", error);
     return {
       success: false,
       error: "An unexpected error occurred. Please try again.",
@@ -322,13 +281,14 @@ export async function deleteNews(id: string): Promise<ActionResult> {
 }
 
 /**
- * Upload image to Supabase storage
+ * Upload banner image to Supabase storage
  * Returns public URL of uploaded image
+ * Reuses same bucket as news images (news-images)
  */
-export async function uploadNewsImage(file: File): Promise<ActionResult<string>> {
+export async function uploadNewsBannerImage(file: File): Promise<ActionResult<string>> {
   try {
-    console.log("🔵 Starting image upload:", { fileName: file.name, fileSize: file.size });
-    
+    console.log("🔵 Starting banner image upload:", { fileName: file.name, fileSize: file.size });
+
     const supabase = await createClient();
 
     // Check authentication
@@ -356,16 +316,16 @@ export async function uploadNewsImage(file: File): Promise<ActionResult<string>>
       };
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       return {
         success: false,
-        error: "Image must be smaller than 5MB.",
+        error: "Image must be smaller than 10MB.",
       };
     }
 
     const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `news/${fileName}`;
+    const filePath = `banner/${fileName}`;
 
     console.log("🔵 Uploading to path:", filePath);
 
@@ -379,7 +339,7 @@ export async function uploadNewsImage(file: File): Promise<ActionResult<string>>
     console.log("🔵 Upload response:", { uploadError: uploadError?.message, uploadData });
 
     if (uploadError) {
-      console.error("❌ Error uploading image:", uploadError);
+      console.error("❌ Error uploading banner image:", uploadError);
       return {
         success: false,
         error: `Failed to upload image: ${uploadError.message || "Unknown error"}`,
@@ -391,14 +351,14 @@ export async function uploadNewsImage(file: File): Promise<ActionResult<string>>
       .from("news-images")
       .getPublicUrl(filePath);
 
-    console.log("✅ Upload successful. Public URL:", data.publicUrl);
+    console.log("✅ Banner upload successful. Public URL:", data.publicUrl);
 
     return {
       success: true,
       data: data.publicUrl,
     };
   } catch (error) {
-    console.error("❌ Unexpected error in uploadNewsImage:", error);
+    console.error("❌ Unexpected error in uploadNewsBannerImage:", error);
     return {
       success: false,
       error: `An unexpected error occurred: ${error instanceof Error ? error.message : "Unknown"}`,
