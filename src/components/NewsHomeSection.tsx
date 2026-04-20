@@ -56,25 +56,25 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
             <Link
               href={`/news/${item.id}`}
               key={item.id}
-              className="group rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full hover:border-gray-200"
+              className="group rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 relative hover:border-gray-200"
             >
               {/* Image Container - Vertical Aspect Ratio */}
-              <div className="relative w-full overflow-hidden flex-shrink-0 bg-gray-100" style={{ aspectRatio: '1/1.2' }}>
+              <div className="relative w-full overflow-hidden bg-gray-100" style={{ aspectRatio: '1/1.2' }}>
                 <AppImage
                   width={300}
                   height={360}
                   src={item.image_url}
                   alt={item.title}
-                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
 
-              {/* Text Content - Below Image */}
-              <div className="flex flex-col flex-grow p-3 sm:p-4 md:p-5 text-left">
-                <h1 className="text-sm sm:text-base md:text-lg font-semibold text-black line-clamp-2 group-hover:text-[#4A90E2] transition-colors">
+              {/* Text Content - Hidden, Show on Hover */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                <h1 className="text-sm sm:text-base font-semibold text-white line-clamp-2">
                   {item.title}
                 </h1>
-                <p className="text-xs sm:text-sm mt-2 sm:mt-3 text-gray-600 text-left flex-grow group-hover:text-[#4A90E2] transition-colors line-clamp-2 sm:line-clamp-3">
+                <p className="text-xs text-gray-200 mt-2 line-clamp-2">
                   {item.caption}
                 </p>
               </div>
