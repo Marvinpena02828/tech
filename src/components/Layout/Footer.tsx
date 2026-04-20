@@ -21,37 +21,37 @@ interface FooterLogos {
 const socialLinks = [
   {
     name: "Facebook",
-    href: "#",
+    href: "https://www.facebook.com/profile.php?id=61572370876186",
     image: "/Icons/FaceBook.png",
   },
   {
     name: "X",
-    href: "#",
+    href: "https://x.com/TechOnInnov",
     image: "/Icons/Twitter.png",
   },
   {
     name: "Instagram",
-    href: "#",
+    href: "https://www.instagram.com/innovationstechon/",
     image: "/Icons/instagram.png",
   },
   {
     name: "LinkedIn",
-    href: "#",
+    href: "https://www.linkedin.com/in/techon-innovations-87110b404/",
     image: "/Icons/Linkdin.png",
   },
   {
     name: "YouTube",
-    href: "#",
+    href: "https://www.youtube.com/@TechOnInnovations",
     image: "/Icons/Youtube.png",
   },
   {
     name: "TikTok",
-    href: "#",
+    href: "www.tiktok.com/@techoninnovations",
     image: "/Icons/Tiktok.png",
   },
   {
     name: "SnapChat",
-    href: "#",
+    href: "https://accounts.snapchat.com/v2/welcome",
     image: "/Icons/SnapChat.png",
   },
 ];
