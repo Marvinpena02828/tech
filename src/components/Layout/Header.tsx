@@ -275,6 +275,22 @@ export default function Header({ logos }: HeaderProps) {
     };
   }, [isMegaMenuOpen]);
 
+  // Add smooth scroll behavior to html element
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = "smooth";
+    return () => {
+      document.documentElement.style.scrollBehavior = "auto";
+    };
+  }, []);
+
+  const handleLogoClick = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+    setLastClickedRoute("/");
+  };
+
   return (
     <>
       {/* CONTAINER FOR PROMO + HEADER - MOVES TOGETHER */}
@@ -332,7 +348,11 @@ export default function Header({ logos }: HeaderProps) {
                   : "-translate-x-8 opacity-0"
               }`}
             >
-              <Link href="/" className="flex items-center group h-full">
+              <button
+                onClick={handleLogoClick}
+                className="flex items-center group h-full hover:opacity-80 transition-opacity"
+                aria-label="Go to home and scroll to top"
+              >
                 {mainLogo ? (
                   <img
                     src={mainLogo}
@@ -343,7 +363,7 @@ export default function Header({ logos }: HeaderProps) {
                 ) : (
                   <div className="h-7 md:h-10 bg-white/20 rounded w-32 animate-pulse" />
                 )}
-              </Link>
+              </button>
             </div>
 
             {/* ========== DESKTOP NAVIGATION MENU (Right of Logo) ========== */}
