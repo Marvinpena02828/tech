@@ -619,7 +619,7 @@ export default function Header({ logos }: HeaderProps) {
 
       {/* Mobile Navigation Menu - Off-Canvas Drawer */}
       <div
-        className={`h-[calc(100vh-64px)] w-[85vw] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-40 xl:hidden fixed  top-16  md:top-20 lg:top-24 left-0                   
+        className={`h-[calc(100vh-64px)] w-[85vw] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 xl:hidden fixed top-16 md:top-20 lg:top-24 left-0 pointer-events-auto
     ${
       isMobileMenuOpen
         ? "translate-x-0"
@@ -935,10 +935,10 @@ export default function Header({ logos }: HeaderProps) {
         </nav>
       </div>
 
-      {/* Overlay */}
+      {/* Overlay - FIXED: pointer-events-none and z-40 (lower than drawer z-50) */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 xl:hidden top-16  md:top-20 lg:top-24  "
+          className="fixed inset-0 bg-black/50 z-40 xl:hidden top-16 md:top-20 lg:top-24 pointer-events-auto"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
