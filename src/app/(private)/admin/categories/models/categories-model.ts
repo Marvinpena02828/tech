@@ -14,6 +14,17 @@ const STORAGE_BUCKET = "category-images";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+// Type definitions for forms with file uploads
+export type CategoryInputWithFiles = Omit<CategoryInput, 'image_icon' | 'image_link'> & {
+  imageIcon?: File | null;
+  imageLink?: File | null;
+};
+
+export type CategoryUpdateInputWithFiles = Omit<CategoryUpdateInput, 'image_icon' | 'image_link'> & {
+  imageIcon?: File | null;
+  imageLink?: File | null;
+};
+
 /**
  * Upload image to Supabase Storage
  * Returns the file path (not URL)
@@ -166,10 +177,7 @@ export async function getCategories(): Promise<ActionResult<Category[]>> {
  * Create a new category with image uploads
  */
 export async function createCategory(
-  input: CategoryInput & {
-    imageIcon?: File;
-    imageLink?: File;
-  },
+  input: CategoryInputWithFiles,
 ): Promise<ActionResult<Category>> {
   try {
     // Extract files before validation
