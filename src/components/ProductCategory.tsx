@@ -12,6 +12,12 @@ interface ProductCategoryProps {
   showDesktopNavigation?: boolean;
 }
 
+// Helper function to construct Supabase Storage URL
+function getImageUrl(imagePath: string | null): string {
+  if (!imagePath) return "/Images/categories/placeholder.png";
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/category-images/${imagePath}`;
+}
+
 export default function ProductCategory({
   showDesktopNavigation = false,
 }: ProductCategoryProps) {
@@ -201,9 +207,7 @@ export default function ProductCategory({
                   {/* Reduced size: from w-48 h-96 to w-40 h-80 (desktop), from xl:w-64 xl:h-[28rem] to xl:w-56 xl:h-96 */}
                   <div className="w-40 h-80 xl:w-56 xl:h-96 bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
                     <AppImage
-                      src={
-                        cat.image_link || "/Images/categories/placeholder.png"
-                      }
+                      src={getImageUrl(cat.image_link)}
                       alt={cat.title}
                       fill
                       className={`object-contain p-0 transition-transform duration-500`}
@@ -313,7 +317,7 @@ export default function ProductCategory({
               {/* Reduced size: from w-48 h-80 to w-40 h-72 (mobile), from sm:w-56 sm:h-96 to sm:w-48 sm:h-80, from md:w-60 md:h-[27rem] to md:w-52 md:h-96 */}
               <div className="w-40 h-72 sm:w-48 sm:h-80 md:w-52 md:h-96 bg-[#E5E9EC] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300">
                 <AppImage
-                  src={cat.image_link || "/Images/categories/placeholder.png"}
+                  src={getImageUrl(cat.image_link)}
                   alt={cat.title}
                   fill
                   className={`object-contain p-0 transition-transform duration-500`}
