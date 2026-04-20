@@ -176,6 +176,21 @@ export default function NewsContent({ news: initialNews, currentBannerUrl = "" }
           toast.error(result.error || "Failed to update news");
         } else {
           toast.success("News updated successfully");
+          
+          // Update local state with the new data
+          setNews(news.map(item =>
+            item.id === selectedNews.id
+              ? {
+                  ...item,
+                  caption: formData.caption,
+                  title: formData.title,
+                  content: formData.content,
+                  image_url: imageUrl,
+                  edited_at: new Date().toISOString(),
+                }
+              : item
+          ));
+          
           setShowDialog(false);
           router.refresh();
         }
