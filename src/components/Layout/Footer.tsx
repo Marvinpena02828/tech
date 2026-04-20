@@ -46,7 +46,7 @@ const socialLinks = [
   },
   {
     name: "TikTok",
-    href: "www.tiktok.com/@techoninnovations",
+    href: "https://www.tiktok.com/@techoninnovations",
     image: "/Icons/Tiktok.png",
   },
   {
