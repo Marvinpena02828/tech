@@ -13,7 +13,7 @@ interface ProductCategoryProps {
 }
 
 // Helper function to construct Supabase Storage URL
-function getImageUrl(imagePath: string | null): string {
+function getImageUrl(imagePath: string | null | undefined): string {
   if (!imagePath) return "/Images/categories/placeholder.png";
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/category-images/${imagePath}`;
 }
