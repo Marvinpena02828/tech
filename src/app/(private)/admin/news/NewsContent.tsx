@@ -9,22 +9,46 @@ import {
   updateNews,
   deleteNews,
   uploadNewsImage,
-  type NewsItem,
-} from "@/app/(private)/admin/news/models/news-model";
+} from "../models/news-model";
+import {
+  updateNewsBanner,
+  uploadNewsBannerImage,
+} from "../models/news-banner-model";
+
+interface NewsItem {
+  id: string;
+  caption: string;
+  title: string;
+  content: string;
+  image_url: string;
+  created_at: string;
+  edited_at: string;
+}
+
+interface NewsBannerItem {
+  id: string;
+  image_url: string;
+  subtitle: string;
+  main_text: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface NewsContentProps {
   news: NewsItem[];
-  currentBannerUrl?: string;
+  banner?: NewsBannerItem | null;
 }
 
-export default function NewsContent({ news: initialNews, currentBannerUrl = "" }: NewsContentProps) {
+export default function NewsContent({ news: initialNews, banner: initialBanner }: NewsContentProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
-  const [news, setNews] = useState(initialNews);
+
+  // News states
+  const [news, setNews] = useState<NewsItem[]>(initialNews);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [showBannerDialog, setShowBannerDialog] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [formData, setFormData] = useState({
     caption: "",
@@ -38,15 +62,19 @@ export default function NewsContent({ news: initialNews, currentBannerUrl = "" }
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Banner states
+  const [banner, setBanner] = useState<NewsBannerItem | undefined>(initialBanner || undefined);
+  const [showBannerDialog, setShowBannerDialog] = useState(false);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(currentBannerUrl);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(initialBanner?.image_url || null);
   const [isSavingBanner, setIsSavingBanner] = useState(false);
+  const [isUploadingBannerImage, setIsUploadingBannerImage] = useState(false);
   const [bannerText, setBannerText] = useState({
-    subtitle: "Empowered by",
-    mainText: "INNOVATIONS",
-    title: "News",
+    subtitle: initialBanner?.subtitle || "Empowered by",
+    mainText: initialBanner?.main_text || "INNOVATIONS",
+    title: initialBanner?.title || "News",
   });
 
+  // News handlers
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Delete news article "${title}"?`)) return;
 
@@ -199,6 +227,7 @@ export default function NewsContent({ news: initialNews, currentBannerUrl = "" }
     setIsSaving(false);
   };
 
+  // Banner handlers
   const handleSaveBanner = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -210,30 +239,44 @@ export default function NewsContent({ news: initialNews, currentBannerUrl = "" }
     setIsSavingBanner(true);
 
     try {
-      let bannerUrl = currentBannerUrl;
+      let bannerUrl = bannerPreview;
 
       if (bannerFile) {
-        setIsUploadingImage(true);
-        const uploadResult = await uploadNewsImage(bannerFile);
+        setIsUploadingBannerImage(true);
+        const uploadResult = await uploadNewsBannerImage(bannerFile);
 
         if (!uploadResult.success) {
           toast.error(uploadResult.error || "Failed to upload banner");
           setIsSavingBanner(false);
-          setIsUploadingImage(false);
+          setIsUploadingBannerImage(false);
           return;
         }
 
         bannerUrl = uploadResult.data;
-        setIsUploadingImage(false);
+        setIsUploadingBannerImage(false);
       }
 
-      // TODO: Save banner URL and text to database
-      // Call your banner update function here
-      // await updateNewsBanner(bannerUrl, bannerText);
+      if (!bannerUrl) {
+        toast.error("Banner image URL is missing");
+        setIsSavingBanner(false);
+        return;
+      }
 
-      toast.success("Banner updated successfully");
-      setShowBannerDialog(false);
-      router.refresh();
+      const result = await updateNewsBanner({
+        image_url: bannerUrl,
+        subtitle: bannerText.subtitle,
+        main_text: bannerText.mainText,
+        title: bannerText.title,
+      });
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to update banner");
+      } else {
+        toast.success("Banner updated successfully");
+        setBanner(result.data);
+        setShowBannerDialog(false);
+        router.refresh();
+      }
     } catch (error) {
       toast.error(
         "An error occurred: " + (error instanceof Error ? error.message : "")
@@ -667,12 +710,12 @@ export default function NewsContent({ news: initialNews, currentBannerUrl = "" }
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
-                      disabled={isSavingBanner || isUploadingImage}
+                      disabled={isSavingBanner || isUploadingBannerImage}
                       className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                     >
                       {isSavingBanner ? (
                         <>
-                          {isUploadingImage ? "Uploading..." : "Saving..."}
+                          {isUploadingBannerImage ? "Uploading..." : "Saving..."}
                         </>
                       ) : (
                         "Update Banner"
