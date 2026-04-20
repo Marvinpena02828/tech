@@ -70,125 +70,125 @@ export default function HeroBanner({ banners }: HeroProps) {
   }
 
   return (
-    <section className="relative w-full min-h-[400px] overflow-hidden bg-black">
-      {/* Carousel - Images and Videos */}
-      {banners.map((banner, index) => (
-        <React.Fragment key={banner.id}>
-          {/* MOBILE - Video if available, else image */}
+    <section className="relative w-full overflow-hidden">
+      {/* Carousel Container */}
+      <div className="relative w-full">
+        {banners.map((banner, index) => (
           <div
-            className={`relative w-full h-auto md:hidden transition-opacity duration-1000 ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
+            key={banner.id}
+            className={`relative w-full transition-opacity duration-1000 ${
+              index === currentIndex ? "opacity-100" : "opacity-0 absolute"
             }`}
           >
-            {banner.mobile_video ? (
-              <video
-                src={banner.mobile_video}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-auto block"
-              />
-            ) : banner.mobile_banner ? (
-              <Image
-                src={banner.mobile_banner}
-                alt={`Mobile Banner ${index + 1}`}
-                width={800}
-                height={600}
-                className="w-full h-auto object-contain"
-                priority={index === 0}
-                quality={75}
-                unoptimized
-              />
-            ) : null}
-          </div>
+            {/* MOBILE - Video if available, else image */}
+            <div className="block md:hidden">
+              {banner.mobile_video ? (
+                <video
+                  src={banner.mobile_video}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-auto"
+                />
+              ) : banner.mobile_banner ? (
+                <Image
+                  src={banner.mobile_banner}
+                  alt={`Mobile Banner ${index + 1}`}
+                  width={800}
+                  height={600}
+                  className="w-full h-auto"
+                  priority={index === 0}
+                  quality={75}
+                  unoptimized
+                />
+              ) : null}
+            </div>
 
-          {/* TABLET & DESKTOP - Video if available, else image */}
-          <div
-            className={`relative w-full h-auto hidden md:block transition-opacity duration-1000 ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            {banner.desktop_video ? (
-              <video
-                src={banner.desktop_video}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-auto block"
-              />
-            ) : banner.desktop_banner ? (
-              <Image
-                src={banner.desktop_banner}
-                alt={`Desktop Banner ${index + 1}`}
-                width={1600}
-                height={900}
-                className="w-full h-auto object-contain"
-                priority={index === 0}
-                quality={100}
-                unoptimized
-              />
-            ) : null}
-          </div>
+            {/* TABLET & DESKTOP - Video if available, else image */}
+            <div className="hidden md:block">
+              {banner.desktop_video ? (
+                <video
+                  src={banner.desktop_video}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-auto"
+                />
+              ) : banner.desktop_banner ? (
+                <Image
+                  src={banner.desktop_banner}
+                  alt={`Desktop Banner ${index + 1}`}
+                  width={1600}
+                  height={900}
+                  className="w-full h-auto"
+                  priority={index === 0}
+                  quality={100}
+                  unoptimized
+                />
+              ) : null}
+            </div>
 
-          {/* 3-Line Banner Heading Overlay */}
-          {(banner.heading_line1 ||
-            banner.heading_line2 ||
-            banner.heading_line3) && (
-            <div
-              className={`absolute top-0 left-0 right-0 bottom-0 z-20 flex items-start md:items-center text-center md:text-left transition-opacity duration-1000 ${
-                index === currentIndex ? "opacity-100" : "opacity-0"
-              }`}
-              style={{ display: index === currentIndex ? "flex" : "none" }}
-            >
-              <div className="container mx-auto px-4 md:px-8 lg:px-16 w-full">
-                <div className="max-w-3xl space-y-1 md:space-y-2 pt-10 pb-16 md:py-16">
-                  {banner.heading_line1 && (
-                    <div
-                      className="leading-tight"
-                      style={{
-                        color: banner.line1_color || "#ffffff",
-                        fontSize: `clamp(20px, 8vw, ${Number(banner.line1_font_size) * 0.6 || "48"}px)`,
-                        ...parseFontSetting(banner.line1_font_family),
-                        textShadow:
-                          "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: banner.heading_line1 }}
-                    />
-                  )}
-                  {banner.heading_line2 && (
-                    <div
-                      className="leading-tight mt-2"
-                      style={{
-                        color: banner.line2_color || "#ffffff",
-                        fontSize: `clamp(20px, 7vw, ${Number(banner.line2_font_size) * 0.6 || "48"}px)`,
-                        ...parseFontSetting(banner.line2_font_family),
-                        textShadow:
-                          "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: banner.heading_line2 }}
-                    />
-                  )}
-                  {banner.heading_line3 && (
-                    <div
-                      className="leading-tight mt-6 md:mt-10"
-                      style={{
-                        color: banner.line3_color || "#ffffff",
-                        fontSize: `clamp(18px, 6vw, ${Number(banner.line3_font_size) * 0.6 || "48"}px)`,
-                        ...parseFontSetting(banner.line3_font_family),
-                        textShadow:
-                          "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: banner.heading_line3 }}
-                    />
-                  )}
+            {/* 3-Line Banner Heading Overlay */}
+            {(banner.heading_line1 ||
+              banner.heading_line2 ||
+              banner.heading_line3) && (
+              <div className="absolute inset-0 z-20 flex items-start md:items-center text-center md:text-left">
+                <div className="container mx-auto px-4 md:px-8 lg:px-16 w-full">
+                  <div className="max-w-3xl space-y-1 md:space-y-2 pt-10 pb-16 md:py-16">
+                    {banner.heading_line1 && (
+                      <div
+                        className="leading-tight"
+                        style={{
+                          color: banner.line1_color || "#ffffff",
+                          fontSize: `clamp(20px, 8vw, ${Number(banner.line1_font_size) * 0.6 || "48"}px)`,
+                          ...parseFontSetting(banner.line1_font_family),
+                          textShadow:
+                            "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: banner.heading_line1,
+                        }}
+                      />
+                    )}
+                    {banner.heading_line2 && (
+                      <div
+                        className="leading-tight mt-2"
+                        style={{
+                          color: banner.line2_color || "#ffffff",
+                          fontSize: `clamp(20px, 7vw, ${Number(banner.line2_font_size) * 0.6 || "48"}px)`,
+                          ...parseFontSetting(banner.line2_font_family),
+                          textShadow:
+                            "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: banner.heading_line2,
+                        }}
+                      />
+                    )}
+                    {banner.heading_line3 && (
+                      <div
+                        className="leading-tight mt-6 md:mt-10"
+                        style={{
+                          color: banner.line3_color || "#ffffff",
+                          fontSize: `clamp(18px, 6vw, ${Number(banner.line3_font_size) * 0.6 || "48"}px)`,
+                          ...parseFontSetting(banner.line3_font_family),
+                          textShadow:
+                            "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: banner.heading_line3,
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </React.Fragment>
-      ))}
+            )}
+          </div>
+        ))}
+      </div>
 
       {/* Dots Navigation */}
       {banners.length > 1 && (
