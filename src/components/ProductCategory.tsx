@@ -178,7 +178,7 @@ export default function ProductCategory({
 
         <div className="overflow-hidden">
           <div
-            className={`flex items-start justify-between gap-4 xl:gap-6 transition-transform duration-500 ease-in-out`}
+            className={`flex items-start justify-between gap-2 xl:gap-3 transition-transform duration-500 ease-in-out`}
             style={{
               transform: showDesktopNavigation
                 ? `translateX(-${
