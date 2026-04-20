@@ -7,7 +7,7 @@ import { getBannersByPageType } from "../(private)/admin/banners/models/banners-
 import { getPublicProductsPageData } from "@/features/products";
 
 export const metadata: Metadata = {
-  title: "Tech-On Products – Wholesale Electronics & Smart Accessories",
+  title: "TechOn Products – Wholesale Electronics & Smart Accessories",
   description:
     "Browse TechOn's full range of innovative smartphone accessories, electronics, and smart tech products. Quality B2B wholesale available worldwide.",
   alternates: {
