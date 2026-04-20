@@ -319,10 +319,7 @@ export async function createCategory(
  */
 export async function updateCategory(
   id: string,
-  input: CategoryUpdateInput & {
-    imageIcon?: File | null;
-    imageLink?: File | null;
-  },
+  input: CategoryUpdateInputWithFiles,
 ): Promise<ActionResult<Category>> {
   try {
     if (!id || typeof id !== "string") {
