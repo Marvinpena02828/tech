@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import NewsContent from "./NewsContent";
-
+ 
 export default async function NewsPage() {
   const supabase = await createClient();
   const {
