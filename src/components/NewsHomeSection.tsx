@@ -22,7 +22,6 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
         setLoading(false);
       }
     };
-
     fetchNews();
   }, []);
 
@@ -56,10 +55,13 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
             <Link
               href={`/news/${item.id}`}
               key={item.id}
-              className="group rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 relative hover:border-gray-200"
+              className="group rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 flex flex-col h-full"
             >
               {/* Image Container - Vertical Aspect Ratio */}
-              <div className="relative w-full overflow-hidden bg-gray-100" style={{ aspectRatio: '1/1.2' }}>
+              <div 
+                className="relative w-full overflow-hidden bg-gray-100 flex-shrink-0" 
+                style={{ aspectRatio: '1/1.2' }}
+              >
                 <AppImage
                   width={300}
                   height={360}
@@ -68,15 +70,17 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-
-              {/* Text Content - Hidden, Show on Hover */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                <h1 className="text-sm sm:text-base font-semibold text-white line-clamp-2">
-                  {item.title}
-                </h1>
-                <p className="text-xs text-gray-200 mt-2 line-clamp-2">
-                  {item.caption}
-                </p>
+              
+              {/* Text Content - Below Image */}
+              <div className="flex flex-col justify-between flex-grow p-4 sm:p-5 md:p-6">
+                <div>
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 group-hover:text-gray-700 transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-2 line-clamp-2 group-hover:text-gray-700 transition-colors">
+                    {item.caption}
+                  </p>
+                </div>
               </div>
             </Link>
           ))}
