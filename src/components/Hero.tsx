@@ -70,13 +70,13 @@ export default function HeroBanner({ banners }: HeroProps) {
   }
 
   return (
-    <section className="relative h-[700px] md:h-[900px] lg:h-[700px] w-full aspect-video overflow-hidden bg-black">
+    <section className="relative h-[500px] md:h-[600px] lg:h-[700px] w-full overflow-hidden bg-black">
       {/* Carousel - Images and Videos */}
       {banners.map((banner, index) => (
         <React.Fragment key={banner.id}>
           {/* MOBILE - Video if available, else image */}
           <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 lg:hidden ${
+            className={`absolute inset-0 z-0 transition-opacity duration-1000 md:hidden ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -95,7 +95,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 alt={`Mobile Banner ${index + 1}`}
                 fill
                 sizes="100vw"
-                className="object-fill"
+                className="object-cover"
                 priority={index === 0}
                 quality={75}
                 unoptimized
@@ -103,9 +103,9 @@ export default function HeroBanner({ banners }: HeroProps) {
             ) : null}
           </div>
 
-          {/* DESKTOP - Video if available, else image */}
+          {/* TABLET & DESKTOP - Video if available, else image */}
           <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden lg:block ${
+            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden md:block ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -123,8 +123,8 @@ export default function HeroBanner({ banners }: HeroProps) {
                 src={banner.desktop_banner}
                 alt={`Desktop Banner ${index + 1}`}
                 fill
-                sizes="100vw"
-                className="object-center lg:aspect-8/3"
+                sizes="(min-width: 768px) 100vw"
+                className="object-cover"
                 priority={index === 0}
                 quality={100}
                 unoptimized
@@ -137,12 +137,12 @@ export default function HeroBanner({ banners }: HeroProps) {
             banner.heading_line2 ||
             banner.heading_line3) && (
             <div
-              className={`absolute bottom-0 inset-0 z-20 flex items-start lg:items-center text-center lg:text-left transition-opacity duration-1000 ${
+              className={`absolute bottom-0 inset-0 z-20 flex items-start md:items-center text-center md:text-left transition-opacity duration-1000 ${
                 index === currentIndex ? "opacity-100" : "opacity-0"
               }`}
             >
               <div className="container mx-auto px-4 md:px-8 lg:px-16 h-full">
-                <div className="max-w-3xl space-y-1 lg:space-y-2 h-full pt-10 pb-16 lg:py-16 flex flex-col justify-start lg:justify-center">
+                <div className="max-w-3xl space-y-1 md:space-y-2 h-full pt-10 pb-16 md:py-16 flex flex-col justify-start md:justify-center">
                   {banner.heading_line1 && (
                     <div
                       className="leading-tight"
