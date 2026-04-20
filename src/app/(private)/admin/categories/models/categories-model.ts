@@ -249,7 +249,7 @@ export async function createCategory(
     }
 
     // Upload images if provided
-    const updates: Partial<Category> = {};
+    const updates: Record<string, any> = {};
 
     try {
       if (imageIcon) {
@@ -393,7 +393,7 @@ export async function updateCategory(
     }
 
     // Handle image uploads and deletions
-    const updates: Partial<Category> = { ...validatedData };
+    const updates: Record<string, any> = { ...validatedData };
 
     try {
       // Handle imageIcon
