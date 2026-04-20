@@ -9,7 +9,79 @@ import {
   type CategoryUpdateInput,
 } from "@/lib/validations/category";
 import type { Category, ActionResult } from "@/lib/types";
-import { transformImageToProxy } from "@/lib/utils/image-proxy";
+
+const STORAGE_BUCKET = "category-images";
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+/**
+ * Upload image to Supabase Storage
+ * Returns the file path (not URL)
+ */
+async function uploadImage(
+  file: File,
+  categoryId: string,
+  fieldName: "icon" | "link",
+): Promise<string> {
+  // Validate file
+  if (!file) {
+    throw new Error(`${fieldName} file is required`);
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(`${fieldName} file size must be less than 5MB`);
+  }
+
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error(
+      `${fieldName} file type must be JPEG, PNG, or WebP`,
+    );
+  }
+
+  const supabase = await createClient();
+
+  // Generate file path: category-images/icon-{categoryId}-{timestamp}.ext
+  const timestamp = Date.now();
+  const ext = file.name.split(".").pop() || "jpg";
+  const filePath = `${fieldName}-${categoryId}-${timestamp}.${ext}`;
+
+  // Convert file to buffer
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  // Upload to Supabase Storage
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, buffer, {
+      contentType: file.type,
+      upsert: false,
+    });
+
+  if (error) {
+    console.error(`Error uploading ${fieldName}:`, error);
+    throw new Error(`Failed to upload ${fieldName}. Please try again.`);
+  }
+
+  return data.path;
+}
+
+/**
+ * Delete image from Supabase Storage
+ */
+async function deleteImage(filePath: string | null): Promise<void> {
+  if (!filePath) return;
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .remove([filePath]);
+
+  if (error) {
+    console.error("Error deleting image:", error);
+    // Don't throw, just log - we don't want to fail the operation for this
+  }
+}
 
 /**
  * Get all categories for public access (no authentication required)
@@ -19,7 +91,6 @@ export async function getPublicCategories(): Promise<ActionResult<Category[]>> {
   try {
     const supabase = await createClient();
 
-    // Fetch categories without authentication check
     const { data, error } = await supabase
       .from("categories")
       .select("*")
@@ -33,20 +104,9 @@ export async function getPublicCategories(): Promise<ActionResult<Category[]>> {
       };
     }
 
-    // Transform category images to use proxy
-    const categoriesWithProxy = (data || []).map((category) => ({
-      ...category,
-      image_icon: category.image_icon
-        ? transformImageToProxy(category.image_icon)
-        : category.image_icon,
-      image_link: category.image_link
-        ? transformImageToProxy(category.image_link)
-        : category.image_link,
-    }));
-
     return {
       success: true,
-      data: categoriesWithProxy,
+      data: data || [],
     };
   } catch (error) {
     console.error("Unexpected error in getPublicCategories:", error);
@@ -64,7 +124,6 @@ export async function getCategories(): Promise<ActionResult<Category[]>> {
   try {
     const supabase = await createClient();
 
-    // Check authentication
     const {
       data: { user },
       error: authError,
@@ -77,7 +136,6 @@ export async function getCategories(): Promise<ActionResult<Category[]>> {
       };
     }
 
-    // Fetch categories
     const { data, error } = await supabase
       .from("categories")
       .select("*")
@@ -91,20 +149,9 @@ export async function getCategories(): Promise<ActionResult<Category[]>> {
       };
     }
 
-    // Transform category images to use proxy
-    const categoriesWithProxy = (data || []).map((category) => ({
-      ...category,
-      image_icon: category.image_icon
-        ? transformImageToProxy(category.image_icon)
-        : category.image_icon,
-      image_link: category.image_link
-        ? transformImageToProxy(category.image_link)
-        : category.image_link,
-    }));
-
     return {
       success: true,
-      data: categoriesWithProxy,
+      data: data || [],
     };
   } catch (error) {
     console.error("Unexpected error in getCategories:", error);
@@ -116,14 +163,20 @@ export async function getCategories(): Promise<ActionResult<Category[]>> {
 }
 
 /**
- * Create a new category
+ * Create a new category with image uploads
  */
 export async function createCategory(
-  input: CategoryInput,
+  input: CategoryInput & {
+    imageIcon?: File;
+    imageLink?: File;
+  },
 ): Promise<ActionResult<Category>> {
   try {
+    // Extract files before validation
+    const { imageIcon, imageLink, ...categoryData } = input;
+
     // Validate input
-    const validationResult = categorySchema.safeParse(input);
+    const validationResult = categorySchema.safeParse(categoryData);
 
     if (!validationResult.success) {
       const errors = validationResult.error.issues
@@ -165,31 +218,84 @@ export async function createCategory(
       };
     }
 
-    // Create category
+    // Create category first to get ID
     const now = new Date().toISOString();
-    const { data, error } = await supabase
+    const { data: newCategory, error: createError } = await supabase
       .from("categories")
       .insert({
         ...validatedData,
+        image_icon: null,
+        image_link: null,
         created_at: now,
         edited_at: now,
       })
       .select()
       .single();
 
-    if (error) {
-      console.error("Error creating category:", error);
+    if (createError || !newCategory) {
+      console.error("Error creating category:", createError);
       return {
         success: false,
         error: "Failed to create category. Please try again.",
       };
     }
 
-    revalidatePath("/admin/categories");
+    // Upload images if provided
+    const updates: Partial<Category> = {};
 
+    try {
+      if (imageIcon) {
+        const iconPath = await uploadImage(imageIcon, newCategory.id, "icon");
+        updates.image_icon = iconPath;
+      }
+
+      if (imageLink) {
+        const linkPath = await uploadImage(imageLink, newCategory.id, "link");
+        updates.image_link = linkPath;
+      }
+    } catch (uploadError) {
+      // If image upload fails, delete the category we just created
+      await supabase.from("categories").delete().eq("id", newCategory.id);
+      return {
+        success: false,
+        error:
+          uploadError instanceof Error
+            ? uploadError.message
+            : "Failed to upload images.",
+      };
+    }
+
+    // Update category with image paths if any were uploaded
+    if (Object.keys(updates).length > 0) {
+      const { data: updatedCategory, error: updateError } = await supabase
+        .from("categories")
+        .update({
+          ...updates,
+          edited_at: now,
+        })
+        .eq("id", newCategory.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error("Error updating category with images:", updateError);
+        return {
+          success: false,
+          error: "Failed to save images. Please try again.",
+        };
+      }
+
+      revalidatePath("/admin/categories");
+      return {
+        success: true,
+        data: updatedCategory as Category,
+      };
+    }
+
+    revalidatePath("/admin/categories");
     return {
       success: true,
-      data: data as Category,
+      data: newCategory as Category,
     };
   } catch (error) {
     console.error("Unexpected error in createCategory:", error);
@@ -201,11 +307,14 @@ export async function createCategory(
 }
 
 /**
- * Update an existing category
+ * Update an existing category with optional image uploads
  */
 export async function updateCategory(
   id: string,
-  input: CategoryUpdateInput,
+  input: CategoryUpdateInput & {
+    imageIcon?: File | null;
+    imageLink?: File | null;
+  },
 ): Promise<ActionResult<Category>> {
   try {
     if (!id || typeof id !== "string") {
@@ -215,8 +324,11 @@ export async function updateCategory(
       };
     }
 
+    // Extract files before validation
+    const { imageIcon, imageLink, ...categoryData } = input;
+
     // Validate input
-    const validationResult = categoryUpdateSchema.safeParse(input);
+    const validationResult = categoryUpdateSchema.safeParse(categoryData);
 
     if (!validationResult.success) {
       const errors = validationResult.error.issues
@@ -275,11 +387,58 @@ export async function updateCategory(
       }
     }
 
+    // Handle image uploads and deletions
+    const updates: Partial<Category> = { ...validatedData };
+
+    try {
+      // Handle imageIcon
+      if (imageIcon instanceof File) {
+        // Delete old image if exists
+        if (existingCategory.image_icon) {
+          await deleteImage(existingCategory.image_icon);
+        }
+        // Upload new image
+        const iconPath = await uploadImage(imageIcon, id, "icon");
+        updates.image_icon = iconPath;
+      } else if (imageIcon === null) {
+        // Explicitly delete image
+        if (existingCategory.image_icon) {
+          await deleteImage(existingCategory.image_icon);
+        }
+        updates.image_icon = null;
+      }
+
+      // Handle imageLink
+      if (imageLink instanceof File) {
+        // Delete old image if exists
+        if (existingCategory.image_link) {
+          await deleteImage(existingCategory.image_link);
+        }
+        // Upload new image
+        const linkPath = await uploadImage(imageLink, id, "link");
+        updates.image_link = linkPath;
+      } else if (imageLink === null) {
+        // Explicitly delete image
+        if (existingCategory.image_link) {
+          await deleteImage(existingCategory.image_link);
+        }
+        updates.image_link = null;
+      }
+    } catch (uploadError) {
+      return {
+        success: false,
+        error:
+          uploadError instanceof Error
+            ? uploadError.message
+            : "Failed to handle images.",
+      };
+    }
+
     // Update category
     const { data, error } = await supabase
       .from("categories")
       .update({
-        ...validatedData,
+        ...updates,
         edited_at: new Date().toISOString(),
       })
       .eq("id", id)
@@ -310,7 +469,7 @@ export async function updateCategory(
 }
 
 /**
- * Delete a category
+ * Delete a category and its images
  */
 export async function deleteCategory(id: string): Promise<ActionResult> {
   try {
@@ -339,7 +498,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
     // Check if category exists
     const { data: existingCategory, error: fetchError } = await supabase
       .from("categories")
-      .select("id, title")
+      .select("id, title, image_icon, image_link")
       .eq("id", id)
       .single();
 
@@ -372,6 +531,14 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
         error:
           "Cannot delete category. Products are still using this category. Please reassign or delete those products first.",
       };
+    }
+
+    // Delete images from storage
+    if (existingCategory.image_icon) {
+      await deleteImage(existingCategory.image_icon);
+    }
+    if (existingCategory.image_link) {
+      await deleteImage(existingCategory.image_link);
     }
 
     // Delete category
