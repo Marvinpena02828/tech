@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Newspaper, Plus, Edit, Trash2, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Newspaper, Plus, Edit, Trash2, Upload, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import {
@@ -10,10 +10,6 @@ import {
   deleteNews,
   uploadNewsImage,
 } from "../models/news-model";
-import {
-  updateNewsBanner,
-  uploadNewsBannerImage,
-} from "../models/news-banner-model";
 
 interface NewsItem {
   id: string;
@@ -25,25 +21,14 @@ interface NewsItem {
   edited_at: string;
 }
 
-interface NewsBannerItem {
-  id: string;
-  image_url: string;
-  subtitle: string;
-  main_text: string;
-  title: string;
-  created_at: string;
-  updated_at: string;
-}
-
 interface NewsContentProps {
   news: NewsItem[];
-  banner?: NewsBannerItem | null;
+  banner?: any;
 }
 
 export default function NewsContent({ news: initialNews, banner: initialBanner }: NewsContentProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   // News states
   const [news, setNews] = useState<NewsItem[]>(initialNews);
@@ -60,19 +45,6 @@ export default function NewsContent({ news: initialNews, banner: initialBanner }
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-
-  // Banner states
-  const [banner, setBanner] = useState<NewsBannerItem | undefined>(initialBanner || undefined);
-  const [showBannerDialog, setShowBannerDialog] = useState(false);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(initialBanner?.image_url || null);
-  const [isSavingBanner, setIsSavingBanner] = useState(false);
-  const [isUploadingBannerImage, setIsUploadingBannerImage] = useState(false);
-  const [bannerText, setBannerText] = useState({
-    subtitle: initialBanner?.subtitle || "Empowered by",
-    mainText: initialBanner?.main_text || "INNOVATIONS",
-    title: initialBanner?.title || "News",
-  });
 
   // News handlers
   const handleDelete = async (id: string, title: string) => {
@@ -132,29 +104,6 @@ export default function NewsContent({ news: initialNews, banner: initialBanner }
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleBannerImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Banner image must be smaller than 10MB");
-      return;
-    }
-
-    setBannerFile(file);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setBannerPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
@@ -227,65 +176,6 @@ export default function NewsContent({ news: initialNews, banner: initialBanner }
     setIsSaving(false);
   };
 
-  // Banner handlers
-  const handleSaveBanner = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!bannerFile && !bannerPreview) {
-      toast.error("Please select a banner image");
-      return;
-    }
-
-    setIsSavingBanner(true);
-
-    try {
-      let bannerUrl = bannerPreview;
-
-      if (bannerFile) {
-        setIsUploadingBannerImage(true);
-        const uploadResult = await uploadNewsBannerImage(bannerFile);
-
-        if (!uploadResult.success) {
-          toast.error(uploadResult.error || "Failed to upload banner");
-          setIsSavingBanner(false);
-          setIsUploadingBannerImage(false);
-          return;
-        }
-
-        bannerUrl = uploadResult.data;
-        setIsUploadingBannerImage(false);
-      }
-
-      if (!bannerUrl) {
-        toast.error("Banner image URL is missing");
-        setIsSavingBanner(false);
-        return;
-      }
-
-      const result = await updateNewsBanner({
-        image_url: bannerUrl,
-        subtitle: bannerText.subtitle,
-        main_text: bannerText.mainText,
-        title: bannerText.title,
-      });
-
-      if (!result.success) {
-        toast.error(result.error || "Failed to update banner");
-      } else {
-        toast.success("Banner updated successfully");
-        setBanner(result.data);
-        setShowBannerDialog(false);
-        router.refresh();
-      }
-    } catch (error) {
-      toast.error(
-        "An error occurred: " + (error instanceof Error ? error.message : "")
-      );
-    }
-
-    setIsSavingBanner(false);
-  };
-
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
@@ -301,22 +191,13 @@ export default function NewsContent({ news: initialNews, banner: initialBanner }
                 Manage news articles ({news.length} total)
               </p>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowBannerDialog(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <ImageIcon size={20} />
-                Edit Banner
-              </button>
-              <button
-                onClick={handleAdd}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                <Plus size={20} />
-                Add News
-              </button>
-            </div>
+            <button
+              onClick={handleAdd}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <Plus size={20} />
+              Add News
+            </button>
           </div>
         </div>
 
@@ -571,159 +452,6 @@ export default function NewsContent({ news: initialNews, banner: initialBanner }
                     <button
                       type="button"
                       onClick={() => setShowDialog(false)}
-                      className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Banner Dialog */}
-        {showBannerDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Edit News Banner</h2>
-
-                <form onSubmit={handleSaveBanner} className="space-y-4">
-                  {/* Banner Image */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Banner Image
-                    </label>
-
-                    <input
-                      ref={bannerInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleBannerImageChange}
-                      className="hidden"
-                    />
-
-                    {bannerPreview ? (
-                      <div className="relative">
-                        <div className="w-full bg-gray-100 rounded-lg border-2 border-gray-200 overflow-hidden">
-                          <img
-                            src={bannerPreview}
-                            alt="Banner Preview"
-                            className="w-full h-64 object-cover"
-                            onError={(e) => {
-                              console.error("Banner preview failed to load");
-                              e.currentTarget.src = "";
-                            }}
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setBannerFile(null);
-                            setBannerPreview(null);
-                            if (bannerInputRef.current) {
-                              bannerInputRef.current.value = "";
-                            }
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors"
-                        >
-                          <X size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => bannerInputRef.current?.click()}
-                          className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                        >
-                          Change Image
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => bannerInputRef.current?.click()}
-                        className="w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors flex flex-col items-center gap-2"
-                      >
-                        <Upload className="text-gray-400" size={32} />
-                        <span className="text-sm font-medium text-gray-700">
-                          Click to upload banner image
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Max 10MB (PNG, JPG, GIF, WebP) - Recommended: 1920x500px
-                        </span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Banner Text Fields */}
-                  <div className="border-t pt-4">
-                    <h3 className="font-semibold text-gray-900 mb-4">
-                      Banner Text Overlay
-                    </h3>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Subtitle
-                      </label>
-                      <input
-                        type="text"
-                        value={bannerText.subtitle}
-                        onChange={(e) =>
-                          setBannerText({ ...bannerText, subtitle: e.target.value })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="e.g., Empowered by"
-                      />
-                    </div>
-
-                    <div className="mt-3">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Main Text
-                      </label>
-                      <input
-                        type="text"
-                        value={bannerText.mainText}
-                        onChange={(e) =>
-                          setBannerText({ ...bannerText, mainText: e.target.value })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="e.g., INNOVATIONS"
-                      />
-                    </div>
-
-                    <div className="mt-3">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={bannerText.title}
-                        onChange={(e) =>
-                          setBannerText({ ...bannerText, title: e.target.value })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="e.g., News"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      type="submit"
-                      disabled={isSavingBanner || isUploadingBannerImage}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                    >
-                      {isSavingBanner ? (
-                        <>
-                          {isUploadingBannerImage ? "Uploading..." : "Saving..."}
-                        </>
-                      ) : (
-                        "Update Banner"
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowBannerDialog(false)}
                       className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                     >
                       Cancel
