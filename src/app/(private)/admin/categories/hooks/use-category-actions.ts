@@ -1,5 +1,4 @@
 "use client";
-
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import toast from "react-hot-toast";
@@ -32,17 +31,15 @@ export function useCategoryActions() {
   const handleSave = async (formData: {
     title: string;
     description: string;
-    image_icon: string;
-    image_link: string;
+    imageIcon?: File | null;
+    imageLink?: File | null;
     parent_category_id: string | null;
     is_highlighted: boolean;
   }) => {
     setIsSaving(true);
-
     startTransition(async () => {
       try {
         let result;
-
         if (selectedCategory) {
           // Update existing category
           result = await updateCategory(selectedCategory.id, formData);
@@ -50,7 +47,6 @@ export function useCategoryActions() {
           // Create new category
           result = await createCategory(formData);
         }
-
         if (result.success) {
           toast.success(
             `Category ${selectedCategory ? "updated" : "created"} successfully`,
@@ -78,11 +74,9 @@ export function useCategoryActions() {
     ) {
       return;
     }
-
     startTransition(async () => {
       try {
         const result = await deleteCategory(id);
-
         if (result.success) {
           toast.success("Category deleted successfully");
           router.refresh();
