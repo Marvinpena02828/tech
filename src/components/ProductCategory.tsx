@@ -178,7 +178,7 @@ export default function ProductCategory({
 
         <div className="overflow-hidden">
           <div
-            className={`flex items-start justify-between gap-2 xl:gap-3 transition-transform duration-500 ease-in-out`}
+            className={`flex items-start justify-center gap-1 xl:gap-2 transition-transform duration-500 ease-in-out`}
             style={{
               transform: showDesktopNavigation
                 ? `translateX(-${
@@ -195,13 +195,9 @@ export default function ProductCategory({
                 <Link
                   href={`/products?category=${cat.id}`}
                   key={idx}
-                  className="flex flex-col items-center group cursor-pointer flex-shrink-0"
+                  className="flex flex-col items-center group cursor-pointer flex-shrink-0 w-64"
                   style={{
-                    width: showDesktopNavigation
-                      ? `calc((100% - ${
-                          (desktopItemsToShow - 1) * 2.5
-                        }rem) / ${desktopItemsToShow})`
-                      : "auto",
+                    minWidth: "16rem",
                   }}
                 >
                   {/* Larger oval for better image display */}
