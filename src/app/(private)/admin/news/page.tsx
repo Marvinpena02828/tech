@@ -12,22 +12,19 @@ export default async function NewsPage() {
     redirect("/admin");
   }
 
-  // Fetch news and banner in parallel
-  const [newsResult, bannerResult] = await Promise.all([
-    supabase
-      .from("news")
-      .select("*")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("news_banners")
-      .select("*")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .single(),
-  ]);
+  // Fetch news
+  const { data: news } = await supabase
+    .from("news")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  const news = newsResult.data || [];
-  const banner = bannerResult.data;
+  // TODO: Add banner fetch after build passes
+  // const { data: banner } = await supabase
+  //   .from("news_banners")
+  //   .select("*")
+  //   .order("updated_at", { ascending: false })
+  //   .limit(1)
+  //   .single();
 
-  return <NewsContent news={news} banner={banner} />;
+  return <NewsContent news={news || []} />;
 }
