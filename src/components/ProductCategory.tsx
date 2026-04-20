@@ -204,8 +204,8 @@ export default function ProductCategory({
                       : "auto",
                   }}
                 >
-                  {/* Increased height for better image fit */}
-                  <div className="w-40 h-96 xl:w-56 xl:h-[32rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                  {/* Larger oval for better image display */}
+                  <div className="w-48 h-[28rem] xl:w-64 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
                     <AppImage
                       src={getImageUrl(cat.image_link)}
                       alt={cat.title}
@@ -314,8 +314,8 @@ export default function ProductCategory({
               }`}
               style={{ transitionDelay: isAnimating ? `${idx * 50}ms` : "0ms" }}
             >
-              {/* Increased height for better mobile image fit */}
-              <div className="w-40 h-80 sm:w-48 sm:h-96 md:w-52 md:h-[28rem] bg-[#E5E9EC] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300">
+              {/* Larger oval for mobile image display */}
+              <div className="w-48 h-96 sm:w-56 sm:h-[28rem] md:w-64 md:h-[32rem] bg-[#E5E9EC] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300">
                 <AppImage
                   src={getImageUrl(cat.image_link)}
                   alt={cat.title}
