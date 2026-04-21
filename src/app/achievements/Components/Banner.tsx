@@ -11,7 +11,7 @@ export default function Banner() {
     const fetchBanner = async () => {
       try {
         const timestamp = Date.now();
-        const response = await fetch(`/api/banner?t=${timestamp}`, {
+        const response = await fetch(`/api/achievements-banner?t=${timestamp}`, {
           cache: 'no-store'
         });
         
