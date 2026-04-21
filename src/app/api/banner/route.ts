@@ -1,36 +1,54 @@
-import { revalidatePath, revalidateTag } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    // Optional: Add secret header for security
-    const secret = request.headers.get("x-revalidate-secret");
-    if (secret !== process.env.REVALIDATE_SECRET && process.env.REVALIDATE_SECRET) {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from("service_banner")
+      .select("*")
+      .single();
+
+    if (error || !data) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { message: "Banner not found" },
+        { status: 404 }
       );
     }
 
-    const body = await request.json();
-    const { tag, path } = body;
-
-    if (tag) {
-      revalidateTag(tag);
-    }
-
-    if (path) {
-      revalidatePath(path, "page");
-    }
-
-    return NextResponse.json(
-      { revalidated: true, now: Date.now() },
-      { status: 200 }
-    );
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Revalidation error:", error);
+    console.error("Error fetching banner:", error);
     return NextResponse.json(
-      { error: "Failed to revalidate" },
+      { error: "Failed to fetch banner" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const body = await request.json();
+
+    const { data, error } = await supabase
+      .from("service_banner")
+      .insert([
+        {
+          image: body.image,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json(data, { status: 201 });
+  } catch (error) {
+    console.error("Error creating banner:", error);
+    return NextResponse.json(
+      { error: "Failed to create banner" },
       { status: 500 }
     );
   }
