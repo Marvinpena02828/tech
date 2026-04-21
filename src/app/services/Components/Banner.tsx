@@ -3,7 +3,9 @@ import React from "react";
 
 async function fetchBannerImage() {
   try {
-    const response = await fetch("/api/banner", { cache: "revalidate" });
+    const response = await fetch("/api/banner", { 
+      next: { revalidate: 3600 } // Revalidate every hour
+    });
     if (response.ok) {
       const data = await response.json();
       return data.image;
