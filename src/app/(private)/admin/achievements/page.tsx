@@ -148,31 +148,29 @@ export default function AdminAchievements() {
     reader.readAsDataURL(file);
   };
 
-  // Upload banner image
+  // Upload banner image via API route
   const uploadBannerImage = async (file: File): Promise<string> => {
     try {
       setUploadingBanner(true);
-      const timestamp = Date.now();
-      const extension = file.name.split(".").pop();
-      const fileName = `achievements/${timestamp}-${Math.random().toString(36).substring(7)}.${extension}`;
+      
+      const formData = new FormData();
+      formData.append('file', file);
 
-      const { data, error } = await supabase.storage
-        .from(activeBucket || "images")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const response = await fetch('/api/upload-banner', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Upload failed');
+      }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from(activeBucket || "images").getPublicUrl(data.path);
-
-      return publicUrl;
+      const data = await response.json();
+      return data.url;
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload image");
+      toast.error(`Failed to upload image: ${error}`);
       throw error;
     } finally {
       setUploadingBanner(false);
@@ -607,7 +605,7 @@ export default function AdminAchievements() {
                           Click to upload or drag and drop
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          PNG, JPG, GIF up to 10MB (Recommended: 1920x500px or similar)
+                          PNG, JPG, GIF up to 10MB
                         </p>
                       </div>
                       <input
