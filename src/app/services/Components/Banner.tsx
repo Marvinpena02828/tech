@@ -3,8 +3,10 @@ import React from "react";
 
 async function fetchBannerImage() {
   try {
-    const response = await fetch("/api/banner", { 
-      next: { revalidate: 3600 } // Revalidate every hour
+    // Add unique query param to bypass client-side caching
+    const timestamp = new Date().getTime();
+    const response = await fetch(`/api/banner?t=${timestamp}`, { 
+      next: { tags: ['banner'] } // Important: for on-demand revalidation
     });
     if (response.ok) {
       const data = await response.json();
