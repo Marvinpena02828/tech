@@ -3,11 +3,17 @@ import React from "react";
 
 async function fetchBannerImage() {
   try {
-    // Add unique query param to bypass client-side caching
+    // Add timestamp to force fresh data bypass
     const timestamp = new Date().getTime();
-    const response = await fetch(`/api/banner?t=${timestamp}`, { 
-      next: { tags: ['banner'] } // Important: for on-demand revalidation
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL || ""}/api/banner?t=${timestamp}`,
+      { 
+        next: { 
+          revalidate: 60 // Revalidate every minute
+        }
+      }
+    );
+    
     if (response.ok) {
       const data = await response.json();
       return data.image;
@@ -15,6 +21,7 @@ async function fetchBannerImage() {
   } catch (error) {
     console.error("Failed to fetch banner:", error);
   }
+  
   // Fallback to default image
   return "/services/page/Our Services.png";
 }
