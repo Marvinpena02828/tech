@@ -1,54 +1,36 @@
-import { createClient } from "@/lib/supabase/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
-
-export async function GET(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase
-      .from("service_banner")
-      .select("*")
-      .single();
-
-    if (error || !data) {
-      return NextResponse.json(
-        { message: "Banner not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error("Error fetching banner:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch banner" },
-      { status: 500 }
-    );
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Optional: Add secret header for security
+    const secret = request.headers.get("x-revalidate-secret");
+    if (secret !== process.env.REVALIDATE_SECRET && process.env.REVALIDATE_SECRET) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
+    const { tag, path } = body;
 
-    const { data, error } = await supabase
-      .from("service_banner")
-      .insert([
-        {
-          image: body.image,
-        },
-      ])
-      .select()
-      .single();
+    if (tag) {
+      revalidateTag(tag);
+    }
 
-    if (error) throw error;
+    if (path) {
+      revalidatePath(path, "page");
+    }
 
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    console.error("Error creating banner:", error);
     return NextResponse.json(
-      { error: "Failed to create banner" },
+      { revalidated: true, now: Date.now() },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Revalidation error:", error);
+    return NextResponse.json(
+      { error: "Failed to revalidate" },
       { status: 500 }
     );
   }
