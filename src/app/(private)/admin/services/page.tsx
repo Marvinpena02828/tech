@@ -15,15 +15,25 @@ interface Service {
   created_at: string;
 }
 
+interface BannerData {
+  id: string;
+  image: string;
+  updated_at: string;
+}
+
 export default function ServicesCMS() {
   const supabase = createClient();
   const [services, setServices] = useState<Service[]>([]);
+  const [banner, setBanner] = useState<BannerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
+  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -32,9 +42,10 @@ export default function ServicesCMS() {
     order: 0,
   });
 
-  // Fetch services
+  // Fetch services and banner
   useEffect(() => {
     fetchServices();
+    fetchBanner();
   }, []);
 
   const fetchServices = async () => {
@@ -52,17 +63,28 @@ export default function ServicesCMS() {
     }
   };
 
+  const fetchBanner = async () => {
+    try {
+      const response = await fetch("/api/banner");
+      if (response.ok) {
+        const data = await response.json();
+        setBanner(data);
+        setBannerImagePreview(data.image);
+      }
+    } catch (error) {
+      console.error("Failed to load banner:", error);
+    }
+  };
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Please select a valid image file");
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image must be less than 5MB");
       return;
@@ -70,10 +92,32 @@ export default function ServicesCMS() {
 
     setImageFile(file);
 
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleBannerImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Banner image must be less than 10MB");
+      return;
+    }
+
+    setBannerImageFile(file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setBannerImagePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
@@ -94,7 +138,6 @@ export default function ServicesCMS() {
 
       if (error) throw error;
 
-      // Get public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from("images").getPublicUrl(data.path);
@@ -109,6 +152,44 @@ export default function ServicesCMS() {
     }
   };
 
+  const handleBannerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!bannerImageFile && !banner?.image) {
+      toast.error("Please select a banner image");
+      return;
+    }
+
+    try {
+      let imageUrl = banner?.image || "";
+
+      if (bannerImageFile) {
+        imageUrl = await uploadImage(bannerImageFile);
+      }
+
+      const method = banner ? "PUT" : "POST";
+      const url = banner ? `/api/banner/${banner.id}` : "/api/banner";
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: imageUrl,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save");
+
+      toast.success("Banner updated successfully!");
+      setIsBannerModalOpen(false);
+      setBannerImageFile(null);
+      fetchBanner();
+    } catch (error) {
+      toast.error("Failed to update banner");
+      console.error(error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -117,7 +198,6 @@ export default function ServicesCMS() {
       return;
     }
 
-    // Check if image is provided
     if (!imageFile && !formData.image) {
       toast.error("Please select an image");
       return;
@@ -126,7 +206,6 @@ export default function ServicesCMS() {
     try {
       let imageUrl = formData.image;
 
-      // Upload new image if selected
       if (imageFile) {
         imageUrl = await uploadImage(imageFile);
       }
@@ -195,10 +274,20 @@ export default function ServicesCMS() {
     setImagePreview(null);
   };
 
+  const handleCloseBannerModal = () => {
+    setIsBannerModalOpen(false);
+    setBannerImageFile(null);
+  };
+
   const removeImage = () => {
     setImageFile(null);
     setImagePreview(null);
     setFormData({ ...formData, image: "" });
+  };
+
+  const removeBannerImage = () => {
+    setBannerImageFile(null);
+    setBannerImagePreview(banner?.image || null);
   };
 
   if (loading) {
@@ -216,6 +305,32 @@ export default function ServicesCMS() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
+      {/* Banner Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-900">Page Banner</h2>
+          <button
+            onClick={() => setIsBannerModalOpen(true)}
+            className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+          >
+            <Edit2 size={20} />
+            Edit Banner
+          </button>
+        </div>
+        {banner?.image && (
+          <div className="relative max-md:aspect-video md:h-[400px] overflow-hidden rounded-lg border border-gray-200">
+            <Image
+              src={banner.image}
+              alt="Page Banner"
+              fill
+              className="object-cover w-full"
+              priority
+              quality={90}
+            />
+          </div>
+        )}
+      </div>
+
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
@@ -300,7 +415,7 @@ export default function ServicesCMS() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Service Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto">
@@ -352,7 +467,6 @@ export default function ServicesCMS() {
                   Service Image *
                 </label>
 
-                {/* File Input */}
                 <div className="mb-4">
                   <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition bg-gray-50 hover:bg-blue-50">
                     <div className="flex flex-col items-center justify-center">
@@ -374,7 +488,6 @@ export default function ServicesCMS() {
                   </label>
                 </div>
 
-                {/* Image Preview */}
                 {imagePreview && (
                   <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
                     <Image
@@ -430,6 +543,97 @@ export default function ServicesCMS() {
                 >
                   {uploading && <Loader size={18} className="animate-spin" />}
                   {editingId ? "Update Service" : "Create Service"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Banner Modal */}
+      {isBannerModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Page Banner</h2>
+              <button
+                onClick={handleCloseBannerModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleBannerSubmit} className="p-6 space-y-6">
+              {/* Banner Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Banner Image *
+                </label>
+
+                <div className="mb-4">
+                  <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition bg-gray-50 hover:bg-purple-50">
+                    <div className="flex flex-col items-center justify-center">
+                      <Upload size={24} className="text-gray-400 mb-2" />
+                      <p className="text-sm font-medium text-gray-700">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        PNG, JPG, GIF up to 10MB (Recommended: 1920x500px or similar aspect ratio)
+                      </p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerImageSelect}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
+                </div>
+
+                {bannerImagePreview && (
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
+                    <Image
+                      src={bannerImagePreview}
+                      alt="Banner Preview"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeBannerImage}
+                      disabled={uploading}
+                      className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                    >
+                      <X size={20} />
+                    </button>
+                    {uploading && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <Loader size={32} className="text-white animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 justify-end pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={handleCloseBannerModal}
+                  disabled={uploading}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading || !bannerImagePreview}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {uploading && <Loader size={18} className="animate-spin" />}
+                  Update Banner
                 </button>
               </div>
             </form>
