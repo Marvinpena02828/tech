@@ -1,27 +1,44 @@
 import Image from "next/image";
 import React from "react";
-const Banner = () => {
+
+async function fetchBannerImage() {
+  try {
+    const response = await fetch("/api/banner", { cache: "revalidate" });
+    if (response.ok) {
+      const data = await response.json();
+      return data.image;
+    }
+  } catch (error) {
+    console.error("Failed to fetch banner:", error);
+  }
+  // Fallback to default image
+  return "/services/page/Our Services.png";
+}
+
+const Banner = async () => {
+  const bannerImage = await fetchBannerImage();
+
   return (
     <section className="relative max-md:aspect-video md:h-[500px] overflow-hidden">
-      {/* Background Image */}
+      {/* Mobile Version */}
       <Image
-        src="/services/page/Our Services.png"
-        alt="Modern corporate building"
+        src={bannerImage}
+        alt="Our Services"
         fill
         className="object-cover w-full block md:hidden scale-110"
         priority
         quality={90}
       />
+      
+      {/* Desktop Version */}
       <Image
-        src="/services/page/Our Services.png"
-        alt="Modern corporate building"
+        src={bannerImage}
+        alt="Our Services"
         fill
         className="object-cover w-full hidden md:block"
         priority
         quality={90}
       />
-
-     
     </section>
   );
 };
