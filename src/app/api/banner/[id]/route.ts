@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function PUT(
   request: NextRequest,
@@ -22,12 +21,6 @@ export async function PUT(
       .single();
 
     if (error) throw error;
-
-    // Clear the banner cache immediately
-    revalidateTag("banner");
-    
-    // Also revalidate the services page path
-    revalidatePath("/services", "page");
 
     return NextResponse.json(data);
   } catch (error) {
@@ -53,12 +46,6 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) throw error;
-
-    // Clear the banner cache immediately
-    revalidateTag("banner");
-    
-    // Also revalidate the services page path
-    revalidatePath("/services", "page");
 
     return NextResponse.json(
       { message: "Banner deleted successfully" },
