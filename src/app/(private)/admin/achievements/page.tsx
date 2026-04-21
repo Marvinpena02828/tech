@@ -83,7 +83,7 @@ export default function AdminAchievements() {
   // Fetch banner
   const fetchBanner = async () => {
     try {
-      const response = await fetch("/api/banner");
+      const response = await fetch("/api/achievements-banner");
       if (response.ok) {
         const data = await response.json();
         setBanner(data);
@@ -196,7 +196,7 @@ export default function AdminAchievements() {
       }
 
       const method = banner ? "PUT" : "POST";
-      const url = banner ? `/api/banner/${banner.id}` : "/api/banner";
+      const url = banner ? `/api/achievements-banner/${banner.id}` : "/api/achievements-banner";
 
       const response = await fetch(url, {
         method,
