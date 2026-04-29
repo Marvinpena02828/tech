@@ -326,7 +326,7 @@ export default function Header({ logos }: HeaderProps) {
             <style>{`
               @keyframes marquee {
                 0% {
-                  transform: translateX(100%);
+                  transform: translateX(calc(100vw + 100%));
                 }
                 100% {
                   transform: translateX(-100%);
@@ -334,12 +334,13 @@ export default function Header({ logos }: HeaderProps) {
               }
               .marquee-container {
                 display: inline-block;
-                animation: marquee 20s linear infinite;
+                animation: marquee 25s linear infinite;
                 white-space: nowrap;
+                will-change: transform;
               }
             `}</style>
             <div className="marquee-container" style={{ color: promoBar.text_color }}>
-              <p className="text-xs font-medium m-0">
+              <p className="text-xs font-medium m-0 inline-block">
                 {promoBar.message}
               </p>
             </div>
