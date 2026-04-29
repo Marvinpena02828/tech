@@ -2,14 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Image from "next/image";
 
 interface Award {
   id: string;
   image_url: string;
   display_order: number;
   is_active: boolean;
-  isLoaded?: boolean;
 }
 
 export default function AwardsCarousel() {
@@ -24,7 +22,7 @@ export default function AwardsCarousel() {
     return new Promise((resolve) => {
       const img = new window.Image();
       img.onload = () => resolve();
-      img.onerror = () => resolve(); // Still resolve on error to not block
+      img.onerror = () => resolve();
       img.src = url;
     });
   };
@@ -61,7 +59,6 @@ export default function AwardsCarousel() {
                 image_url: img,
                 display_order: award.display_order || idx,
                 is_active: true,
-                isLoaded: false,
               });
             }
           });
@@ -190,13 +187,6 @@ export default function AwardsCarousel() {
           }
           to {
             opacity: 1;
-          }
-        }
-
-        /* Ensure smooth continuous loop */
-        @media (prefers-reduced-motion: no-preference) {
-          div[style*="animation"] {
-            animation-timing-function: linear !important;
           }
         }
       `}</style>
