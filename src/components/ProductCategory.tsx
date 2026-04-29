@@ -156,9 +156,9 @@ export default function ProductCategory({
             </button>
           )}
 
-          <div className="overflow-hidden flex-1 relative">
+          <div className="overflow-visible flex-1 relative px-4">
             <div
-              className={`flex items-start justify-center gap-4 xl:gap-6 transition-transform duration-500 ease-in-out`}
+              className={`flex items-center justify-center gap-8 xl:gap-10 transition-transform duration-500 ease-in-out`}
               style={{
                 transform: showDesktopNavigation
                   ? `translateX(-${
@@ -177,11 +177,12 @@ export default function ProductCategory({
                     key={idx}
                     className="flex flex-col items-center group cursor-pointer flex-shrink-0"
                     style={{
+                      width: `${100 / desktopItemsToShow}%`,
                       minWidth: `${100 / desktopItemsToShow}%`,
                     }}
                   >
                     {/* Properly sized oval for category display */}
-                    <div className="w-56 h-[28rem] xl:w-72 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                    <div className="w-48 h-80 lg:w-56 lg:h-96 xl:w-64 xl:h-[28rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300 flex-shrink-0">
                       <AppImage
                         src={getImageUrl(cat.image_link)}
                         alt={cat.title}
