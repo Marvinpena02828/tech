@@ -326,22 +326,34 @@ export default function Header({ logos }: HeaderProps) {
             <style>{`
               @keyframes marquee {
                 0% {
-                  transform: translateX(100%);
+                  transform: translateX(100vw);
                 }
                 100% {
                   transform: translateX(-100%);
                 }
               }
-              .marquee-text {
+              .marquee-container {
+                display: flex;
+                animation: marquee 20s linear infinite;
+                white-space: nowrap;
+              }
+              .marquee-item {
                 display: inline-block;
-                animation: marquee 15s linear infinite;
+                padding-right: 50px;
                 white-space: nowrap;
               }
             `}</style>
-            <div className="marquee-text" style={{ color: promoBar.text_color }}>
-              <p className="text-xs font-medium m-0">
-                {promoBar.message}
-              </p>
+            <div className="marquee-container" style={{ color: promoBar.text_color }}>
+              <div className="marquee-item">
+                <p className="text-xs font-medium m-0">
+                  {promoBar.message}
+                </p>
+              </div>
+              <div className="marquee-item">
+                <p className="text-xs font-medium m-0">
+                  {promoBar.message}
+                </p>
+              </div>
             </div>
           </div>
         )}
