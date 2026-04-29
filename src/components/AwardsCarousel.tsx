@@ -32,11 +32,24 @@ export default function AwardsCarousel() {
   useEffect(() => {
     const fetchAwards = async () => {
       try {
-        const { data, error } = await supabase
+        // Try award_slides first, then fall back to awards
+        let { data, error } = await supabase
           .from("award_slides")
           .select("id, images, is_active, sort_order")
           .eq("is_active", true)
           .order("sort_order", { ascending: true });
+
+        // If table doesn't exist, try 'awards' instead
+        if (error && error.message.includes("Could not find the table")) {
+          console.log("⚠️ Table 'award_slides' not found, trying 'awards'...");
+          const result = await supabase
+            .from("awards")
+            .select("id, images, is_active, sort_order")
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true });
+          data = result.data;
+          error = result.error;
+        }
 
         if (error) {
           console.error("Supabase error:", error);
