@@ -178,7 +178,7 @@ export default function ProductCategory({
 
         <div className="overflow-hidden">
           <div
-            className={`flex items-start justify-center gap-0 transition-transform duration-500 ease-in-out`}
+            className={`flex items-start justify-center gap-4 xl:gap-6 transition-transform duration-500 ease-in-out px-4`}
             style={{
               transform: showDesktopNavigation
                 ? `translateX(-${
@@ -195,13 +195,13 @@ export default function ProductCategory({
                 <Link
                   href={`/products?category=${cat.id}`}
                   key={idx}
-                  className="flex flex-col items-center group cursor-pointer flex-shrink-0 px-2"
+                  className="flex flex-col items-center group cursor-pointer flex-shrink-0"
                   style={{
                     minWidth: `${100 / desktopItemsToShow}%`,
                   }}
                 >
-                  {/* Optimized oval for compact display */}
-                  <div className="w-40 h-56 xl:w-48 xl:h-64 bg-[#E5E9EC] hover:bg-white rounded-full mb-4 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                  {/* Properly sized oval for category display */}
+                  <div className="w-44 h-64 xl:w-56 xl:h-72 bg-[#E5E9EC] hover:bg-white rounded-full mb-5 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
                     <AppImage
                       src={getImageUrl(cat.image_link)}
                       alt={cat.title}
@@ -210,7 +210,7 @@ export default function ProductCategory({
                       unoptimized
                     />
                   </div>
-                  <h3 className="text-sm xl:text-base font-semibold text-gray-900 text-center font-display tracking-tight">
+                  <h3 className="text-base xl:text-lg font-semibold text-gray-900 text-center font-display tracking-tight">
                     {cat.title}
                   </h3>
                 </Link>
