@@ -33,10 +33,10 @@ export default function AwardsCarousel() {
     const fetchAwards = async () => {
       try {
         const { data, error } = await supabase
-          .from("awards")
-          .select("id, images, display_order, is_active")
+          .from("award_slides")
+          .select("id, images, is_active, sort_order")
           .eq("is_active", true)
-          .order("display_order", { ascending: true });
+          .order("sort_order", { ascending: true });
 
         if (error) {
           console.error("Supabase error:", error);
@@ -59,7 +59,7 @@ export default function AwardsCarousel() {
               allAwards.push({
                 id: `award-${award.id}-${imgIdx}`,
                 image_url: img,
-                display_order: award.display_order || idx,
+                display_order: award.sort_order || idx,
                 is_active: true,
                 isLoaded: false,
               });
@@ -90,7 +90,7 @@ export default function AwardsCarousel() {
 
   if (loading) {
     return (
-      <section className="w-full py-16">
+      <section className="w-full py-16 bg-transparent">
         <div className="container mx-auto px-4 mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
             Awards
@@ -103,7 +103,7 @@ export default function AwardsCarousel() {
 
   if (error) {
     return (
-      <section className="w-full py-16">
+      <section className="w-full py-16 bg-transparent">
         <div className="container mx-auto px-4 mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
             Awards
@@ -124,7 +124,7 @@ export default function AwardsCarousel() {
   const duplicatedAwards = [...awards, ...awards, ...awards];
 
   return (
-    <section className="w-full py-16">
+    <section className="w-full py-16 bg-transparent">
       {/* Title */}
       <div className="container mx-auto px-4 mb-12">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
@@ -149,7 +149,7 @@ export default function AwardsCarousel() {
         <div
           className="flex gap-12 md:gap-16 px-4 will-change-transform"
           style={{
-            animation: `marquee 60s linear infinite`,
+            animation: `marquee 80s linear infinite`,
             animationPlayState: isPaused ? "paused" : "running",
           }}
         >
@@ -196,6 +196,13 @@ export default function AwardsCarousel() {
           }
           to {
             opacity: 1;
+          }
+        }
+
+        /* Ensure smooth continuous loop */
+        @media (prefers-reduced-motion: no-preference) {
+          div[style*="animation"] {
+            animation-timing-function: linear !important;
           }
         }
       `}</style>
