@@ -334,7 +334,7 @@ export default function Footer() {
                   <div className="h-20 w-20 bg-white/20 rounded animate-pulse" />
                 )}
               </div>
-              <p className="text-sm leading-6 text-white text-opacity-90">
+              <p className="text-xs leading-5 text-white text-opacity-90">
                 {companyInfo.description}
               </p>
             </div>
