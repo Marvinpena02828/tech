@@ -71,7 +71,7 @@ export default function AwardsCarousel() {
 
   if (loading) {
     return (
-      <section className="w-full py-16 bg-gradient-to-b from-white via-gray-50 to-white">
+      <section className="w-full py-16">
         <div className="container mx-auto px-4 mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
             Awards
@@ -84,7 +84,7 @@ export default function AwardsCarousel() {
 
   if (error) {
     return (
-      <section className="w-full py-16 bg-gradient-to-b from-white via-gray-50 to-white">
+      <section className="w-full py-16">
         <div className="container mx-auto px-4 mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
             Awards
@@ -105,7 +105,7 @@ export default function AwardsCarousel() {
   const duplicatedAwards = [...awards, ...awards, ...awards];
 
   return (
-    <section className="w-full py-16 bg-gradient-to-b from-white via-gray-50 to-white">
+    <section className="w-full py-16">
       {/* Title */}
       <div className="container mx-auto px-4 mb-12">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
@@ -139,16 +139,16 @@ export default function AwardsCarousel() {
               key={`${award.id}-${idx}`}
               className="flex-shrink-0 flex items-center justify-center group"
             >
-              <div className="relative w-32 h-20 md:w-40 md:h-24 lg:w-48 lg:h-28 bg-gray-100 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110 overflow-hidden">
+              <div className="relative w-32 h-20 md:w-40 md:h-24 lg:w-48 lg:h-28 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 overflow-hidden">
                 <img
                   src={award.image_url}
                   alt={`Award ${award.id}`}
-                  className="w-full h-full object-contain filter brightness-90 hover:brightness-100 transition-all duration-300"
+                  className="w-full h-full object-contain transition-all duration-300"
                   onError={(e) => {
                     console.error(`❌ Failed to load: ${award.image_url}`);
                     // Fallback: show placeholder
                     const img = e.currentTarget as HTMLImageElement;
-                    img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100'%3E%3Crect fill='%23f3f4f6' width='200' height='100'/%3E%3Ctext x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='14'%3EImage Not Found%3C/text%3E%3C/svg%3E";
+                    img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100'%3E%3Crect fill='transparent' width='200' height='100'/%3E%3Ctext x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='14'%3EImage Not Found%3C/text%3E%3C/svg%3E";
                   }}
                   onLoad={() => {
                     console.log(`✅ Loaded: ${award.image_url.substring(0, 50)}...`);
