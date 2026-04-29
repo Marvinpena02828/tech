@@ -140,7 +140,7 @@ export default function ProductCategory({
 
       {/* Desktop View */}
       <div className="hidden container lg:block w-full mt-12">
-        <div className="flex items-center justify-center gap-6 w-full">
+        <div className="flex items-center justify-center gap-12 xl:gap-16 w-full px-6">
           {showDesktopNavigation && (
             <button
               onClick={handleDesktopPrev}
@@ -152,7 +152,7 @@ export default function ProductCategory({
               }`}
               aria-label="Previous categories"
             >
-              <ChevronLeft size={28} />
+              <ChevronLeft size={32} />
             </button>
           )}
 
@@ -213,7 +213,7 @@ export default function ProductCategory({
               }`}
               aria-label="Next categories"
             >
-              <ChevronRight size={28} />
+              <ChevronRight size={32} />
             </button>
           )}
         </div>
