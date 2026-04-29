@@ -14,6 +14,14 @@ interface Certificate {
   sort_order: number;
 }
 
+interface AwardSlide {
+  id: number;
+  title: string;
+  image_url: string;
+  alt_text: string;
+  sort_order: number;
+}
+
 export default function Certificates({
   heading = "Certified Excellence",
 }: {
@@ -22,6 +30,7 @@ export default function Certificates({
   const supabase = createClient();
   const { ref, isVisible } = useScrollReveal({ threshold: 0.3 });
   const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [awardSlides, setAwardSlides] = useState<AwardSlide[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCert, setSelectedCert] = useState<number | null>(null);
   const [startIndex, setStartIndex] = useState(0);
@@ -29,13 +38,28 @@ export default function Certificates({
     "right"
   );
   const [isAnimating, setIsAnimating] = useState(false);
-  const itemsToShow = 5;
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const itemsToShow = 6;
   const mobileItemsToShow = 1;
 
-  // Fetch certificates from CMS
+  // Fetch certificates and award slides from CMS
   useEffect(() => {
     fetchCertificates();
+    fetchAwardSlides();
   }, []);
+
+  // Auto-rotate award slides
+  useEffect(() => {
+    if (awardSlides.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlideIndex((prev) =>
+        prev === awardSlides.length - 1 ? 0 : prev + 1
+      );
+    }, 4000); // Change slide every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [awardSlides.length]);
 
   const fetchCertificates = async () => {
     try {
@@ -51,6 +75,21 @@ export default function Certificates({
       console.error("Error fetching certificates:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAwardSlides = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("award_slides") // Create this table with same structure as certificates
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      setAwardSlides(data || []);
+    } catch (error) {
+      console.error("Error fetching award slides:", error);
     }
   };
 
@@ -172,8 +211,8 @@ export default function Certificates({
             <ChevronRight size={32} />
           </button>
 
-          {/* Certificates Grid */}
-          <div className="w-full grid grid-cols-2 lg:grid-cols-5 gap-6 md:gap-10 overflow-hidden">
+          {/* Certificates Grid - 6 columns */}
+          <div className="w-full grid grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 overflow-hidden">
             {visibleCerts.map((cert) => (
               <div
                 key={cert.id}
@@ -181,18 +220,18 @@ export default function Certificates({
                 onClick={() => setSelectedCert(cert.id)}
               >
                 {/* Certificate Card */}
-                <div className="relative w-full aspect-[4/6] rounded-2xl overflow-hidden transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-4 group-hover:shadow-2xl">
+                <div className="relative w-full aspect-[4/6] rounded-2xl overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-2 group-hover:shadow-2xl">
                   {/* Base background with gradient */}
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 border-2 border-gray-200 group-hover:border-indigo-400 transition-all duration-300" />
 
                   {/* Image container */}
-                  <div className="relative w-full h-full p-4 bg-white/85 backdrop-blur-md">
-                    <div className="absolute inset-4 bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className="relative w-full h-full p-3 bg-white/85 backdrop-blur-md">
+                    <div className="absolute inset-3 bg-white rounded-xl shadow-lg overflow-hidden">
                       <Image
                         src={cert.image_url}
                         alt={cert.alt_text}
                         fill
-                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                   </div>
@@ -294,6 +333,51 @@ export default function Certificates({
             {startIndex + 1} / {certificates.length}
           </div>
         </div>
+
+        {/* Award Slides Section */}
+        {awardSlides.length > 0 && (
+          <div className="mt-16 relative">
+            <h3 className="text-xl md:text-2xl font-bold text-center mb-8 text-gray-800">
+              Awards & Recognition
+            </h3>
+            <div className="relative w-full h-80 md:h-96 rounded-2xl overflow-hidden shadow-2xl bg-white border-2 border-gray-200">
+              {/* Award Slides Carousel */}
+              {awardSlides.map((slide, idx) => (
+                <div
+                  key={slide.id}
+                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                    idx === currentSlideIndex
+                      ? "opacity-100 scale-100"
+                      : "opacity-0 scale-95"
+                  }`}
+                >
+                  <Image
+                    src={slide.image_url}
+                    alt={slide.alt_text}
+                    fill
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+
+              {/* Slide Indicators */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                {awardSlides.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSlideIndex(idx)}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                      idx === currentSlideIndex
+                        ? "bg-white w-8"
+                        : "bg-white/50 hover:bg-white/75"
+                    }`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal */}
         {selectedCert !== null && selectedCertData && (
