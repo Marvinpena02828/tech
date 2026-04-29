@@ -139,91 +139,89 @@ export default function ProductCategory({
       <h2 className="heading px-4 text-center">Explore by Category</h2>
 
       {/* Desktop View */}
-      <div className="hidden container lg:block w-full relative mt-12">
-        {showDesktopNavigation && (
-          <>
-            {/* Previous Button */}
+      <div className="hidden container lg:block w-full mt-12">
+        <div className="flex items-center justify-center gap-6 w-full">
+          {showDesktopNavigation && (
             <button
               onClick={handleDesktopPrev}
               disabled={desktopStartIndex === 0}
-              className={`absolute left-0 top-1/2 -translate-y-1/2 text-black z-10 transition-all ${
+              className={`flex-shrink-0 text-black transition-all ${
                 desktopStartIndex === 0
                   ? "opacity-30 cursor-not-allowed"
-                  : "hover:bg-gray-800 hover:scale-110"
+                  : "hover:scale-110"
               }`}
               aria-label="Previous categories"
             >
-              <ChevronLeft size={24} className="absolute left-0" />
-              <ChevronLeft size={24} className="absolute left-2" />
+              <ChevronLeft size={28} />
             </button>
+          )}
 
-            {/* Next Button */}
+          <div className="overflow-hidden flex-1 relative">
+            <div
+              className={`flex items-start justify-center gap-4 xl:gap-6 transition-transform duration-500 ease-in-out`}
+              style={{
+                transform: showDesktopNavigation
+                  ? `translateX(-${
+                      desktopStartIndex * (100 / desktopItemsToShow)
+                    }%)`
+                  : "none",
+              }}
+            >
+              {(showDesktopNavigation
+                ? categories
+                : visibleDesktopCategories
+              ).map((cat, idx) => {
+                return (
+                  <Link
+                    href={`/products?category=${cat.id}`}
+                    key={idx}
+                    className="flex flex-col items-center group cursor-pointer flex-shrink-0"
+                    style={{
+                      minWidth: `${100 / desktopItemsToShow}%`,
+                    }}
+                  >
+                    {/* Properly sized oval for category display */}
+                    <div className="w-56 h-[28rem] xl:w-72 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                      <AppImage
+                        src={getImageUrl(cat.image_link)}
+                        alt={cat.title}
+                        fill
+                        className={`object-contain p-0 transition-transform duration-500`}
+                        unoptimized
+                      />
+                    </div>
+                    <h3 className="text-base xl:text-lg font-semibold text-gray-900 text-center font-display tracking-tight">
+                      {cat.title}
+                    </h3>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {showDesktopNavigation && (
             <button
               onClick={handleDesktopNext}
               disabled={
                 desktopStartIndex >= categories.length - desktopItemsToShow
               }
-              className={`absolute right-0 top-1/2 -translate-y-1/2 text-black z-10 transition-all ${
+              className={`flex-shrink-0 text-black transition-all ${
                 desktopStartIndex >= categories.length - desktopItemsToShow
                   ? "opacity-30 cursor-not-allowed"
-                  : "hover:bg-gray-800 hover:scale-110"
+                  : "hover:scale-110"
               }`}
               aria-label="Next categories"
             >
-              <ChevronRight size={24} className="absolute right-0" />
-              <ChevronRight size={24} className="absolute right-2" />
+              <ChevronRight size={28} />
             </button>
-          </>
-        )}
-
-        <div className="overflow-hidden">
-          <div
-            className={`flex items-start justify-center gap-4 xl:gap-6 transition-transform duration-500 ease-in-out px-4`}
-            style={{
-              transform: showDesktopNavigation
-                ? `translateX(-${
-                    desktopStartIndex * (100 / desktopItemsToShow)
-                  }%)`
-                : "none",
-            }}
-          >
-            {(showDesktopNavigation
-              ? categories
-              : visibleDesktopCategories
-            ).map((cat, idx) => {
-              return (
-                <Link
-                  href={`/products?category=${cat.id}`}
-                  key={idx}
-                  className="flex flex-col items-center group cursor-pointer flex-shrink-0"
-                  style={{
-                    minWidth: `${100 / desktopItemsToShow}%`,
-                  }}
-                >
-                  {/* Properly sized oval for category display */}
-                  <div className="w-56 h-[28rem] xl:w-72 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
-                    <AppImage
-                      src={getImageUrl(cat.image_link)}
-                      alt={cat.title}
-                      fill
-                      className={`object-contain p-0 transition-transform duration-500`}
-                      unoptimized
-                    />
-                  </div>
-                  <h3 className="text-base xl:text-lg font-semibold text-gray-900 text-center font-display tracking-tight">
-                    {cat.title}
-                  </h3>
-                </Link>
-              );
-            })}
-          </div>
+          )}
         </div>
 
         {showDesktopNavigation && (
-          <div className="text-center mt-4 text-sm text-gray-600 font-medium flex items-center gap-6 justify-center">
+          <div className="text-center mt-8 text-sm text-gray-600 font-medium flex items-center gap-6 justify-center">
             <span
               onClick={handleDesktopPrev}
-              className="text-primary-blue cursor-pointer"
+              className="text-primary-blue cursor-pointer hover:underline"
             >
               Prev
             </span>
@@ -234,10 +232,10 @@ export default function ProductCategory({
                 <span
                   key={index}
                   onClick={() => handleDesktopGoToPage(index)}
-                  className={`cursor-pointer ${
+                  className={`cursor-pointer transition-colors ${
                     index === desktopStartIndex / desktopItemsToShow
-                      ? "text-primary-blue"
-                      : "text-gray-600"
+                      ? "text-primary-blue font-semibold"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   {index + 1}
@@ -247,7 +245,7 @@ export default function ProductCategory({
 
             <span
               onClick={handleDesktopNext}
-              className="text-primary-blue cursor-pointer"
+              className="text-primary-blue cursor-pointer hover:underline"
             >
               Next
             </span>
