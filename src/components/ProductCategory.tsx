@@ -200,8 +200,8 @@ export default function ProductCategory({
                     minWidth: `${100 / desktopItemsToShow}%`,
                   }}
                 >
-                  {/* Properly sized oval for category display */}
-                  <div className="w-44 h-64 xl:w-56 xl:h-72 bg-[#E5E9EC] hover:bg-white rounded-full mb-5 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                  {/* Properly sized tall oval for category display */}
+                  <div className="w-44 h-80 xl:w-56 xl:h-96 bg-[#E5E9EC] hover:bg-white rounded-full mb-5 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
                     <AppImage
                       src={getImageUrl(cat.image_link)}
                       alt={cat.title}
