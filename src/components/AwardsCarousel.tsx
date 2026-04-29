@@ -35,18 +35,18 @@ export default function AwardsCarousel() {
         // Try award_slides first, then fall back to awards
         let { data, error } = await supabase
           .from("award_slides")
-          .select("id, images, is_active, sort_order")
+          .select("id, images, is_active, display_order")
           .eq("is_active", true)
-          .order("sort_order", { ascending: true });
+          .order("display_order", { ascending: true });
 
         // If table doesn't exist, try 'awards' instead
         if (error && error.message.includes("Could not find the table")) {
           console.log("⚠️ Table 'award_slides' not found, trying 'awards'...");
           const result = await supabase
             .from("awards")
-            .select("id, images, is_active, sort_order")
+            .select("id, images, is_active, display_order")
             .eq("is_active", true)
-            .order("sort_order", { ascending: true });
+            .order("display_order", { ascending: true });
           data = result.data;
           error = result.error;
         }
@@ -72,7 +72,7 @@ export default function AwardsCarousel() {
               allAwards.push({
                 id: `award-${award.id}-${imgIdx}`,
                 image_url: img,
-                display_order: award.sort_order || idx,
+                display_order: award.display_order || idx,
                 is_active: true,
                 isLoaded: false,
               });
