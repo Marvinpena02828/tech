@@ -76,7 +76,7 @@ export default function AwardsCarousel() {
 
   if (loading) {
     return (
-      <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "transparent" }}>
+      <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "#ffffff" }}>
         <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
           Awards
         </h2>
@@ -86,7 +86,7 @@ export default function AwardsCarousel() {
 
   if (error) {
     return (
-      <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "transparent" }}>
+      <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "#ffffff" }}>
         <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
           Awards
         </h2>
@@ -102,7 +102,7 @@ export default function AwardsCarousel() {
   const duplicatedAwards = [...awards, ...awards, ...awards];
 
   return (
-    <section style={{ width: "100vw", marginLeft: "calc(-50vw + 50%)", padding: "3rem 0", backgroundColor: "transparent" }}>
+    <section style={{ width: "100vw", marginLeft: "calc(-50vw + 50%)", padding: "3rem 0", backgroundColor: "#ffffff" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
         <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
           Awards
@@ -122,7 +122,7 @@ export default function AwardsCarousel() {
           width: "100%",
           overflow: "hidden",
           padding: "2rem 0",
-          backgroundColor: "transparent"
+          backgroundColor: "#ffffff"
         }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
