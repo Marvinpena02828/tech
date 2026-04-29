@@ -9,6 +9,7 @@ interface Award {
   image_url: string;
   display_order: number;
   is_active: boolean;
+  isLoaded?: boolean;
 }
 
 export default function AwardsCarousel() {
@@ -17,6 +18,16 @@ export default function AwardsCarousel() {
   const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
+
+  // Preload images
+  const preloadImage = (url: string): Promise<void> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve(); // Still resolve on error to not block
+      img.src = url;
+    });
+  };
 
   useEffect(() => {
     const fetchAwards = async () => {
@@ -50,6 +61,7 @@ export default function AwardsCarousel() {
                 image_url: img,
                 display_order: award.display_order || idx,
                 is_active: true,
+                isLoaded: false,
               });
             }
           });
@@ -57,6 +69,13 @@ export default function AwardsCarousel() {
 
         console.log("✅ Fetched awards:", allAwards);
         setAwards(allAwards);
+
+        // Preload all images in parallel
+        const preloadPromises = allAwards.map((award) =>
+          preloadImage(award.image_url)
+        );
+        await Promise.all(preloadPromises);
+        console.log("✅ All images preloaded");
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : String(err);
         console.error("❌ Error fetching awards:", errorMsg);
@@ -143,10 +162,10 @@ export default function AwardsCarousel() {
                 <img
                   src={award.image_url}
                   alt={`Award ${award.id}`}
-                  className="w-full h-full object-contain transition-all duration-300"
+                  className="w-full h-full object-contain transition-opacity duration-300 opacity-0"
+                  style={{ animation: "fadeIn 0.3s ease-in forwards" }}
                   onError={(e) => {
                     console.error(`❌ Failed to load: ${award.image_url}`);
-                    // Fallback: show placeholder
                     const img = e.currentTarget as HTMLImageElement;
                     img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100'%3E%3Crect fill='transparent' width='200' height='100'/%3E%3Ctext x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='14'%3EImage Not Found%3C/text%3E%3C/svg%3E";
                   }}
@@ -168,6 +187,15 @@ export default function AwardsCarousel() {
           }
           100% {
             transform: translateX(calc(-100% / 3));
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
           }
         }
       `}</style>
