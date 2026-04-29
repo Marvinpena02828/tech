@@ -201,7 +201,7 @@ export default function ProductCategory({
                   }}
                 >
                   {/* Properly sized oval for category display */}
-                  <div className="w-48 h-[28rem] xl:w-64 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                  <div className="w-56 h-[28rem] xl:w-72 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
                     <AppImage
                       src={getImageUrl(cat.image_link)}
                       alt={cat.title}
