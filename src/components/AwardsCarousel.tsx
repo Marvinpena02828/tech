@@ -17,7 +17,6 @@ export default function AwardsCarousel() {
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
-  // Preload images
   const preloadImage = (url: string): Promise<void> => {
     return new Promise((resolve) => {
       const img = new window.Image();
@@ -32,23 +31,17 @@ export default function AwardsCarousel() {
       try {
         const { data, error } = await supabase
           .from("awards")
-          .select("id, images, is_active, display_order")
+          .select("id,images,is_active,display_order")
           .eq("is_active", true)
           .order("display_order", { ascending: true });
 
-        if (error) {
-          console.error("Supabase error:", error);
-          setError(`Database error: ${error.message}`);
-          return;
-        }
+        if (error) throw error;
 
         if (!data || data.length === 0) {
-          console.warn("No active awards found");
           setAwards([]);
           return;
         }
 
-        // Flatten images from all awards into individual Award objects
         const allAwards: Award[] = [];
         data.forEach((award: any, idx: number) => {
           const images = Array.isArray(award.images) ? award.images : [];
@@ -64,18 +57,14 @@ export default function AwardsCarousel() {
           });
         });
 
-        console.log("✅ Fetched awards:", allAwards);
         setAwards(allAwards);
 
-        // Preload all images in parallel
         const preloadPromises = allAwards.map((award) =>
           preloadImage(award.image_url)
         );
         await Promise.all(preloadPromises);
-        console.log("✅ All images preloaded");
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : String(err);
-        console.error("❌ Error fetching awards:", errorMsg);
         setError(`Error: ${errorMsg}`);
       } finally {
         setLoading(false);
@@ -87,28 +76,21 @@ export default function AwardsCarousel() {
 
   if (loading) {
     return (
-      <section className="w-full py-16 bg-transparent">
-        <div className="container mx-auto px-4 mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
-            Awards
-          </h2>
-        </div>
-        <div className="text-center text-gray-500">Loading awards...</div>
+      <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "transparent" }}>
+        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+          Awards
+        </h2>
       </section>
     );
   }
 
   if (error) {
     return (
-      <section className="w-full py-16 bg-transparent">
-        <div className="container mx-auto px-4 mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
-            Awards
-          </h2>
-        </div>
-        <div className="text-center text-red-500 text-sm p-4 bg-red-50 rounded">
-          {error}
-        </div>
+      <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "transparent" }}>
+        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+          Awards
+        </h2>
+        <div style={{ textAlign: "center", color: "#dc2626", fontSize: "0.875rem" }}>{error}</div>
       </section>
     );
   }
@@ -117,77 +99,80 @@ export default function AwardsCarousel() {
     return null;
   }
 
-  // Duplicate awards for seamless infinite loop
   const duplicatedAwards = [...awards, ...awards, ...awards];
 
   return (
-    <section className="w-full py-16 bg-transparent">
-      {/* Title */}
-      <div className="container mx-auto px-4 mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900">
+    <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "transparent" }}>
+      <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
           Awards
         </h2>
-        <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 mx-auto mt-4 rounded-full" />
+        <div style={{ 
+          width: "4rem", 
+          height: "0.25rem", 
+          background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+          margin: "1rem auto 0",
+          borderRadius: "9999px"
+        }} />
       </div>
 
-      {/* Marquee Container */}
       <div
-        className="relative w-full overflow-hidden py-8"
+        style={{
+          position: "relative",
+          width: "100%",
+          overflow: "hidden",
+          padding: "2rem 0",
+          backgroundColor: "transparent"
+        }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        {/* Scrolling container */}
         <div
-          className="flex gap-12 md:gap-16 px-4 will-change-transform"
           style={{
-            animation: `marquee 80s linear infinite`,
+            display: "flex",
+            gap: "3rem",
+            padding: "0 1rem",
+            animation: isPaused ? "none" : "marquee 80s linear infinite",
             animationPlayState: isPaused ? "paused" : "running",
           }}
         >
           {duplicatedAwards.map((award, idx) => (
             <div
               key={`${award.id}-${idx}`}
-              className="flex-shrink-0 flex items-center justify-center group"
+              style={{
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              <div className="relative w-32 h-20 md:w-40 md:h-24 lg:w-48 lg:h-28 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 overflow-hidden">
-                <img
-                  src={award.image_url}
-                  alt={`Award ${award.id}`}
-                  className="w-full h-full object-contain transition-opacity duration-300 opacity-0"
-                  style={{ animation: "fadeIn 0.3s ease-in forwards" }}
-                  onError={(e) => {
-                    console.error(`❌ Failed to load: ${award.image_url}`);
-                    const img = e.currentTarget as HTMLImageElement;
-                    img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100'%3E%3Crect fill='transparent' width='200' height='100'/%3E%3Ctext x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='14'%3EImage Not Found%3C/text%3E%3C/svg%3E";
-                  }}
-                  onLoad={() => {
-                    console.log(`✅ Loaded: ${award.image_url.substring(0, 50)}...`);
-                  }}
-                />
-              </div>
+              <img
+                src={award.image_url}
+                alt={`Award ${award.id}`}
+                style={{
+                  width: "12rem",
+                  height: "7rem",
+                  objectFit: "contain",
+                  animation: "fadeIn 0.3s ease-in forwards",
+                }}
+                onError={(e) => {
+                  const img = e.currentTarget as HTMLImageElement;
+                  img.style.display = "none";
+                }}
+              />
             </div>
           ))}
         </div>
       </div>
 
-      {/* CSS Animation */}
-      <style jsx>{`
+      <style>{`
         @keyframes marquee {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(calc(-100% / 3));
-          }
+          0% { transform: translateX(0); }
+          100% { transform: translateX(calc(-100% / 3)); }
         }
-
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}</style>
     </section>
