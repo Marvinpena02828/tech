@@ -32,24 +32,11 @@ export default function AwardsCarousel() {
   useEffect(() => {
     const fetchAwards = async () => {
       try {
-        // Try award_slides first, then fall back to awards
-        let { data, error } = await supabase
-          .from("award_slides")
+        const { data, error } = await supabase
+          .from("awards")
           .select("id, images, is_active, display_order")
           .eq("is_active", true)
           .order("display_order", { ascending: true });
-
-        // If table doesn't exist, try 'awards' instead
-        if (error && error.message.includes("Could not find the table")) {
-          console.log("⚠️ Table 'award_slides' not found, trying 'awards'...");
-          const result = await supabase
-            .from("awards")
-            .select("id, images, is_active, display_order")
-            .eq("is_active", true)
-            .order("display_order", { ascending: true });
-          data = result.data;
-          error = result.error;
-        }
 
         if (error) {
           console.error("Supabase error:", error);
@@ -152,12 +139,6 @@ export default function AwardsCarousel() {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        {/* Left gradient overlay */}
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white via-white to-transparent z-20 pointer-events-none" />
-
-        {/* Right gradient overlay */}
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white via-white to-transparent z-20 pointer-events-none" />
-
         {/* Scrolling container */}
         <div
           className="flex gap-12 md:gap-16 px-4 will-change-transform"
