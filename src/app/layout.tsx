@@ -101,8 +101,8 @@ export const metadata: Metadata = {
   ],
   // Favicon from public folder
   icons: {
-    icon: "/tech-on-red.png",
-    apple: "/tech-on-red.png",
+    icon: "/tech-on-favicon.png",
+    apple: "/tech-on-favicon.png",
   },
   openGraph: {
     title: "TechOn – Innovative Electronics & Smart Tech Accessories",
@@ -112,7 +112,7 @@ export const metadata: Metadata = {
     siteName: "TechOn",
     images: [
       {
-        url: "/tech-on-red.png",
+        url: "/tech-on-favicon.png",
         width: 1200,
         height: 630,
         alt: "TechOn – Innovative Electronics & Smart Tech Accessories",
