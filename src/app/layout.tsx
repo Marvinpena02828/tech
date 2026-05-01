@@ -99,6 +99,11 @@ export const metadata: Metadata = {
     "smart tech solutions",
     "innovative electronics",
   ],
+  // Favicon from public folder
+  icons: {
+    icon: "/techon.png",
+    apple: "/techon.png",
+  },
   openGraph: {
     title: "TechOn – Innovative Electronics & Smart Tech Accessories",
     description:
@@ -157,8 +162,6 @@ export default async function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <head>
-        {logos.favicon && <link rel="icon" href={logos.favicon} />}
-
         {/* Organization Schema - JSON-LD Structured Data */}
         <script
           type="application/ld+json"
