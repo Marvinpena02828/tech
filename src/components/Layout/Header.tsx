@@ -64,7 +64,7 @@ export const socialLinks = [
     image: "/Images/social-media/Snapchat.png",
     imageHover: "/socials/snapchat-hover.png",
   },
-  { name: "X", href: "https://x.com/AyyanInnov12181", image: "/socials/X.png" },
+  { name: "X", href: "https://x.com/TechOnInnov", image: "/socials/X.png" },
 ];
 
 export default function Header({ logos }: HeaderProps) {
