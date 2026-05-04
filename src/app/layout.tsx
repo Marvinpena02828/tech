@@ -101,8 +101,8 @@ export const metadata: Metadata = {
   ],
   // Favicon from public folder
   icons: {
-    icon: "/Unknown-17.png",
-    apple: "/Unknown-17.png",
+    icon: "/Unknown-18.png",
+    apple: "/Unknown-18.png",
   },
   openGraph: {
     title: "TechOn – Innovative Electronics & Smart Tech Accessories",
@@ -112,7 +112,7 @@ export const metadata: Metadata = {
     siteName: "TechOn",
     images: [
       {
-        url: "/Unknown-17.png",
+        url: "/Unknown-18.png",
         width: 1200,
         height: 630,
         alt: "TechOn – Innovative Electronics & Smart Tech Accessories",
@@ -126,7 +126,7 @@ export const metadata: Metadata = {
     title: "TechOn – Innovative Electronics & Smart Tech Accessories",
     description:
       "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
-    images: ["/Unknown-17.png"],
+    images: ["/Unknown-18.png"],
     site: "@TechOn",
   },
   alternates: {
