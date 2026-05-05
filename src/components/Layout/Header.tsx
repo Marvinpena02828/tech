@@ -139,8 +139,11 @@ export default function Header({ logos }: HeaderProps) {
     fetchPromo();
   }, []);
 
-  // ✅ FIXED: Simple language change with LibreTranslate
+  // ✅ FIXED: Proper language change with async/await
   const changeLanguage = async (languageCode: string, languageName: string) => {
+    // Don't allow changing if already translating
+    if (isTranslating) return;
+
     setSelectedLanguage(languageName);
     setIsLanguageDropdownOpen(false);
 
@@ -149,7 +152,13 @@ export default function Header({ logos }: HeaderProps) {
       localStorage.setItem("preferredLanguageName", languageName);
 
       // Trigger translation
-      await translatePage(languageCode);
+      if (languageCode === "en") {
+        // Reset to English - reload page
+        window.location.reload();
+      } else {
+        // Translate to selected language
+        await translatePage(languageCode);
+      }
     }
   };
 
@@ -467,10 +476,11 @@ export default function Header({ logos }: HeaderProps) {
                   onClick={() => setIsSearchOpen(true)}
                   className=" hover:bg-gray-100 rounded-full transition-colors"
                   aria-label="Open search"
+                  disabled={isTranslating}
                 >
                   <Search
                     size={25}
-                    className="text-white cursor-pointer hover:text-red-500 transition-all duration-300 hover:scale-110  nav-link-hover"
+                    className="text-white cursor-pointer hover:text-red-500 transition-all duration-300 hover:scale-110  nav-link-hover disabled:opacity-50"
                   />
                 </button>
 
@@ -498,7 +508,7 @@ export default function Header({ logos }: HeaderProps) {
                   </button>
 
                   {/* Dropdown Menu */}
-                  {isLanguageDropdownOpen && (
+                  {isLanguageDropdownOpen && !isTranslating && (
                     <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                       <button
                         onClick={() => changeLanguage("en", "English")}
@@ -599,6 +609,7 @@ export default function Header({ logos }: HeaderProps) {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="xl:hidden ml-auto px-3 sm:px-4 md:px-6 text-white hover:text-red-500 transition-colors"
               aria-label="Toggle menu"
+              disabled={isTranslating}
             >
               {isMobileMenuOpen ? (
                 <X size={24} className="sm:w-6 sm:h-6 md:w-7 md:h-7" />
@@ -645,6 +656,7 @@ export default function Header({ logos }: HeaderProps) {
                   ? "text-red-500 font-bold"
                   : "text-gray-900 hover:text-red-500"
               }`}
+              disabled={isTranslating}
             >
               <span>PRODUCTS</span>
               <ChevronDown
@@ -691,6 +703,7 @@ export default function Header({ logos }: HeaderProps) {
                               }}
                               className="p-2 hover:text-red-500 transition-colors"
                               aria-label={`Toggle ${category.title} subcategories`}
+                              disabled={isTranslating}
                             >
                               <ChevronDown
                                 size={16}
@@ -814,17 +827,18 @@ export default function Header({ logos }: HeaderProps) {
                 setIsSearchOpen(true);
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-center space-x-2 bg-gray-300 text-primary-blue py-3 px-4 rounded-lg transition-colors"
+              className="w-full flex items-center justify-center space-x-2 bg-gray-300 text-primary-blue py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+              disabled={isTranslating}
             >
               <Search size={20} />
-              <span>Search</span>
+              <span>Search {isTranslating && "..."}</span>
             </button>
           </div>
 
           {/* Mobile Language Selector */}
           <div className="pt-4 border-t border-gray-900/30">
-            <h4 className="text-white text-sm font-bold mb-3 uppercase tracking-wider">
-              Language
+            <h4 className="text-gray-900 text-sm font-bold mb-3 uppercase tracking-wider">
+              Language {isTranslating && "..."}
             </h4>
             <div className="space-y-2">
               <button
@@ -836,7 +850,7 @@ export default function Header({ logos }: HeaderProps) {
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
                 }`}
               >
-                English {isTranslating && selectedLanguage === "English" && "..."}
+                English
               </button>
               <button
                 onClick={() => changeLanguage("zh", "中文")}
