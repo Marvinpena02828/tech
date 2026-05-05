@@ -348,14 +348,14 @@ export default function Footer() {
                   .filter((category) => category.parent_category_id === null)
                   .slice(0, 4)
                   .map((category) => (
-                    <li key={category.id} className="category-item">
-                      <Link
-                        href={category.id}
-                        className="text-sm text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
-                      >
-                        {category.title}
-                      </Link>
-                    </li>
+          <li key={category.id} className="category-item">
+  <Link
+    href={`/products?category=${category.id}`}
+    className="text-sm text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
+  >
+    {category.title}
+  </Link>
+</li>
                   ))}
               </ul>
             </div>
