@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 export const usePageTranslation = () => {
-  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const pathname = usePathname();
 
   // Map language codes to MyMemory codes
@@ -20,7 +21,10 @@ export const usePageTranslation = () => {
   };
 
   // Translate text using our API route (backend proxy to MyMemory)
-  const translateText = async (text: string, targetLang: string): Promise<string> => {
+  const translateText = async (
+    text: string,
+    targetLang: string
+  ): Promise<string> => {
     if (!text || targetLang === "en") return text;
 
     try {
@@ -30,7 +34,7 @@ export const usePageTranslation = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text: text.substring(0, 500), // MyMemory has char limit
+          text: text.substring(0, 500),
           targetLanguage: LANG_MAP[targetLang] || targetLang,
         }),
       });
@@ -48,7 +52,7 @@ export const usePageTranslation = () => {
     }
   };
 
-  // Get all translatable text from page - INCLUDING NESTED ELEMENTS
+  // Get all translatable text from page
   const getPageText = () => {
     const texts: Map<string, HTMLElement[]> = new Map();
     const visited = new Set<Node>();
@@ -62,18 +66,12 @@ export const usePageTranslation = () => {
 
     let node: Node | null;
     while ((node = walker.nextNode())) {
-      // Skip if already visited
       if (visited.has(node)) continue;
       visited.add(node);
 
       const text = node.textContent?.trim();
       const parent = node.parentElement;
 
-      // Skip if:
-      // - text is empty or too short
-      // - parent is script/style
-      // - already in admin section
-      // - is in an input/button with class "language-btn"
       if (
         !text ||
         text.length < 3 ||
@@ -88,11 +86,9 @@ export const usePageTranslation = () => {
         continue;
       }
 
-      // Get the actual text node's parent element
       const textParent = node.parentElement;
       if (!textParent) continue;
 
-      // Store mapping of text to elements
       if (!texts.has(text)) {
         texts.set(text, []);
       }
@@ -105,17 +101,22 @@ export const usePageTranslation = () => {
   // Translate page content
   const translatePage = async (targetLanguage: string) => {
     if (targetLanguage === "en") {
-      // Reset to English - just reload
+      // Reset to English - save to localStorage and reload
+      localStorage.setItem("currentLanguage", "en");
       window.location.reload();
       return;
     }
 
     setIsTranslating(true);
     try {
+      // Save language preference BEFORE translating
+      localStorage.setItem("currentLanguage", targetLanguage);
+      setCurrentLanguage(targetLanguage);
+
       const pageTexts = getPageText();
       const textsToTranslate = Array.from(pageTexts.keys())
         .filter((text) => text.length > 3)
-        .slice(0, 150); // Increase limit to 150 items
+        .slice(0, 150);
 
       if (textsToTranslate.length === 0) {
         console.log("No text found to translate");
@@ -126,24 +127,21 @@ export const usePageTranslation = () => {
       console.log(`Found ${textsToTranslate.length} text items to translate`);
       let successCount = 0;
 
-      // Translate with batching to avoid API limits
+      // Translate with batching
       const batchSize = 10;
       for (let i = 0; i < textsToTranslate.length; i += batchSize) {
         const batch = textsToTranslate.slice(i, i + batchSize);
 
-        // Process batch in parallel
         const translations = await Promise.all(
           batch.map((text) => translateText(text, targetLanguage))
         );
 
-        // Apply translations
         batch.forEach((originalText, idx) => {
           const translatedText = translations[idx];
           if (translatedText && translatedText !== originalText) {
             const elements = pageTexts.get(originalText) || [];
             elements.forEach((el) => {
               try {
-                // Replace text content - handles all node types
                 let found = false;
                 for (let i = 0; i < el.childNodes.length; i++) {
                   const child = el.childNodes[i];
@@ -157,9 +155,12 @@ export const usePageTranslation = () => {
                     break;
                   }
                 }
-                
-                // Fallback: if no direct text node found, replace element text
-                if (!found && el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+
+                if (
+                  !found &&
+                  el.childNodes.length === 1 &&
+                  el.childNodes[0].nodeType === 3
+                ) {
                   el.textContent = translatedText;
                   successCount++;
                 }
@@ -170,17 +171,12 @@ export const usePageTranslation = () => {
           }
         });
 
-        // Add delay between batches to respect API rate limits
         if (i + batchSize < textsToTranslate.length) {
           await new Promise((resolve) => setTimeout(resolve, 400));
         }
       }
 
-      if (successCount > 0) {
-        setCurrentLanguage(targetLanguage);
-        localStorage.setItem("currentLanguage", targetLanguage);
-        console.log(`Successfully translated ${successCount} text elements`);
-      }
+      console.log(`Successfully translated ${successCount} text elements`);
     } catch (error) {
       console.error("Translation error:", error);
     } finally {
@@ -188,23 +184,42 @@ export const usePageTranslation = () => {
     }
   };
 
-  // Load saved language on mount and on page change
+  // Initialize language from localStorage on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && !isInitialized) {
       const savedLanguage = localStorage.getItem("currentLanguage");
+      console.log("Saved language from localStorage:", savedLanguage);
+
       if (savedLanguage && savedLanguage !== "en") {
         setCurrentLanguage(savedLanguage);
-        // Delay translation to ensure page is fully loaded
+        // Translate page after a delay to ensure it's loaded
         setTimeout(() => {
           translatePage(savedLanguage);
-        }, 2000); // Increased delay to 2 seconds
+        }, 1500);
+      } else {
+        setCurrentLanguage("en");
       }
+
+      setIsInitialized(true);
     }
-  }, [pathname]); // Re-run when pathname changes (page navigation)
+  }, []); // Only run once on mount
+
+  // Re-translate when navigating to a new page
+  useEffect(() => {
+    if (isInitialized && currentLanguage && currentLanguage !== "en") {
+      console.log("Page changed, re-translating to:", currentLanguage);
+      // Delay to allow page content to load
+      const timer = setTimeout(() => {
+        translatePage(currentLanguage);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, isInitialized]);
 
   return {
     translatePage,
-    currentLanguage,
+    currentLanguage: currentLanguage || "en",
     setCurrentLanguage,
     isTranslating,
   };
