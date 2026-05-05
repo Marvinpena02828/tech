@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export const usePageTranslation = () => {
   const [currentLanguage, setCurrentLanguage] = useState("en");
   const [isTranslating, setIsTranslating] = useState(false);
+  const pathname = usePathname();
 
   // Map language codes to MyMemory codes
   const LANG_MAP: { [key: string]: string } = {
@@ -52,7 +54,7 @@ export const usePageTranslation = () => {
 
     // Get all text nodes
     const elements = document.querySelectorAll(
-      "p, h1, h2, h3, h4, h5, h6, span, a, li, label, button:not(.language-btn), td, th, div"
+      "p, h1, h2, h3, h4, h5, h6, span, a, li, label, button:not(.language-btn), td, th, div, button"
     );
 
     elements.forEach((el) => {
@@ -66,8 +68,13 @@ export const usePageTranslation = () => {
 
       text = text.trim();
 
-      // Skip if text is too short, contains only numbers
-      if (text && text.length > 3 && !/^\d+$/.test(text)) {
+      // Skip if text is too short, contains only numbers, or admin routes
+      if (
+        text &&
+        text.length > 3 &&
+        !/^\d+$/.test(text) &&
+        !pathname.includes("/admin")
+      ) {
         if (!texts.has(text)) {
           texts.set(text, []);
         }
@@ -142,7 +149,7 @@ export const usePageTranslation = () => {
     }
   };
 
-  // Load saved language on mount
+  // Load saved language on mount and on page change
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedLanguage = localStorage.getItem("currentLanguage");
@@ -154,7 +161,7 @@ export const usePageTranslation = () => {
         }, 1500);
       }
     }
-  }, []);
+  }, [pathname]); // Re-run when pathname changes (page navigation)
 
   return {
     translatePage,
