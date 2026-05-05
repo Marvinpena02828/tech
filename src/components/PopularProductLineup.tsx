@@ -119,7 +119,7 @@ export default function PopularProductLineup() {
       className="w-full py-20 lg:mt-2 bg-white "
     >
       {/* Desktop/Tablet View */}
-      <div className="hidden sm:block relative  container">
+      <div className="hidden sm:block relative container">
         {/* Navigation Arrows */}
 
         <button
@@ -139,7 +139,7 @@ export default function PopularProductLineup() {
         <button
           onClick={nextSlide}
           disabled={startIndex >= products.length - itemsToShow}
-          className={`absolute  flex items-center gap-1  -right-1 md:right-2 top-1/2 -translate-y-1/2 p-2 text-black  transition-all ${
+          className={`absolute flex items-center gap-1 -right-1 md:right-2 top-1/2 -translate-y-1/2 p-2 text-black transition-all ${
             startIndex >= products.length - itemsToShow
               ? "opacity-30 cursor-not-allowed"
               : "hover:bg-gray-800"
@@ -150,77 +150,77 @@ export default function PopularProductLineup() {
           <ChevronRight size={24} className="absolute right-2" />
         </button>
 
-      
-<div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+          <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+            Popular Product Lineup
+          </h2>
+          <div style={{ 
+            width: "4rem", 
+            height: "0.25rem", 
+            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+            margin: "1rem auto 0",
+            borderRadius: "9999px"
+          }} />
 
-              <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
-    Popular Product Lineup
-        </h2>
-        <div style={{ 
-          width: "4rem", 
-          height: "0.25rem", 
-          background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
-          margin: "1rem auto 0",
-          borderRadius: "9999px"
-        }} />
-        {/* Product Grid */}
-        <div
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6"
-          key={`grid-${startIndex}`}
-        >
-          {visibleProducts.map((product, idx) => {
-            const productImages = Array.isArray(product.product?.images) ? product.product.images : [];
-            const productImage = product.product?.thumbnail || productImages[0] || null;
-            const currentImage = productImages.length > 0 
-              ? productImages[getImageIndex(product.id, productImages)] 
-              : productImage;
-            
-            return (
-              <Link
-                href={`/products/${product.product_id}`}
-                onMouseEnter={() => handleMouseEnter(product.id)}
-                onMouseLeave={handleMouseLeave}
-                key={`${startIndex}-${idx}`}
-                className={`group flex flex-col bg-white  overflow-hidden transition-all duration-300 cursor-pointer ${
-                  isAnimating
-                    ? slideDirection === "right"
-                      ? "opacity-100 translate-x-0 animate-slideInRight"
-                      : "opacity-100 translate-x-0 animate-slideInLeft"
-                    : "opacity-100 translate-x-0"
-                } ${
-                  isVisible && !isAnimating
-                    ? "opacity-100 translate-y-0"
-                    : isVisible
-                    ? ""
-                    : "opacity-0 translate-y-8"
-                }`}
-                style={{
-                  transitionDelay: isAnimating ? `${idx * 80}ms` : "0ms",
-                }}
-              >
-                <div className="w-full aspect-square bg-white p-4 md:p-6 flex items-center justify-center relative overflow-hidden">
-                  {currentImage ? (
-                    <AppImage
-                      src={currentImage}
-                      alt={product.product?.title || "Product"}
-                      width={600}
-                      height={600}
-                      className="w-full h-full object-contain transition-all duration-500 ease-in-out"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-400">No Image</span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-3 md:p-4  text-center">
-                  <h3 className="text-sm font-normal text-gray-900 leading-snug line-clamp-3 min-h-[3rem] md:min-h-[3.5rem]">
-                    {product.product?.title || "Untitled Product"}
-                  </h3>
-                </div>
-              </Link>
-            );
-          })}
+          {/* Product Grid */}
+          <div
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6"
+            key={`grid-${startIndex}`}
+          >
+            {visibleProducts.map((product, idx) => {
+              const productImages = Array.isArray(product.product?.images) ? product.product.images : [];
+              const productImage = product.product?.thumbnail || productImages[0] || null;
+              const currentImage = productImages.length > 0 
+                ? productImages[getImageIndex(product.id, productImages)] 
+                : productImage;
+              
+              return (
+                <Link
+                  href={`/products/${product.product_id}`}
+                  onMouseEnter={() => handleMouseEnter(product.id)}
+                  onMouseLeave={handleMouseLeave}
+                  key={`${startIndex}-${idx}`}
+                  className={`group flex flex-col bg-white overflow-hidden transition-all duration-300 cursor-pointer ${
+                    isAnimating
+                      ? slideDirection === "right"
+                        ? "opacity-100 translate-x-0 animate-slideInRight"
+                        : "opacity-100 translate-x-0 animate-slideInLeft"
+                      : "opacity-100 translate-x-0"
+                  } ${
+                    isVisible && !isAnimating
+                      ? "opacity-100 translate-y-0"
+                      : isVisible
+                      ? ""
+                      : "opacity-0 translate-y-8"
+                  }`}
+                  style={{
+                    transitionDelay: isAnimating ? `${idx * 80}ms` : "0ms",
+                  }}
+                >
+                  <div className="w-full aspect-square bg-white p-4 md:p-6 flex items-center justify-center relative overflow-hidden">
+                    {currentImage ? (
+                      <AppImage
+                        src={currentImage}
+                        alt={product.product?.title || "Product"}
+                        width={600}
+                        height={600}
+                        className="w-full h-full object-contain transition-all duration-500 ease-in-out"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400">No Image</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 md:p-4 text-center">
+                    <h3 className="text-sm font-normal text-gray-900 leading-snug line-clamp-3 min-h-[3rem] md:min-h-[3.5rem]">
+                      {product.product?.title || "Untitled Product"}
+                    </h3>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -273,7 +273,7 @@ export default function PopularProductLineup() {
                 onMouseEnter={() => handleMouseEnter(product.id)}
                 onMouseLeave={handleMouseLeave}
                 key={`${startIndex}-${idx}`}
-                className={`group bg-white w-full shadow-sm hover:shadow-lgoverflow-hidden transition-all duration-300 cursor-pointer ${
+                className={`group bg-white w-full shadow-sm hover:shadow-lg overflow-hidden transition-all duration-300 cursor-pointer ${
                   isAnimating
                     ? slideDirection === "right"
                       ? "opacity-100 translate-x-0 animate-slideInRight"
@@ -304,7 +304,7 @@ export default function PopularProductLineup() {
                     </div>
                   )}
                 </div>
-                <div className="p-3 md:p-4  text-center">
+                <div className="p-3 md:p-4 text-center">
                   <h3 className="text-base md:text-lg font-normal text-gray-900 leading-snug line-clamp-3 min-h-[3rem] md:min-h-[3.5rem]">
                     {product.product?.title || "Untitled Product"}
                   </h3>
