@@ -112,9 +112,7 @@ export default function AchievementsSection() {
       className="w-full py-20 bg-white mt-2"
     >
       <div className="container">
-        {/* <h1 className="heading text-center text-black mb-12">
-          Our Milestones in Excellence
-        </h1> */}
+    
 
 
         <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
@@ -127,7 +125,7 @@ export default function AchievementsSection() {
           margin: "1rem auto 0",
           borderRadius: "9999px"
         }} />
-      </div>
+
 
 
 
