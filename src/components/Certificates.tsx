@@ -156,7 +156,7 @@ export default function Certificates({
     return (
       <section className="w-full py-20 bg-white flex flex-col items-center mx-auto overflow-hidden mt-2">
         <div className="container">
-          <h2 className="heading mb-8 md:mb-10 lg:mb-12 px-4 text-center">
+        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
             {heading}
           </h2>
           <div className="text-center text-gray-500">Loading certificates...</div>
