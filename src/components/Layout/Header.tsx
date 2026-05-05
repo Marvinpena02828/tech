@@ -139,7 +139,7 @@ export default function Header({ logos }: HeaderProps) {
     fetchPromo();
   }, []);
 
-  // ✅ FIXED: Proper language change with async/await
+  // ✅ FIXED: Simple language change with proper async handling
   const changeLanguage = async (languageCode: string, languageName: string) => {
     // Don't allow changing if already translating
     if (isTranslating) return;
@@ -148,10 +148,12 @@ export default function Header({ logos }: HeaderProps) {
     setIsLanguageDropdownOpen(false);
 
     if (typeof window !== "undefined") {
+      // Save to localStorage with the SAME KEY as translation hook uses
+      localStorage.setItem("currentLanguage", languageCode);
       localStorage.setItem("preferredLanguage", languageCode);
       localStorage.setItem("preferredLanguageName", languageName);
 
-      // Trigger translation
+      // Trigger translation and wait for it to complete
       if (languageCode === "en") {
         // Reset to English - reload page
         window.location.reload();
@@ -162,12 +164,26 @@ export default function Header({ logos }: HeaderProps) {
     }
   };
 
-  // Load saved language preference on mount
+  // Load saved language preference on mount and sync with translation hook
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedLanguageName = localStorage.getItem("preferredLanguageName");
-      if (savedLanguageName) {
-        setSelectedLanguage(savedLanguageName);
+      // Use the same localStorage key as translation hook
+      const savedLanguage = localStorage.getItem("currentLanguage");
+      
+      // Map language code to language name
+      const languageNameMap: { [key: string]: string } = {
+        en: "English",
+        zh: "中文",
+        ar: "العربية",
+        ru: "Русский",
+        de: "Deutsch",
+        ro: "Română",
+        es: "Español",
+        fr: "Français",
+      };
+
+      if (savedLanguage && languageNameMap[savedLanguage]) {
+        setSelectedLanguage(languageNameMap[savedLanguage]);
       }
     }
   }, []);
