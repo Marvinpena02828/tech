@@ -39,13 +39,18 @@ ISO 9001 & 14001, GRS Certified,  BSCI Audited
       className="w-full py-20 bg-white border-t border-gray-100 mt-2"
     >
       <div className="container">
-        <h2
-          className={`heading text-center text-gray-800 mb-12 font-arial transition-all duration-700 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
+             <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+          <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
           Our Services
         </h2>
+                   <div style={{ 
+            width: "4rem", 
+            height: "0.25rem", 
+            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+            margin: "1rem auto 0",
+            borderRadius: "9999px"
+          }} />
+        </div>
 
         <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-4">
           {services.map((service, idx) => (
