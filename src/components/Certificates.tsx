@@ -81,7 +81,7 @@ export default function Certificates({
   const fetchAwardSlides = async () => {
     try {
       const { data, error } = await supabase
-        .from("award_slides") // Create this table with same structure as certificates
+        .from("award_slides")
         .select("*")
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
@@ -156,17 +156,26 @@ export default function Certificates({
     return (
       <section className="w-full py-20 bg-white flex flex-col items-center mx-auto overflow-hidden mt-2">
         <div className="container">
-        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
-            {heading}
-          </h2>
-          <div className="text-center text-gray-500">Loading certificates...</div>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+            <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+              {heading}
+            </h2>
+            <div style={{ 
+              width: "4rem", 
+              height: "0.25rem", 
+              background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+              margin: "1rem auto 0",
+              borderRadius: "9999px"
+            }} />
+            <div className="text-center text-gray-500">Loading certificates...</div>
+          </div>
         </div>
       </section>
     );
   }
 
   if (certificates.length === 0) {
-    return null; // Don't show section if no certificates
+    return null;
   }
 
   const selectedCertData = certificates.find((c) => c.id === selectedCert);
