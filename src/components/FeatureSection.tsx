@@ -30,7 +30,7 @@ export default function FeatureSection({
             margin: "1rem auto 0",
             borderRadius: "9999px"
           }} />
-        </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {featuredBanner?.map((banner, index) => (
               <div key={index} className="relative aspect-video w-full">
