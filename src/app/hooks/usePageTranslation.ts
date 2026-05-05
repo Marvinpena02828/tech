@@ -1,47 +1,77 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const LANGUAGE_CODES: { [key: string]: string } = {
-  English: "en",
-  "中文": "zh",
-  العربية: "ar",
-  Русский: "ru",
-  Deutsch: "de",
-  Română: "ro",
-  Español: "es",
-  Français: "fr",
-};
-
-const REVERSE_LANGUAGE_CODES: { [key: string]: string } = {
-  en: "English",
-  zh: "中文",
-  ar: "العربية",
-  ru: "Русский",
-  de: "Deutsch",
-  ro: "Română",
-  es: "Español",
-  fr: "Français",
-};
-
 export const usePageTranslation = () => {
   const [currentLanguage, setCurrentLanguage] = useState("en");
   const [isTranslating, setIsTranslating] = useState(false);
 
+  // Map language codes to MyMemory codes
+  const LANG_MAP: { [key: string]: string } = {
+    en: "en-US",
+    zh: "zh-CN",
+    ar: "ar",
+    ru: "ru",
+    de: "de",
+    ro: "ro",
+    es: "es",
+    fr: "fr",
+  };
+
+  // Translate text using our API route (backend proxy to MyMemory)
+  const translateText = async (text: string, targetLang: string): Promise<string> => {
+    if (!text || targetLang === "en") return text;
+
+    try {
+      const response = await fetch("/api/translate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: text.substring(0, 500), // MyMemory has char limit
+          targetLanguage: LANG_MAP[targetLang] || targetLang,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Translation API error:", response.statusText);
+        return text;
+      }
+
+      const data = await response.json();
+      return data.translatedText || text;
+    } catch (error) {
+      console.error("Translation error:", error);
+      return text;
+    }
+  };
+
   // Get all translatable text from page
   const getPageText = () => {
-    const texts: { [key: string]: HTMLElement[] } = {};
-    
-    // Get all text nodes from paragraphs, headings, spans, divs, etc.
+    const texts: Map<string, HTMLElement[]> = new Map();
+
+    // Get all text nodes
     const elements = document.querySelectorAll(
-      "p, h1, h2, h3, h4, h5, h6, span, a, li, label, button:not(.language-btn)"
+      "p, h1, h2, h3, h4, h5, h6, span, a, li, label, button:not(.language-btn), td, th, div"
     );
 
     elements.forEach((el) => {
-      const text = el.textContent?.trim();
-      if (text && text.length > 0 && !texts[text]) {
-        texts[text] = [el as HTMLElement];
-      } else if (text && texts[text]) {
-        texts[text].push(el as HTMLElement);
+      // Only get direct text content, not nested elements
+      let text = "";
+      el.childNodes.forEach((node) => {
+        if (node.nodeType === 3) { // TEXT_NODE
+          text += node.textContent || "";
+        }
+      });
+
+      text = text.trim();
+
+      // Skip if text is too short, contains only numbers
+      if (text && text.length > 3 && !/^\d+$/.test(text)) {
+        if (!texts.has(text)) {
+          texts.set(text, []);
+        }
+        texts.get(text)!.push(el as HTMLElement);
       }
     });
 
@@ -51,7 +81,7 @@ export const usePageTranslation = () => {
   // Translate page content
   const translatePage = async (targetLanguage: string) => {
     if (targetLanguage === "en") {
-      // Reset to English
+      // Reset to English - just reload
       window.location.reload();
       return;
     }
@@ -59,7 +89,7 @@ export const usePageTranslation = () => {
     setIsTranslating(true);
     try {
       const pageTexts = getPageText();
-      const textsToTranslate = Object.keys(pageTexts);
+      const textsToTranslate = Array.from(pageTexts.keys()).slice(0, 100); // Limit to 100 items
 
       if (textsToTranslate.length === 0) {
         console.log("No text found to translate");
@@ -67,52 +97,44 @@ export const usePageTranslation = () => {
         return;
       }
 
-      // Batch translate
-      const batchSize = 10;
+      let successCount = 0;
+
+      // Translate with batching to avoid API limits
+      const batchSize = 5;
       for (let i = 0; i < textsToTranslate.length; i += batchSize) {
         const batch = textsToTranslate.slice(i, i + batchSize);
 
-        try {
-          const response = await fetch("https://api.libretranslate.de/translate", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              q: batch.join("\n[SEP]\n"),
-              source: "en",
-              target: targetLanguage,
-            }),
-          });
+        // Process batch in parallel
+        const translations = await Promise.all(
+          batch.map((text) => translateText(text, targetLanguage))
+        );
 
-          if (!response.ok) {
-            console.error("Translation API error:", response.statusText);
-            continue;
+        // Apply translations
+        batch.forEach((originalText, idx) => {
+          const translatedText = translations[idx];
+          if (translatedText && translatedText !== originalText) {
+            const elements = pageTexts.get(originalText) || [];
+            elements.forEach((el) => {
+              // Only replace if it's a pure text element
+              if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+                el.textContent = translatedText;
+                successCount++;
+              }
+            });
           }
+        });
 
-          const data = await response.json();
-          const translatedTexts = data.translatedText.split("\n[SEP]\n");
-
-          // Apply translations
-          batch.forEach((originalText, index) => {
-            const translatedText = translatedTexts[index]?.trim();
-            if (translatedText && pageTexts[originalText]) {
-              pageTexts[originalText].forEach((el) => {
-                if (el.textContent === originalText) {
-                  el.textContent = translatedText;
-                }
-              });
-            }
-          });
-        } catch (error) {
-          console.error("Error translating batch:", error);
+        // Add delay between batches to respect API rate limits
+        if (i + batchSize < textsToTranslate.length) {
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
-
-        // Add small delay between batches to avoid rate limiting
-        await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
-      setCurrentLanguage(targetLanguage);
+      if (successCount > 0) {
+        setCurrentLanguage(targetLanguage);
+        localStorage.setItem("currentLanguage", targetLanguage);
+        console.log(`Successfully translated ${successCount} text elements`);
+      }
     } catch (error) {
       console.error("Translation error:", error);
     } finally {
@@ -120,16 +142,16 @@ export const usePageTranslation = () => {
     }
   };
 
-  // Load saved language
+  // Load saved language on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedLanguage = localStorage.getItem("preferredLanguage");
+      const savedLanguage = localStorage.getItem("currentLanguage");
       if (savedLanguage && savedLanguage !== "en") {
         setCurrentLanguage(savedLanguage);
         // Delay translation to ensure page is fully loaded
         setTimeout(() => {
           translatePage(savedLanguage);
-        }, 500);
+        }, 1500);
       }
     }
   }, []);
