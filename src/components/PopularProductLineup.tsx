@@ -150,8 +150,19 @@ export default function PopularProductLineup() {
           <ChevronRight size={24} className="absolute right-2" />
         </button>
 
-        <h1 className="heading text-center mb-6">Popular Product Lineup</h1>
+      
 
+
+              <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+    Popular Product Lineup
+        </h2>
+        <div style={{ 
+          width: "4rem", 
+          height: "0.25rem", 
+          background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+          margin: "1rem auto 0",
+          borderRadius: "9999px"
+        }} />
         {/* Product Grid */}
         <div
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6"
