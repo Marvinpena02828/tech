@@ -9,7 +9,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getPublicCategories } from "@/app/(private)/admin/categories/models/categories-model";
 import { Category } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
-import { usePageTranslation } from "@/hooks/usePageTranslation";
+import { usePageTranslation } from "@/app/hooks/usePageTranslation";
 
 interface LogosProps {
   main?: string;
