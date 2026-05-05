@@ -47,9 +47,19 @@ const NewsHomeSection = ({ showViewAll = true }: { showViewAll?: boolean }) => {
   return (
     <section className="w-full py-12 sm:py-16 md:py-20 mt-2 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
-          Corporate News
-        </h2>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+          <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+            Corporate News
+          </h2>
+          <div style={{ 
+            width: "4rem", 
+            height: "0.25rem", 
+            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+            margin: "1rem auto 0",
+            borderRadius: "9999px"
+          }} />
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {news.map((item) => (
             <Link
