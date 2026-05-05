@@ -136,8 +136,8 @@ export default function ProductCategory({
       ref={ref as React.RefObject<HTMLElement>}
       className="w-full py-20 bg-white flex flex-col items-center overflow-hidden mt-2"
     >
-      <h2 className="heading px-4 text-center">Explore by Category</h2>
 
+ <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>Explore by Category</h2>
       {/* Desktop View */}
       <div className="hidden container lg:block w-full mt-12">
         <div className="flex items-center justify-center gap-12 xl:gap-16 w-full px-6">
