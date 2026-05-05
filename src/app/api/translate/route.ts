@@ -2,10 +2,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
+  let text = "";
+  let targetLanguage = "";
+
   try {
     const body = await request.json();
-    const text = body.text;
-    const targetLanguage = body.targetLanguage;
+    text = body.text;
+    targetLanguage = body.targetLanguage;
 
     if (!text || !targetLanguage) {
       return NextResponse.json(
@@ -53,9 +56,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ translatedText: text });
   } catch (error) {
     console.error("Translation API error:", error);
-    const defaultText = body?.text || "Translation failed";
     return NextResponse.json(
-      { error: "Translation failed", translatedText: defaultText },
+      { error: "Translation failed", translatedText: text || "Translation failed" },
       { status: 500 }
     );
   }
