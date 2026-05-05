@@ -9,6 +9,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getPublicCategories } from "@/app/(private)/admin/categories/models/categories-model";
 import { Category } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
+import { usePageTranslation } from "@/hooks/usePageTranslation";
 
 interface LogosProps {
   main?: string;
@@ -67,6 +68,17 @@ export const socialLinks = [
   { name: "X", href: "https://x.com/TechOnInnov", image: "/socials/X.png" },
 ];
 
+const LANGUAGE_MAP: { [key: string]: string } = {
+  English: "en",
+  "中文": "zh",
+  العربية: "ar",
+  Русский: "ru",
+  Deutsch: "de",
+  Română: "ro",
+  Español: "es",
+  Français: "fr",
+};
+
 export default function Header({ logos }: HeaderProps) {
   const [promoBar, setPromoBar] = useState<PromotionalBar | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -90,6 +102,9 @@ export default function Header({ logos }: HeaderProps) {
 
   const currentPath = usePathname();
   const router = useRouter();
+
+  // Use translation hook
+  const { translatePage, isTranslating } = usePageTranslation();
 
   // ✅ USE LOGOS FROM CMS PROP
   const mainLogo = logos?.main || "";
@@ -124,17 +139,17 @@ export default function Header({ logos }: HeaderProps) {
     fetchPromo();
   }, []);
 
-  // ✅ FIXED: Simple language change without Google Translate complications
-  const changeLanguage = (languageCode: string, languageName: string) => {
+  // ✅ FIXED: Simple language change with LibreTranslate
+  const changeLanguage = async (languageCode: string, languageName: string) => {
     setSelectedLanguage(languageName);
     setIsLanguageDropdownOpen(false);
 
     if (typeof window !== "undefined") {
       localStorage.setItem("preferredLanguage", languageCode);
       localStorage.setItem("preferredLanguageName", languageName);
-      
-      // Simple reload - localStorage will handle language on next load
-      window.location.reload();
+
+      // Trigger translation
+      await translatePage(languageCode);
     }
   };
 
@@ -254,7 +269,7 @@ export default function Header({ logos }: HeaderProps) {
 
   const handleLogoClick = () => {
     setLastClickedRoute("/");
-    
+
     // If already on home page, just scroll to top
     if (currentPath === "/") {
       window.scrollTo({
@@ -465,14 +480,15 @@ export default function Header({ logos }: HeaderProps) {
                     onClick={() =>
                       setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
                     }
-                    className="flex items-center space-x-2 hover:text-red-500 transition-all duration-300"
+                    className="flex items-center space-x-2 hover:text-red-500 transition-all duration-300 disabled:opacity-50"
+                    disabled={isTranslating}
                   >
                     <Globe className="text-white hover:text-red-500 transition-colors" />
                     <span
                       className="text-white cursor-pointer hover:text-red-500 transition-all duration-300"
                       suppressHydrationWarning
                     >
-                      {selectedLanguage}
+                      {selectedLanguage} {isTranslating && "..."}
                     </span>
                     <ChevronDown
                       className={`text-white transition-transform duration-300 ${
@@ -486,7 +502,8 @@ export default function Header({ logos }: HeaderProps) {
                     <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                       <button
                         onClick={() => changeLanguage("en", "English")}
-                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
                           selectedLanguage === "English"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
@@ -495,8 +512,9 @@ export default function Header({ logos }: HeaderProps) {
                         English
                       </button>
                       <button
-                        onClick={() => changeLanguage("zh-CN", "中文")}
-                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
+                        onClick={() => changeLanguage("zh", "中文")}
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
                           selectedLanguage === "中文"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
@@ -506,7 +524,8 @@ export default function Header({ logos }: HeaderProps) {
                       </button>
                       <button
                         onClick={() => changeLanguage("ar", "العربية")}
-                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
                           selectedLanguage === "العربية"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
@@ -516,7 +535,8 @@ export default function Header({ logos }: HeaderProps) {
                       </button>
                       <button
                         onClick={() => changeLanguage("ru", "Русский")}
-                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
                           selectedLanguage === "Русский"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
@@ -526,7 +546,8 @@ export default function Header({ logos }: HeaderProps) {
                       </button>
                       <button
                         onClick={() => changeLanguage("de", "Deutsch")}
-                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
                           selectedLanguage === "Deutsch"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
@@ -536,7 +557,8 @@ export default function Header({ logos }: HeaderProps) {
                       </button>
                       <button
                         onClick={() => changeLanguage("ro", "Română")}
-                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
                           selectedLanguage === "Română"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
@@ -546,7 +568,8 @@ export default function Header({ logos }: HeaderProps) {
                       </button>
                       <button
                         onClick={() => changeLanguage("es", "Español")}
-                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
                           selectedLanguage === "Español"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
@@ -556,7 +579,8 @@ export default function Header({ logos }: HeaderProps) {
                       </button>
                       <button
                         onClick={() => changeLanguage("fr", "Français")}
-                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors rounded-b-lg ${
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors rounded-b-lg disabled:opacity-50 ${
                           selectedLanguage === "Français"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
@@ -804,22 +828,20 @@ export default function Header({ logos }: HeaderProps) {
             </h4>
             <div className="space-y-2">
               <button
-                onClick={() => {
-                  changeLanguage("en", "English");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("en", "English")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "English"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
                 }`}
               >
-                English
+                English {isTranslating && selectedLanguage === "English" && "..."}
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("zh-CN", "中文");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("zh", "中文")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "中文"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -828,10 +850,9 @@ export default function Header({ logos }: HeaderProps) {
                 中文 (Chinese)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("ar", "العربية");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("ar", "العربية")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "العربية"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -840,10 +861,9 @@ export default function Header({ logos }: HeaderProps) {
                 العربية (Arabic)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("ru", "Русский");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("ru", "Русский")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Русский"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -852,10 +872,9 @@ export default function Header({ logos }: HeaderProps) {
                 Русский (Russian)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("de", "Deutsch");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("de", "Deutsch")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Deutsch"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -864,10 +883,9 @@ export default function Header({ logos }: HeaderProps) {
                 Deutsch (German)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("ro", "Română");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("ro", "Română")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Română"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -876,10 +894,9 @@ export default function Header({ logos }: HeaderProps) {
                 Română (Romanian)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("es", "Español");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("es", "Español")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Español"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -888,10 +905,9 @@ export default function Header({ logos }: HeaderProps) {
                 Español (Spanish)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("fr", "Français");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("fr", "Français")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Français"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
