@@ -48,39 +48,56 @@ export const usePageTranslation = () => {
     }
   };
 
-  // Get all translatable text from page
+  // Get all translatable text from page - INCLUDING NESTED ELEMENTS
   const getPageText = () => {
     const texts: Map<string, HTMLElement[]> = new Map();
+    const visited = new Set<Node>();
 
-    // Get all text nodes
-    const elements = document.querySelectorAll(
-      "p, h1, h2, h3, h4, h5, h6, span, a, li, label, button:not(.language-btn), td, th, div, button"
+    // Walk through ALL nodes in the DOM
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      null
     );
 
-    elements.forEach((el) => {
-      // Only get direct text content, not nested elements
-      let text = "";
-      el.childNodes.forEach((node) => {
-        if (node.nodeType === 3) { // TEXT_NODE
-          text += node.textContent || "";
-        }
-      });
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      // Skip if already visited
+      if (visited.has(node)) continue;
+      visited.add(node);
 
-      text = text.trim();
+      const text = node.textContent?.trim();
+      const parent = node.parentElement;
 
-      // Skip if text is too short, contains only numbers, or admin routes
+      // Skip if:
+      // - text is empty or too short
+      // - parent is script/style
+      // - already in admin section
+      // - is in an input/button with class "language-btn"
       if (
-        text &&
-        text.length > 3 &&
-        !/^\d+$/.test(text) &&
-        !pathname.includes("/admin")
+        !text ||
+        text.length < 3 ||
+        !parent ||
+        parent.tagName === "SCRIPT" ||
+        parent.tagName === "STYLE" ||
+        pathname.includes("/admin") ||
+        parent.classList.contains("language-btn") ||
+        parent.closest(".goog-te-bubble") ||
+        parent.closest("#google_translate_element")
       ) {
-        if (!texts.has(text)) {
-          texts.set(text, []);
-        }
-        texts.get(text)!.push(el as HTMLElement);
+        continue;
       }
-    });
+
+      // Get the actual text node's parent element
+      const textParent = node.parentElement;
+      if (!textParent) continue;
+
+      // Store mapping of text to elements
+      if (!texts.has(text)) {
+        texts.set(text, []);
+      }
+      texts.get(text)!.push(textParent);
+    }
 
     return texts;
   };
@@ -96,7 +113,9 @@ export const usePageTranslation = () => {
     setIsTranslating(true);
     try {
       const pageTexts = getPageText();
-      const textsToTranslate = Array.from(pageTexts.keys()).slice(0, 100); // Limit to 100 items
+      const textsToTranslate = Array.from(pageTexts.keys())
+        .filter((text) => text.length > 3)
+        .slice(0, 150); // Increase limit to 150 items
 
       if (textsToTranslate.length === 0) {
         console.log("No text found to translate");
@@ -104,10 +123,11 @@ export const usePageTranslation = () => {
         return;
       }
 
+      console.log(`Found ${textsToTranslate.length} text items to translate`);
       let successCount = 0;
 
       // Translate with batching to avoid API limits
-      const batchSize = 5;
+      const batchSize = 10;
       for (let i = 0; i < textsToTranslate.length; i += batchSize) {
         const batch = textsToTranslate.slice(i, i + batchSize);
 
@@ -122,10 +142,29 @@ export const usePageTranslation = () => {
           if (translatedText && translatedText !== originalText) {
             const elements = pageTexts.get(originalText) || [];
             elements.forEach((el) => {
-              // Only replace if it's a pure text element
-              if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
-                el.textContent = translatedText;
-                successCount++;
+              try {
+                // Replace text content - handles all node types
+                let found = false;
+                for (let i = 0; i < el.childNodes.length; i++) {
+                  const child = el.childNodes[i];
+                  if (
+                    child.nodeType === 3 &&
+                    child.textContent?.trim() === originalText
+                  ) {
+                    child.textContent = translatedText;
+                    found = true;
+                    successCount++;
+                    break;
+                  }
+                }
+                
+                // Fallback: if no direct text node found, replace element text
+                if (!found && el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+                  el.textContent = translatedText;
+                  successCount++;
+                }
+              } catch (err) {
+                console.error("Error replacing text:", err);
               }
             });
           }
@@ -133,7 +172,7 @@ export const usePageTranslation = () => {
 
         // Add delay between batches to respect API rate limits
         if (i + batchSize < textsToTranslate.length) {
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, 400));
         }
       }
 
@@ -158,7 +197,7 @@ export const usePageTranslation = () => {
         // Delay translation to ensure page is fully loaded
         setTimeout(() => {
           translatePage(savedLanguage);
-        }, 1500);
+        }, 2000); // Increased delay to 2 seconds
       }
     }
   }, [pathname]); // Re-run when pathname changes (page navigation)
