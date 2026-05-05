@@ -32,6 +32,7 @@ export default function BusinessNeedsSection() {
             borderRadius: "9999px"
           }} />
 
+        </div>
           
         </div>
 
