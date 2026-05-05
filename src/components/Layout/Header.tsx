@@ -124,7 +124,7 @@ export default function Header({ logos }: HeaderProps) {
     fetchPromo();
   }, []);
 
-  // Function to change language using Google Translate
+  // ✅ FIXED: Simple language change without Google Translate complications
   const changeLanguage = (languageCode: string, languageName: string) => {
     setSelectedLanguage(languageName);
     setIsLanguageDropdownOpen(false);
@@ -132,50 +132,18 @@ export default function Header({ logos }: HeaderProps) {
     if (typeof window !== "undefined") {
       localStorage.setItem("preferredLanguage", languageCode);
       localStorage.setItem("preferredLanguageName", languageName);
+      
+      // Simple reload - localStorage will handle language on next load
+      window.location.reload();
     }
-
-    const setCookie = (name: string, value: string, days: number) => {
-      const expires = new Date();
-      expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-      document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
-    };
-
-    const triggerLanguageChange = () => {
-      try {
-        const languageValue =
-          languageCode === "en" ? "/auto/en" : `/auto/${languageCode}`;
-        setCookie("googtrans", languageValue, 365);
-        setCookie("googtrans", `${languageValue}`, 365);
-        window.location.reload();
-        return true;
-      } catch (error) {
-        console.error("Error changing language:", error);
-        return false;
-      }
-    };
-
-    triggerLanguageChange();
   };
 
   // Load saved language preference on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedLanguageCode = localStorage.getItem("preferredLanguage");
       const savedLanguageName = localStorage.getItem("preferredLanguageName");
-
       if (savedLanguageName) {
         setSelectedLanguage(savedLanguageName);
-      }
-
-      if (savedLanguageCode && savedLanguageCode !== "en") {
-        const setCookie = (name: string, value: string, days: number) => {
-          const expires = new Date();
-          expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-          document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
-        };
-
-        const languageValue = `/auto/${savedLanguageCode}`;
-        setCookie("googtrans", languageValue, 365);
       }
     }
   }, []);
