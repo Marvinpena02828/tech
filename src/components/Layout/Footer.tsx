@@ -61,10 +61,9 @@ const footerLinks = {
     { label: "About Us", href: "/about" },
     { label: "News", href: "/news" },
     { label: "Contact Us", href: "/contact" },
-    { label: "Newsroom", href: "#" },
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms and Conditions", href: "#" },
-    { label: "Accessibility", href: "#" },
+
+   
+
   ],
 };
 
