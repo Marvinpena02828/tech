@@ -21,7 +21,7 @@ export default function FeatureSection({
     >
       <div className="container pt-8 pb-4">
  
-
+<div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
 
         <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
           Featured Products
