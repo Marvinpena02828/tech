@@ -20,8 +20,22 @@ export default function FeatureSection({
       className="w-full  mt-2 py-20 bg-white"
     >
       <div className="container pt-8 pb-4">
-        <h1 className="heading text-center mb-12">Featured Products</h1>
+ 
 
+
+        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+          Featured Products
+        </h2>
+        <div style={{ 
+          width: "4rem", 
+          height: "0.25rem", 
+          background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+          margin: "1rem auto 0",
+          borderRadius: "9999px"
+        }} />
+
+
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {featuredBanner?.map((banner, index) => (
             <div key={index} className=" relative aspect-video w-full ">
