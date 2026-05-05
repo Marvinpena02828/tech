@@ -130,10 +130,11 @@ export default function AwardsCarousel() {
         <div
           style={{
             display: "flex",
-            gap: "3rem",
-            padding: "0 1rem",
-            animation: isPaused ? "none" : "marquee 80s linear infinite",
+            gap: "4rem",
+            padding: "0 2rem",
+            animation: isPaused ? "none" : "marquee 110s linear infinite",
             animationPlayState: isPaused ? "paused" : "running",
+            animationDelay: "0s",
           }}
         >
           {duplicatedAwards.map((award, idx) => (
@@ -168,6 +169,7 @@ export default function AwardsCarousel() {
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
+          10% { transform: translateX(0); }
           100% { transform: translateX(calc(-100% / 3)); }
         }
         @keyframes fadeIn {
