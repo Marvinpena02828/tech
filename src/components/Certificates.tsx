@@ -186,9 +186,18 @@ export default function Certificates({
       className="w-full py-20 bg-white flex flex-col items-center mx-auto overflow-hidden mt-2"
     >
       <div className="container">
-        <h2 className="heading mb-12 md:mb-14 lg:mb-16 px-4 text-center">
-          {heading}
-        </h2>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+          <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+            {heading}
+          </h2>
+          <div style={{ 
+            width: "4rem", 
+            height: "0.25rem", 
+            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+            margin: "1rem auto 0",
+            borderRadius: "9999px"
+          }} />
+        </div>
 
         {/* Desktop/Tablet Carousel View */}
         <div className="hidden sm:block relative px-8 md:px-12">
