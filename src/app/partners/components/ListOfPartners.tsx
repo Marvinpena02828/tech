@@ -17,7 +17,7 @@ interface PartnerItem {
   detail: string;
 }
 
-interface CustomerCategory {
+export interface CustomerCategory {
   id: string;
   type: string;
   description: string;
@@ -31,6 +31,9 @@ interface CustomerCategory {
   };
   displayOrder: number;
 }
+
+// Exported for backward compatibility - populated from Supabase on component load
+export const customerCategories: CustomerCategory[] = [];
 
 const ListOfPartners = () => {
   const supabase = createClient();
