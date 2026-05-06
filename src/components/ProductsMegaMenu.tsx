@@ -9,6 +9,7 @@ import { getPublicCategories } from "@/app/(private)/admin/categories/models/cat
 import { Category } from "@/lib/types";
 import { ChevronRight } from "lucide-react";
 
+
 interface ProductsMegaMenuProps {
   onClose?: () => void;
 }
