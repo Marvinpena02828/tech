@@ -100,9 +100,9 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
     return (
       <div
         className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden"
-        style={{ maxWidth: "1400px", margin: "0 auto" }}
+        style={{ maxWidth: "100%", margin: "0 auto" }}
       >
-        <div className="mx-auto px-3 sm:px-4 md:px-6 lg:px-12 py-4 sm:py-6 lg:py-8">
+        <div className="w-full mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-4 sm:py-6 lg:py-8">
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#32375A] mx-auto mb-4"></div>
@@ -118,9 +118,9 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
     return (
       <div
         className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden"
-        style={{ maxWidth: "1400px", margin: "0 auto" }}
+        style={{ maxWidth: "100%", margin: "0 auto" }}
       >
-        <div className="mx-auto px-3 sm:px-4 md:px-6 lg:px-12 py-4 sm:py-6 lg:py-8">
+        <div className="w-full mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-4 sm:py-6 lg:py-8">
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
               <div className="text-red-500 mb-2">
@@ -161,12 +161,12 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
     <div
       className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden animate-fadeIn"
       style={{
-        maxWidth: "1400px",
+        maxWidth: "100%",
         margin: "0 auto",
       }}
     >
-      {/* Container with max-width matching site layout */}
-      <div className="mx-auto px-3 sm:px-4 md:px-6 lg:px-12 py-4 sm:py-6 lg:py-8">
+      {/* Container with full width - increased padding */}
+      <div className="w-full mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-4 sm:py-6 lg:py-8">
         <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Navigation List */}
           <div className="w-1/5">
@@ -214,7 +214,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
           </div>
 
           {/* Right Column - Featured Section */}
-          <div className="flex-1/2">
+          <div className="flex-1">
             <div className="h-full flex flex-col justify-between">
               {/* Featured Items - Admin Manageable */}
               <div className="flex-1 mt-4">
@@ -271,7 +271,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
                                       strokeWidth={1.5}
-                                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                                      d="M5 3v4M3 5h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
                                     />
                                   </svg>
                                 </div>
