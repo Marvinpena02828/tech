@@ -150,7 +150,7 @@ export default function PopularProductLineup() {
           <ChevronRight size={24} className="absolute right-2" />
         </button>
 
-        <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+        <div style={{ maxWidth: "100%", margin: "0 auto", paddingLeft: "0.5rem", paddingRight: "0.5rem", marginBottom: "3rem" }}>
           <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
             Popular Product Lineup
           </h2>
