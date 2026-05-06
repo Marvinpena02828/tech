@@ -11,6 +11,7 @@ import { Category } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { usePageTranslation } from "@/app/hooks/usePageTranslation";
 
+
 interface LogosProps {
   main?: string;
   mobile?: string;
