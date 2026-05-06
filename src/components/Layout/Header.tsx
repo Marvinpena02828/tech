@@ -342,7 +342,7 @@ export default function Header({ logos }: HeaderProps) {
               }
               .marquee-container {
                 display: inline-block;
-                animation: marquee 25s linear infinite;
+                animation: marquee 12.5s linear infinite;
                 white-space: nowrap;
                 will-change: transform;
               }
@@ -971,7 +971,7 @@ export default function Header({ logos }: HeaderProps) {
             : "opacity-0 pointer-events-none"
         }`}
         style={{
-          maxWidth: "1200px",
+          maxWidth: "1600px",
           marginLeft: "auto",
           marginRight: "auto",
           left: 0,
