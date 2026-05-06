@@ -958,10 +958,10 @@ export default function Header({ logos }: HeaderProps) {
         />
       )}
 
-      {/* Products Mega Menu - FIXED: Drops BELOW header, full width */}
+      {/* Products Mega Menu - FIXED: Full viewport width, drops BELOW header */}
       <div
         ref={megaMenuRef}
-        className={`fixed left-0 right-0 w-full z-[9999] transition-opacity duration-200 ${
+        className={`fixed left-0 right-0 w-screen z-[9999] transition-opacity duration-200 ${
           promoBar?.is_active
             ? "top-[calc(64px+30px)] md:top-[calc(80px+30px)] lg:top-[calc(80px+30px)]"
             : "top-16 md:top-20 lg:top-20"
@@ -973,10 +973,8 @@ export default function Header({ logos }: HeaderProps) {
         onMouseEnter={handleMenuHover}
         onMouseLeave={handleMenuLeave}
       >
-        <div className="w-full bg-white shadow-2xl">
-          <div className="w-full max-w-[1800px] mx-auto px-4 md:px-12">
-            <ProductsMegaMenu onClose={() => setIsMegaMenuOpen(false)} />
-          </div>
+        <div className="w-screen bg-white shadow-2xl">
+          <ProductsMegaMenu onClose={() => setIsMegaMenuOpen(false)} />
         </div>
       </div>
 
