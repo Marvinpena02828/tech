@@ -160,13 +160,13 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
 
   return (
     <div
-      className="w-full bg-white overflow-hidden animate-fadeIn"
+      className="w-screen bg-white overflow-hidden animate-fadeIn"
       style={{
-        maxWidth: "100%",
+        maxWidth: "100vw",
       }}
     >
-      {/* Container - optimized padding and layout */}
-      <div className="w-full px-6 md:px-8 py-8 md:py-10">
+      {/* Container - optimized padding with max-width constraint for centered content */}
+      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 md:px-12 py-8 md:py-10">
         <div className="flex flex-col md:flex-row gap-8 md:gap-10">
           {/* Left Column - Navigation List (WIDER - was 1/5, now 1/4) */}
           <div className="w-full md:w-80 flex-shrink-0">
