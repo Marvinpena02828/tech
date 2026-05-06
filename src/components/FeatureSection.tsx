@@ -77,7 +77,7 @@ export default function FeatureSection({
             ))}
           </div>
         </div>
-      </div>
+     
     </section>
   );
 }
