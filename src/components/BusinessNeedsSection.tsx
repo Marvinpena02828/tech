@@ -1,9 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
 
 interface PartnerItem {
   id: string;
@@ -22,12 +21,9 @@ interface CustomerCategory {
 Image;
 export default function BusinessNeedsSection() {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.2 });
-  const supabase = createClient();
-  const [categories, setCategories] = useState<CustomerCategory[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  // Static fallback for when CMS data isn't available
-  const defaultCategories = [
+  // Static data only - no CMS fetch
+  const categories: CustomerCategory[] = [
     {
       id: "1",
       type: "Are You a Brand Owner?",
@@ -78,42 +74,6 @@ export default function BusinessNeedsSection() {
     },
   ];
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("partners_categories")
-        .select("id, type, description, items, displayorder")
-        .order("displayorder", { ascending: true })
-        .limit(4); // Only show first 4 categories in preview
-
-      if (error) {
-        console.error("Error fetching categories:", error);
-        setCategories(defaultCategories);
-      } else if (data && data.length > 0) {
-        // Map database columns to interface (displayorder -> displayOrder)
-        const mappedData = data.map((cat: any) => ({
-          ...cat,
-          displayOrder: cat.displayorder,
-        }));
-        setCategories(mappedData);
-      } else {
-        setCategories(defaultCategories);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setCategories(defaultCategories);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Use fetched categories if available, otherwise use default
-  const displayCategories = categories.length > 0 ? categories : defaultCategories;
-
   return (
     <section
       ref={ref as React.RefObject<HTMLElement>}
@@ -139,7 +99,7 @@ export default function BusinessNeedsSection() {
 
         {/* Desktop Grid View (Hidden on Mobile/Tablet) */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full gap-16 lg:gap-8">
-          {displayCategories.map((item, index) => (
+          {categories.map((item, index) => (
             <div
               key={item.id}
               className={`grid h-full transition-all duration-700 ${
