@@ -309,37 +309,37 @@ export default function Footer() {
 
         {/* Main Footer Content */}
         <div className="w-full max-w-7xl mx-auto mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-11 gap-6 md:gap-8">
             
-            {/* Column 1: Brand Section + Description (Side by Side) */}
-            <div className="md:col-span-3 footer-column flex gap-6 items-start">
+            {/* Column 1: Brand Section + Description (2.5 cols) */}
+            <div className="md:col-span-3 footer-column flex gap-3 items-start">
               {/* Logo */}
               <div className="flex-shrink-0">
                 {footerLogos.footerLogo ? (
                   <img
                     src={footerLogos.footerLogo}
                     alt="TechOn Footer Logo"
-                    className="h-auto w-32 object-contain"
+                    className="h-auto w-20 object-contain"
                   />
                 ) : footerLogos.mainLogo ? (
                   <img
                     src={footerLogos.mainLogo}
                     alt="TechOn"
-                    className="h-auto w-28 object-contain"
+                    className="h-auto w-20 object-contain"
                   />
                 ) : (
-                  <div className="h-20 w-20 bg-white/20 rounded animate-pulse" />
+                  <div className="h-16 w-16 bg-white/20 rounded animate-pulse" />
                 )}
               </div>
               {/* Description */}
               <div className="flex-1">
-                <p className="text-xs leading-5 text-white text-opacity-90 font-arial">
+                <p className="text-[10px] leading-4 text-white text-opacity-90 font-arial">
                   {companyInfo.description}
                 </p>
               </div>
             </div>
 
-            {/* Column 2: Product Categories */}
+            {/* Column 2: Product Categories (2 cols) */}
             <div className="md:col-span-2 footer-column">
               <h3 className="text-white font-semibold text-sm mb-4 font-arial uppercase tracking-wide">
                 Product Categories
@@ -361,7 +361,7 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Column 3: About TechOn */}
+            {/* Column 3: About TechOn (2 cols) */}
             <div className="md:col-span-2 footer-column">
               <h3 className="text-white font-semibold text-sm mb-4 font-arial uppercase tracking-wide">
                 About TechOn
@@ -384,7 +384,7 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Column 4: Newsletter */}
+            {/* Column 4: Newsletter (2 cols) */}
             <div className="md:col-span-2 footer-column">
               <h3 className="text-white font-semibold text-sm mb-4 font-arial uppercase tracking-wide">
                 Newsletter
@@ -462,8 +462,8 @@ export default function Footer() {
               </form>
             </div>
 
-            {/* Column 5: Follow Us */}
-            <div className="md:col-span-3 footer-column">
+            {/* Column 5: Follow Us (2 cols) */}
+            <div className="md:col-span-2 footer-column">
               <h3 className="text-white font-semibold text-sm mb-4 font-arial uppercase tracking-wide">
                 Follow Us
               </h3>
