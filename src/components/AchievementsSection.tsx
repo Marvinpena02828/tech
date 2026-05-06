@@ -46,13 +46,16 @@ function AchievementItem({
       }`}
       style={{ transitionDelay: `${delay}ms` }}
     >
-      {/* Icon */}
-      <div className="relative w-24 h-24 shrink-0 overflow-hidden aspect-square rounded-full group hover:bg-primary-blue">
+      {/* Icon - Red on hover */}
+      <div className="relative w-24 h-24 shrink-0 overflow-hidden aspect-square rounded-full group hover:bg-red-600">
         <Image
           src={image}
           alt="icon"
           fill
-          className="object-center aspect-square group-hover:brightness-0 group-hover:invert transition-colors duration-30"
+          className="object-center aspect-square group-hover:brightness-0 group-hover:invert transition-colors duration-300"
+          style={{
+            filter: 'invert(0)',
+          }}
         />
       </div>
 
@@ -113,24 +116,22 @@ export default function AchievementsSection() {
     >
       <div className="container">
     
-  <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
-
-        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
-          Our Milestones in Excellence
-        </h2>
-        <div style={{ 
-          width: "4rem", 
-          height: "0.25rem", 
-          background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
-          margin: "1rem auto 0",
-          borderRadius: "9999px"
-        }} />
-
-
-      </div>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+          <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+            Our Milestones in Excellence
+          </h2>
+          {/* Blue oval bar - smaller size */}
+          <div style={{ 
+            width: "3rem", 
+            height: "0.25rem", 
+            background: "#2563eb", 
+            margin: "1rem auto 0",
+            borderRadius: "9999px"
+          }} />
+        </div>
 
         
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6  place-items-center">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 place-items-center">
           {achievements.map((achievement, idx) => (
             <AchievementItem
               key={idx}
