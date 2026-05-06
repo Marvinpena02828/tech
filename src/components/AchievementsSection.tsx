@@ -51,7 +51,7 @@ function AchievementItem({
         className="relative w-24 h-24 shrink-0 overflow-hidden aspect-square rounded-full group hover:bg-red-600"
         onMouseEnter={(e) => {
           const img = e.currentTarget.querySelector('img');
-          if (img) img.style.filter = 'invert(1) brightness(1.2)';
+          if (img) img.style.filter = 'brightness(0) invert(1)';
         }}
         onMouseLeave={(e) => {
           const img = e.currentTarget.querySelector('img');
