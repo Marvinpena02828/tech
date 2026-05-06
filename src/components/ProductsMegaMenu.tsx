@@ -54,7 +54,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
 
         if (cats.success && cats.data && cats.data.length > 0) {
           setCategories(cats.data as any);
-          setHoveredCategory(cats.data[0]); // Start with first category
+          setHoveredCategory(cats.data[5]);
         } else {
           console.warn("[ProductsMegaMenu] No categories available");
           setError("No categories available");
@@ -98,8 +98,11 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
   // Show loading state
   if (loading) {
     return (
-      <div className="w-full bg-white overflow-hidden">
-        <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+      <div
+        className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden"
+        style={{ maxWidth: "100%", margin: "0 auto" }}
+      >
+        <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-4 sm:py-6 lg:py-8">
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#32375A] mx-auto mb-4"></div>
@@ -110,12 +113,14 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
       </div>
     );
   }
-
   // Show error state
   if (error || !hoveredCategory || categories.length === 0) {
     return (
-      <div className="w-full bg-white overflow-hidden">
-        <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+      <div
+        className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden"
+        style={{ maxWidth: "100%", margin: "0 auto" }}
+      >
+        <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-4 sm:py-6 lg:py-8">
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
               <div className="text-red-500 mb-2">
@@ -153,13 +158,19 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
   }
 
   return (
-    <div className="w-full bg-white overflow-hidden">
-      {/* Container with max-width matching site layout */}
-      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-10">
-        <div className="flex flex-col md:flex-row gap-8 md:gap-10">
-          {/* Left Column - Navigation List (WIDER) */}
-          <div className="w-full md:w-80 flex-shrink-0">
-            <nav className="space-y-3 overflow-y-auto scrollbar-thin overflow-x-hidden max-h-[500px]">
+    <div
+      className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden animate-fadeIn relative"
+      style={{
+        maxWidth: "100%",
+        margin: "0 auto",
+      }}
+    >
+      {/* Container with full width - optimized padding */}
+      <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 lg:py-10">
+        <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
+          {/* Left Column - Navigation List */}
+          <div className="w-full md:w-1/5">
+            <nav className="space-y-1 overflow-y-auto scrollbar-thin overflow-x-hidden">
               {categories
                 .filter((cat) => cat.parent_category_id === null)
                 .map((category, index) => (
@@ -168,10 +179,10 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                     href={`/products?category=${category.id}`}
                     onMouseEnter={() => handleCategoryHover(category)}
                     onClick={(e) => handleCategoryClick(e, category)}
-                    className={`block px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group/item ${
+                    className={`block px-3 sm:px-4 py-1 sm:rounded-xl text-xs sm:text-sm font-regular transition-all duration-200 group/item ${
                       hoveredCategory.title === category.title
-                        ? "bg-[#e8e8e8] text-[#32375A] scale-[1.02]"
-                        : "text-[#32375A] hover:bg-[#f0f0f0] hover:text-[#32375A] hover:translate-x-1"
+                        ? "bg-[#d3d3d3] text-black scale-[1.02] sm:scale-105"
+                        : "text-[#32375A] hover:bg-[#d3d3d3] hover:text-black hover:translate-x-0.5 sm:hover:translate-x-1"
                     }`}
                     style={{ transitionDelay: `${index * 30}ms` }}
                   >
@@ -180,7 +191,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                         {category.title}
                       </span>
                       <svg
-                        className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
+                        className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-200 ${
                           hoveredCategory.title === category.title
                             ? "translate-x-0 opacity-100"
                             : "translate-x-[-8px] opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100"
@@ -205,8 +216,8 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
           {/* Right Column - Featured Section */}
           <div className="w-full md:flex-1">
             <div className="h-full flex flex-col justify-between">
-              {/* Featured Items */}
-              <div className="flex-1 mb-6">
+              {/* Featured Items - Adjusted spacing to match reference image */}
+              <div className="flex-1 mt-2 mb-4">
                 {loading ? (
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-6">
                     {[1, 2, 3, 4, 5].map((i) => (
@@ -229,7 +240,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                       .slice(0, 5);
 
                     return categoryItems.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 md:gap-8">
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
                         {categoryItems.map((item, index) => (
                           <Link
                             key={item.id}
@@ -239,7 +250,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                             onClick={onClose}
                           >
                             {/* Image Container */}
-                            <div className="relative w-full aspect-square">
+                            <div className="relative w-full aspect-square animate-fadeInScale">
                               {item.product.images.length > 0 ? (
                                 <AppImage
                                   src={item.product.images[0]}
@@ -251,7 +262,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                               ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-[#32375A] to-[#4A3A6F] flex items-center justify-center group-hover/featured:scale-105 transition-transform duration-300 rounded-lg">
                                   <svg
-                                    className="w-12 h-12 text-white opacity-80"
+                                    className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white opacity-80"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -267,19 +278,19 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                               )}
                             </div>
                             {/* Product Name Below */}
-                            <h6 className="text-sm lg:text-base font-medium text-gray-900 mt-3 text-center line-clamp-2 group-hover/featured:text-[#32375A] transition-colors">
+                            <h6 className="text-xs sm:text-sm lg:text-sm font-regular text-gray-900 mt-2 sm:mt-2.5 text-center line-clamp-2 group-hover/featured:text-[#32375A] transition-colors">
                               {item.product.title}
                             </h6>
                           </Link>
                         ))}
                       </div>
                     ) : (
-                      <div className="p-12 text-center text-gray-500 flex items-center justify-center min-h-[280px]">
+                      <div className="p-8 sm:p-12 text-center text-gray-500 flex items-center justify-center min-h-[240px]">
                         <div>
-                          <p className="text-base">
+                          <p className="text-sm sm:text-base">
                             No featured products for {hoveredCategory.title}
                           </p>
-                          <p className="text-sm mt-2">
+                          <p className="text-xs sm:text-sm mt-2">
                             Add items from the admin dashboard
                           </p>
                         </div>
@@ -289,39 +300,37 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                 )}
               </div>
 
-              {/* CTA Section - Subcategories & View All */}
-              <div className="flex flex-col sm:flex-row items-center justify-start gap-3 sm:gap-5 pt-4 border-t border-gray-200">
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-4 w-full">
-                  {categories
-                    .filter(
-                      (cat) => cat.parent_category_id === hoveredCategory.id,
-                    )
-                    .slice(0, 5)
-                    .map((cat, index) => (
-                      <Link
-                        key={index}
-                        href={`/products?category=${cat.id}`}
-                        className="inline-flex items-center text-left space-x-1.5 text-[#b1b5d1] text-xs hover:text-[#32375A] transition-colors duration-200 group/link"
-                        onClick={onClose}
-                      >
-                        <span className="w-max">{cat.title}</span>
-                        <ChevronRight
-                          width={14}
-                          height={14}
-                          className="flex-shrink-0"
-                        />
-                      </Link>
-                    ))}
+              {/* CTA Section - MOVED CLOSER to featured items */}
+              <div className="flex flex-col sm:flex-row items-center justify-start gap-3 sm:gap-4 pt-3 sm:pt-4">
+                {categories
+                  .filter(
+                    (cat) => cat.parent_category_id === hoveredCategory.id,
+                  )
+                  .slice(0, 5)
+                  .map((cat, index) => (
+                    <Link
+                      key={index}
+                      href={`/products?category=${cat.id}`}
+                      className="inline-flex items-center text-left space-x-1 sm:space-x-1.5 text-[#b1b5d1] text-xs hover:text-primary-blue transition-colors duration-200 group/link"
+                      onClick={onClose}
+                    >
+                      <span className="w-max">{cat.title}</span>
+                      <ChevronRight
+                        width={14}
+                        height={14}
+                        className="flex-shrink-0"
+                      />
+                    </Link>
+                  ))}
 
-                  <Link
-                    href={`/products?category=${hoveredCategory.id}`}
-                    className="inline-flex flex-shrink-0 ml-auto items-center space-x-1.5 text-[#32375A] border border-[#32375A] rounded-full px-4 py-2 hover:bg-[#32375A] hover:text-white font-semibold text-xs transition-colors duration-200 group/link"
-                    onClick={onClose}
-                  >
-                    <span>View All</span>
-                    <ChevronRight width={16} height={16} />
-                  </Link>
-                </div>
+                <Link
+                  href={`/products?category=${hoveredCategory.id}`}
+                  className="inline-flex flex-shrink-0 ml-auto items-center space-x-1.5 text-[#32375A] border border-[#32375A] rounded-full px-3 py-1.5 hover:bg-[#32375A] hover:text-white font-semibold text-xs transition-colors duration-200 group/link"
+                  onClick={onClose}
+                >
+                  <span>View All</span>
+                  <ChevronRight width={16} height={16} />
+                </Link>
               </div>
             </div>
           </div>
