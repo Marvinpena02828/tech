@@ -1,5 +1,4 @@
 "use client";
-
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import Image from "next/image";
 import Link from "next/link";
@@ -39,14 +38,14 @@ ISO 9001 & 14001, GRS Certified,  BSCI Audited
       className="w-full py-20 bg-white border-t border-gray-100 mt-2"
     >
       <div className="container">
-             <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
           <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
-          Our Services
-        </h2>
-                   <div style={{ 
-            width: "4rem", 
+            Our Services
+          </h2>
+          <div style={{ 
+            width: "3rem", 
             height: "0.25rem", 
-            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+            background: "#2563eb", 
             margin: "1rem auto 0",
             borderRadius: "9999px"
           }} />
@@ -67,20 +66,30 @@ ISO 9001 & 14001, GRS Certified,  BSCI Audited
                 transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)",
               }}
             >
-              <div className="relative min-w-22 h-22 overflow-hidden rounded-full aspect-square group hover:bg-primary-blue">
+              <div 
+                className="relative min-w-22 h-22 overflow-hidden rounded-full aspect-square group hover:bg-red-600"
+                onMouseEnter={(e) => {
+                  const img = e.currentTarget.querySelector('img');
+                  if (img) img.style.filter = 'brightness(0) invert(1)';
+                }}
+                onMouseLeave={(e) => {
+                  const img = e.currentTarget.querySelector('img');
+                  if (img) img.style.filter = 'none';
+                }}
+              >
                 <Image
                   src={service.image}
                   alt="icon"
                   width={1000}
                   height={1000}
-                  className="object-cover aspect-square group-hover:brightness-0 group-hover:invert transition-all duration-300"
+                  className="object-cover aspect-square transition-all duration-300"
                 />
               </div>
               <div className="flex flex-col">
                 <h3 className="font-bold text-sm md:text-[17px] text-gray-800 leading-5">
                   {service.title}
                 </h3>
-                <p className="text-xs  text-gray-600">{service.desc}</p>
+                <p className="text-xs text-gray-600">{service.desc}</p>
               </div>
             </Link>
           ))}
