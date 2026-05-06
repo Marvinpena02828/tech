@@ -971,7 +971,7 @@ export default function Header({ logos }: HeaderProps) {
             : "opacity-0 pointer-events-none"
         }`}
         style={{
-          maxWidth: "1200px",
+          maxWidth: "1600px",
           marginLeft: "auto",
           marginRight: "auto",
           left: 0,
