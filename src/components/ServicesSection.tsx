@@ -43,9 +43,9 @@ ISO 9001 & 14001, GRS Certified,  BSCI Audited
             Our Services
           </h2>
           <div style={{ 
-            width: "3rem", 
+            width: "4rem", 
             height: "0.25rem", 
-            background: "#2563eb", 
+            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
             margin: "1rem auto 0",
             borderRadius: "9999px"
           }} />
