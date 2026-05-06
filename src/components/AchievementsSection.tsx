@@ -47,12 +47,17 @@ function AchievementItem({
       style={{ transitionDelay: `${delay}ms` }}
     >
       {/* Icon - Red background with white icon on hover */}
-      <div className="relative w-24 h-24 shrink-0 overflow-hidden aspect-square rounded-full group hover:bg-red-600">
+      <div 
+        className="relative w-24 h-24 shrink-0 overflow-hidden aspect-square rounded-full group hover:bg-red-600"
+        style={{
+          '--hover-filter': 'invert(1)',
+        } as React.CSSProperties & { '--hover-filter': string }}
+      >
         <Image
           src={image}
           alt="icon"
           fill
-          className="object-center aspect-square group-hover:invert group-hover:brightness-200 transition-all duration-300"
+          className="object-center aspect-square transition-all duration-300 group-hover:[filter:invert(1)]"
         />
       </div>
 
