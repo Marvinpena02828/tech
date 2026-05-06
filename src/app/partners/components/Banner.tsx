@@ -33,8 +33,9 @@ const Banner = () => {
 
       if (data && data.length > 0) {
         const bannerMap: Record<string, string> = {};
-        data.forEach((banner: BannerImage) => {
-          bannerMap[banner.platform] = banner.imageUrl;
+        data.forEach((banner: any) => {
+          // Map lowercase database columns to interface
+          bannerMap[banner.platform] = banner.imageurl; // imageurl not imageUrl
         });
         setBanners((prev) => ({ ...prev, ...bannerMap }));
       }
