@@ -102,7 +102,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
         className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden"
         style={{ maxWidth: "100%", margin: "0 auto" }}
       >
-        <div className="w-full mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-4 sm:py-6 lg:py-8">
+        <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-4 sm:py-6 lg:py-8">
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#32375A] mx-auto mb-4"></div>
@@ -120,7 +120,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
         className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden"
         style={{ maxWidth: "100%", margin: "0 auto" }}
       >
-        <div className="w-full mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-4 sm:py-6 lg:py-8">
+        <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-4 sm:py-6 lg:py-8">
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
               <div className="text-red-500 mb-2">
@@ -165,8 +165,8 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
         margin: "0 auto",
       }}
     >
-      {/* Container with full width - increased padding */}
-      <div className="w-full mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6 sm:py-8 lg:py-10">
+      {/* Container with full width - optimized padding */}
+      <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 lg:py-10">
         <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Navigation List */}
           <div className="w-full md:w-1/5">
