@@ -5,9 +5,28 @@ import { ChevronDown, Menu, X, Search, Globe } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import ProductsMegaMenu from "../ProductsMegaMenu";
 import SearchDialog from "../SearchDialog";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getPublicCategories } from "@/app/(private)/admin/categories/models/categories-model";
 import { Category } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
+import { usePageTranslation } from "@/app/hooks/usePageTranslation";
+
+interface LogosProps {
+  main?: string;
+  mobile?: string;
+  favicon?: string;
+}
+
+interface HeaderProps {
+  logos?: LogosProps;
+}
+
+interface PromotionalBar {
+  message: string;
+  background_color: string;
+  text_color: string;
+  is_active: boolean;
+}
 
 export const socialLinks = [
   {
@@ -18,25 +37,25 @@ export const socialLinks = [
   },
   {
     name: "Instagram",
-    href: "https://www.instagram.com/ayyan.innovations/",
+    href: "https://www.instagram.com/innovationstechon/",
     image: "/Images/social-media/Instagram.png",
     imageHover: "/socials/ig-hover.png",
   },
   {
     name: "LinkedIn",
-    href: "https://www.linkedin.com/company/ayyan-innovations/",
+    href: "https://www.linkedin.com/in/techon-innovations",
     image: "/Images/social-media/Linked.png",
     imageHover: "/socials/linked-hover.png",
   },
   {
     name: "YouTube",
-    href: "https://www.youtube.com/@AyyanInnovations",
+    href: "https://www.youtube.com/@TechOnInnovations",
     image: "/Images/social-media/youtube.png",
     imageHover: "/socials/youtube-hover.png",
   },
   {
     name: "TikTok",
-    href: "https://www.tiktok.com/@ayyaninnovations",
+    href: "https://www.tiktok.com/@techoninnovations",
     image: "/Images/social-media/tiktok.png",
     imageHover: "/socials/tiktok-hover.png",
   },
@@ -46,10 +65,22 @@ export const socialLinks = [
     image: "/Images/social-media/Snapchat.png",
     imageHover: "/socials/snapchat-hover.png",
   },
-  { name: "X", href: "https://x.com/AyyanInnov12181", image: "/socials/X.png" },
+  { name: "X", href: "https://x.com/TechOnInnov", image: "/socials/X.png" },
 ];
 
-export default function Header() {
+const LANGUAGE_MAP: { [key: string]: string } = {
+  English: "en",
+  "中文": "zh",
+  العربية: "ar",
+  Русский: "ru",
+  Deutsch: "de",
+  Română: "ro",
+  Español: "es",
+  Français: "fr",
+};
+
+export default function Header({ logos }: HeaderProps) {
+  const [promoBar, setPromoBar] = useState<PromotionalBar | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const [openParentCategory, setOpenParentCategory] = useState<string | null>(
@@ -67,83 +98,92 @@ export default function Header() {
   const megaMenuRef = useRef<HTMLDivElement | null>(null);
   const languageDropdownRef = useRef<HTMLDivElement | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const supabase = createClient();
 
   const currentPath = usePathname();
+  const router = useRouter();
+
+  // Use translation hook
+  const { translatePage, isTranslating } = usePageTranslation();
+
+  // ✅ USE LOGOS FROM CMS PROP
+  const mainLogo = logos?.main || "";
+  const mobileLogo = logos?.mobile || "";
 
   // Helper function to check if a path is active
   const isPathActive = (href: string): boolean => {
-    // Exact match for home - only active on root path
     if (href === "/") {
       return currentPath === "/";
     }
-    // For other routes, check if current path starts with href
     return currentPath.startsWith(href);
   };
 
-  // Function to change language using Google Translate
-  const changeLanguage = (languageCode: string, languageName: string) => {
+  // Fetch promotional bar
+  useEffect(() => {
+    const fetchPromo = async () => {
+      try {
+        const { data } = await supabase
+          .from("promotional_bars")
+          .select("*")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (data) setPromoBar(data);
+      } catch (err) {
+        console.error("Error fetching promo:", err);
+      }
+    };
+
+    fetchPromo();
+  }, []);
+
+  // ✅ FIXED: Simple language change with proper async handling
+  const changeLanguage = async (languageCode: string, languageName: string) => {
+    // Don't allow changing if already translating
+    if (isTranslating) return;
+
     setSelectedLanguage(languageName);
     setIsLanguageDropdownOpen(false);
 
-    // Store language preference
     if (typeof window !== "undefined") {
+      // Save to localStorage with the SAME KEY as translation hook uses
+      localStorage.setItem("currentLanguage", languageCode);
       localStorage.setItem("preferredLanguage", languageCode);
       localStorage.setItem("preferredLanguageName", languageName);
-    }
 
-    // Set the Google Translate cookie
-    const setCookie = (name: string, value: string, days: number) => {
-      const expires = new Date();
-      expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-      document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
-    };
-
-    // Function to trigger language change using Google Translate's cookie method
-    const triggerLanguageChange = () => {
-      try {
-        // Set the googtrans cookie which Google Translate uses
-        const languageValue =
-          languageCode === "en" ? "/auto/en" : `/auto/${languageCode}`;
-        setCookie("googtrans", languageValue, 365);
-
-        // Also set the alternate cookie format that some GT versions use
-        setCookie("googtrans", `${languageValue}`, 365);
-
-        // Reload the page to apply the translation
+      // Trigger translation and wait for it to complete
+      if (languageCode === "en") {
+        // Reset to English - reload page
         window.location.reload();
-
-        return true;
-      } catch (error) {
-        console.error("Error changing language:", error);
-        return false;
+      } else {
+        // Translate to selected language
+        await translatePage(languageCode);
       }
-    };
-
-    // Trigger the language change
-    triggerLanguageChange();
+    }
   };
 
-  // Load saved language preference on mount
+  // Load saved language preference on mount and sync with translation hook
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedLanguageCode = localStorage.getItem("preferredLanguage");
-      const savedLanguageName = localStorage.getItem("preferredLanguageName");
+      // Use the same localStorage key as translation hook
+      const savedLanguage = localStorage.getItem("currentLanguage");
+      
+      // Map language code to language name
+      const languageNameMap: { [key: string]: string } = {
+        en: "English",
+        zh: "中文",
+        ar: "العربية",
+        ru: "Русский",
+        de: "Deutsch",
+        ro: "Română",
+        es: "Español",
+        fr: "Français",
+      };
 
-      if (savedLanguageName) {
-        setSelectedLanguage(savedLanguageName);
-      }
-
-      // Apply the saved language when Google Translate loads
-      if (savedLanguageCode && savedLanguageCode !== "en") {
-        // Set the cookie on page load to maintain the selected language
-        const setCookie = (name: string, value: string, days: number) => {
-          const expires = new Date();
-          expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-          document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
-        };
-
-        const languageValue = `/auto/${savedLanguageCode}`;
-        setCookie("googtrans", languageValue, 365);
+      if (savedLanguage && languageNameMap[savedLanguage]) {
+        setSelectedLanguage(languageNameMap[savedLanguage]);
       }
     }
   }, []);
@@ -164,9 +204,7 @@ export default function Header() {
     fetchCategories();
   }, []);
 
-  // Open mega menu on hover
   const handleMenuHover = () => {
-    // Clear any existing timeout
     if (menuTimeoutRef.current) {
       clearTimeout(menuTimeoutRef.current);
       menuTimeoutRef.current = null;
@@ -174,14 +212,12 @@ export default function Header() {
     setIsMegaMenuOpen(true);
   };
 
-  // Close mega menu on hover leave with delay
   const handleMenuLeave = () => {
     menuTimeoutRef.current = setTimeout(() => {
       setIsMegaMenuOpen(false);
-    }, 100); // Reduced from 150ms to 100ms for faster response
+    }, 100);
   };
 
-  // Close mega menu when clicking outside
   const handleClickOutside = (e: MouseEvent) => {
     if (
       megaMenuRef.current &&
@@ -193,7 +229,6 @@ export default function Header() {
       }
     }
 
-    // Close language dropdown when clicking outside
     if (
       languageDropdownRef.current &&
       !languageDropdownRef.current.contains(e.target as Node)
@@ -202,7 +237,6 @@ export default function Header() {
     }
   };
 
-  // Close mega menu on Escape key
   const handleEscapeKey = (e: KeyboardEvent) => {
     if (e.key === "Escape" && isMegaMenuOpen) {
       setIsMegaMenuOpen(false);
@@ -210,33 +244,25 @@ export default function Header() {
   };
 
   useEffect(() => {
-    // Slide in animation on mount
     setIsVisible(true);
 
-    // Scroll detection for sticky header effect
     let lastScroll = 0;
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Add shadow when scrolled
       setIsScrolled(currentScrollY > 60);
 
-      // Close mega menu on scroll
       if (isMegaMenuOpen) {
         setIsMegaMenuOpen(false);
       }
 
-      // Determine scroll direction and show/hide header
       if (currentScrollY > lastScroll && currentScrollY > 100) {
-        // Scrolling down & past threshold - hide header
         setShowHeader(false);
       } else if (currentScrollY < lastScroll) {
-        // Scrolling up - show header
         setShowHeader(true);
       }
 
-      // Always show header at the very top
       if (currentScrollY < 10) {
         setShowHeader(true);
       }
@@ -244,7 +270,6 @@ export default function Header() {
       lastScroll = currentScrollY;
     };
 
-    // Add event listeners for click-outside and escape key
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscapeKey);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -253,286 +278,372 @@ export default function Header() {
       window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscapeKey);
-      // Cleanup timeout on unmount
       if (menuTimeoutRef.current) {
         clearTimeout(menuTimeoutRef.current);
       }
     };
   }, [isMegaMenuOpen]);
 
+  // Add smooth scroll behavior to html element
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = "smooth";
+    return () => {
+      document.documentElement.style.scrollBehavior = "auto";
+    };
+  }, []);
+
+  const handleLogoClick = () => {
+    setLastClickedRoute("/");
+
+    // If already on home page, just scroll to top
+    if (currentPath === "/") {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    } else {
+      // Navigate to home, then scroll to top after navigation completes
+      router.push("/");
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }, 100);
+    }
+  };
+
   return (
     <>
-      <header
-        className={`w-full fixed top-0 left-0 right-0 z-40 bg-primary-blue h-16 md:h-20 lg:h-20 font-sans border-btransition-all duration-300 ${
-          isVisible ? "opacity-100" : "opacity-0"
-        } ${isScrolled ? "shadow-lg" : ""}
-        ${showHeader ? "translate-y-0" : "-translate-y-full"}
-        ${currentPath.startsWith("/admin") ? "hidden" : ""}
-        `}
+      {/* CONTAINER FOR PROMO + HEADER - MOVES TOGETHER */}
+      <div
+        className={`w-full fixed left-0 right-0 z-40 transition-transform duration-300 ${
+          showHeader ? "translate-y-0" : "-translate-y-full"
+        } ${currentPath.startsWith("/admin") ? "hidden" : ""}`}
       >
-        <div className="w-full flex items-center max-w-[1800px] mx-auto px-4 md:px-12 justify-between h-full">
-          {/* ========== LOGO AREA ========== */}
+        {/* PROMO BAR - ALWAYS VISIBLE WHEN SHOWING */}
+        {promoBar?.is_active && (
           <div
-            className={`flex items-center h-full shrink-0 transition-all duration-700 self-start delay-100 ${
-              isVisible
-                ? "translate-x-0 opacity-100"
-                : "-translate-x-8 opacity-0"
-            }`}
+            className="w-full transition-all duration-300 overflow-hidden flex items-center"
+            style={{
+              backgroundColor: promoBar.background_color,
+              height: "30px",
+              margin: 0,
+            }}
           >
-            <Link href="/" className="flex items-center group">
-              <AppImage
-                src="/Ayyan-with-empowering.png"
-                alt="Ayyuan Innovations Logo"
-                width={1250}
-                height={1250}
-                className="h-7 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </Link>
+            <style>{`
+              @keyframes marquee {
+                0% {
+                  transform: translateX(calc(100vw + 100%));
+                }
+                100% {
+                  transform: translateX(-100%);
+                }
+              }
+              .marquee-container {
+                display: inline-block;
+                animation: marquee 12.5s linear infinite;
+                white-space: nowrap;
+                will-change: transform;
+              }
+            `}</style>
+            <div className="marquee-container" style={{ color: promoBar.text_color }}>
+              <p className="text-xs font-medium m-0 inline-block">
+                {promoBar.message}
+              </p>
+            </div>
           </div>
+        )}
 
-          {/* ========== DESKTOP NAVIGATION MENU (Right of Logo) ========== */}
-          <nav
-            className={`hidden xl:flex items-end justify-end h-full gap-6 transition-all duration-700 delay-300 pb-8 ${
-              isVisible
-                ? "translate-y-0 opacity-100"
-                : "-translate-y-4 opacity-0"
-            }`}
-          >
-            <Link
-              href="/"
-              onClick={() => setLastClickedRoute("/")}
-              className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
-                isPathActive("/")
-                  ? "text-red-500 font-bold"
-                  : "text-white hover:text-red-500"
-              }`}
-              suppressHydrationWarning
-            >
-              HOME
-            </Link>
-
-            {/* Products Mega Menu */}
+        {/* HEADER - DIRECTLY BELOW PROMO BAR (NO SPACING) */}
+        <header
+          className={`w-full z-40 h-16 md:h-20 lg:h-20 font-sans transition-all duration-300 ${
+            isVisible ? "opacity-100" : "opacity-0"
+          } ${isScrolled ? "shadow-lg" : ""}`}
+          style={{ backgroundColor: "#d6202a" }}
+        >
+          <div className="w-full flex items-center max-w-[1800px] mx-auto px-4 md:px-12 justify-between h-full">
+            {/* ========== LOGO AREA ========== */}
             <div
-              className="relative whitespace-nowrap shrink-0"
-              data-products-menu
-              onMouseEnter={handleMenuHover}
-              onMouseLeave={handleMenuLeave}
+              className={`flex items-center h-full shrink-0 transition-all duration-700 self-start delay-100 ${
+                isVisible
+                  ? "translate-x-0 opacity-100"
+                  : "-translate-x-8 opacity-0"
+              }`}
+            >
+              <button
+                onClick={handleLogoClick}
+                className="flex items-center group h-full hover:opacity-80 transition-opacity"
+                aria-label="Go to home and scroll to top"
+              >
+                {mainLogo ? (
+                  <img
+                    src={mainLogo}
+                    alt="AyyanTech Logo"
+                    className="h-7 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                    loading="eager"
+                  />
+                ) : (
+                  <div className="h-7 md:h-10 bg-white/20 rounded w-32 animate-pulse" />
+                )}
+              </button>
+            </div>
+
+            {/* ========== DESKTOP NAVIGATION MENU (Right of Logo) ========== */}
+            <nav
+              className={`hidden xl:flex items-end justify-end h-full gap-6 transition-all duration-700 delay-300 pb-8 ${
+                isVisible
+                  ? "translate-y-0 opacity-100"
+                  : "-translate-y-4 opacity-0"
+              }`}
             >
               <Link
-                href="/products"
-                onClick={() => setLastClickedRoute("/products")}
-                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 flex items-center space-x-1 whitespace-nowrap shrink-0 ${
-                  isPathActive("/products")
+                href="/"
+                onClick={() => setLastClickedRoute("/")}
+                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
+                  isPathActive("/")
                     ? "text-red-500 font-bold"
                     : "text-white hover:text-red-500"
                 }`}
-                aria-expanded={isMegaMenuOpen}
-                aria-label="Products menu"
+                suppressHydrationWarning
               >
-                <span suppressHydrationWarning>PRODUCTS</span>
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform duration-300 ${
-                    isMegaMenuOpen ? "rotate-180" : ""
-                  }`}
-                />
+                HOME
               </Link>
-            </div>
 
-            <Link
-              href="/about"
-              onClick={() => setLastClickedRoute("/about")}
-              className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
-                isPathActive("/about")
-                  ? "text-red-500 font-bold"
-                  : "text-white hover:text-red-500"
-              }`}
-              suppressHydrationWarning
-            >
-              ABOUT US
-            </Link>
-
-            <Link
-              href="/news"
-              onClick={() => setLastClickedRoute("/news")}
-              className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
-                isPathActive("/news")
-                  ? "text-red-500 font-bold"
-                  : "text-white hover:text-red-500"
-              }`}
-              suppressHydrationWarning
-            >
-              NEWS
-            </Link>
-
-            <Link
-              href="/contact"
-              onClick={() => setLastClickedRoute("/contact")}
-              className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
-                isPathActive("/contact")
-                  ? "text-red-500 font-bold"
-                  : "text-white hover:text-red-500"
-              }`}
-              suppressHydrationWarning
-            >
-              CONTACT US
-            </Link>
-          </nav>
-
-          {/* ========== SOCIAL ICONS & SEARCH (Far Right) ========== */}
-          <div
-            className={`hidden h-full xl:flex flex-col justify-end gap-3 items-start space-x-3 shrink-0  transition-all duration-700 delay-500 ${
-              isVisible
-                ? "translate-x-0 opacity-100"
-                : "translate-x-8 opacity-0"
-            }`}
-          >
-            {/* Search Icon */}
-            <div className="flex items-end space-x-2 mt-1 pb-8">
-              <button
-                onClick={() => setIsSearchOpen(true)}
-                className=" hover:bg-gray-100 rounded-full transition-colors"
-                aria-label="Open search"
+              {/* Products Mega Menu */}
+              <div
+                className="relative whitespace-nowrap shrink-0"
+                data-products-menu
+                onMouseEnter={handleMenuHover}
+                onMouseLeave={handleMenuLeave}
               >
-                <Search
-                  size={25}
-                  className="text-white cursor-pointer hover:text-red-500 transition-all duration-300 hover:scale-110  nav-link-hover"
-                />
-              </button>
-
-              {/* Language Dropdown */}
-              <div className="relative z-40" ref={languageDropdownRef}>
-                <button
-                  onClick={() =>
-                    setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
-                  }
-                  className="flex items-center space-x-2 hover:text-red-500 transition-all duration-300"
+                <Link
+                  href="/products"
+                  onClick={() => setLastClickedRoute("/products")}
+                  className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 flex items-center space-x-1 whitespace-nowrap shrink-0 ${
+                    isPathActive("/products")
+                      ? "text-red-500 font-bold"
+                      : "text-white hover:text-red-500"
+                  }`}
+                  aria-expanded={isMegaMenuOpen}
+                  aria-label="Products menu"
                 >
-                  <Globe className="text-white hover:text-red-500 transition-colors" />
-                  <span
-                    className="text-white cursor-pointer hover:text-red-500 transition-all duration-300"
-                    suppressHydrationWarning
-                  >
-                    {selectedLanguage}
-                  </span>
+                  <span suppressHydrationWarning>PRODUCTS</span>
                   <ChevronDown
-                    className={`text-white transition-transform duration-300 ${
-                      isLanguageDropdownOpen ? "rotate-180" : ""
+                    size={16}
+                    className={`transition-transform duration-300 ${
+                      isMegaMenuOpen ? "rotate-180" : ""
                     }`}
+                  />
+                </Link>
+              </div>
+
+              <Link
+                href="/about"
+                onClick={() => setLastClickedRoute("/about")}
+                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
+                  isPathActive("/about")
+                    ? "text-red-500 font-bold"
+                    : "text-white hover:text-red-500"
+                }`}
+                suppressHydrationWarning
+              >
+                ABOUT US
+              </Link>
+
+              <Link
+                href="/news"
+                onClick={() => setLastClickedRoute("/news")}
+                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
+                  isPathActive("/news")
+                    ? "text-red-500 font-bold"
+                    : "text-white hover:text-red-500"
+                }`}
+                suppressHydrationWarning
+              >
+                NEWS
+              </Link>
+
+              <Link
+                href="/contact"
+                onClick={() => setLastClickedRoute("/contact")}
+                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
+                  isPathActive("/contact")
+                    ? "text-red-500 font-bold"
+                    : "text-white hover:text-red-500"
+                }`}
+                suppressHydrationWarning
+              >
+                CONTACT US
+              </Link>
+            </nav>
+
+            {/* ========== SOCIAL ICONS & SEARCH (Far Right) ========== */}
+            <div
+              className={`hidden h-full xl:flex flex-col justify-end gap-3 items-start space-x-3 shrink-0  transition-all duration-700 delay-500 ${
+                isVisible
+                  ? "translate-x-0 opacity-100"
+                  : "translate-x-8 opacity-0"
+              }`}
+            >
+              {/* Search Icon */}
+              <div className="flex items-end space-x-2 mt-1 pb-8">
+                <button
+                  onClick={() => setIsSearchOpen(true)}
+                  className=" hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Open search"
+                  disabled={isTranslating}
+                >
+                  <Search
+                    size={25}
+                    className="text-white cursor-pointer hover:text-red-500 transition-all duration-300 hover:scale-110  nav-link-hover disabled:opacity-50"
                   />
                 </button>
 
-                {/* Dropdown Menu */}
-                {isLanguageDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                    <button
-                      onClick={() => changeLanguage("en", "English")}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        selectedLanguage === "English"
-                          ? "bg-gray-50 font-semibold text-red-500"
-                          : "text-gray-700"
-                      }`}
+                {/* Language Dropdown */}
+                <div className="relative z-40" ref={languageDropdownRef}>
+                  <button
+                    onClick={() =>
+                      setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
+                    }
+                    className="flex items-center space-x-2 hover:text-red-500 transition-all duration-300 disabled:opacity-50"
+                    disabled={isTranslating}
+                  >
+                    <Globe className="text-white hover:text-red-500 transition-colors" />
+                    <span
+                      className="text-white cursor-pointer hover:text-red-500 transition-all duration-300"
+                      suppressHydrationWarning
                     >
-                      English
-                    </button>
-                    <button
-                      onClick={() => changeLanguage("zh-CN", "中文")}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        selectedLanguage === "中文"
-                          ? "bg-gray-50 font-semibold text-red-500"
-                          : "text-gray-700"
+                      {selectedLanguage} {isTranslating && "..."}
+                    </span>
+                    <ChevronDown
+                      className={`text-white transition-transform duration-300 ${
+                        isLanguageDropdownOpen ? "rotate-180" : ""
                       }`}
-                    >
-                      中文 (Chinese)
-                    </button>
-                    <button
-                      onClick={() => changeLanguage("ar", "العربية")}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        selectedLanguage === "العربية"
-                          ? "bg-gray-50 font-semibold text-red-500"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      العربية (Arabic)
-                    </button>
-                    <button
-                      onClick={() => changeLanguage("ru", "Русский")}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        selectedLanguage === "Русский"
-                          ? "bg-gray-50 font-semibold text-red-500"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      Русский (Russian)
-                    </button>
-                    <button
-                      onClick={() => changeLanguage("de", "Deutsch")}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        selectedLanguage === "Deutsch"
-                          ? "bg-gray-50 font-semibold text-red-500"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      Deutsch (German)
-                    </button>
-                    <button
-                      onClick={() => changeLanguage("ro", "Română")}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        selectedLanguage === "Română"
-                          ? "bg-gray-50 font-semibold text-red-500"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      Română (Romanian)
-                    </button>
-                    <button
-                      onClick={() => changeLanguage("es", "Español")}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        selectedLanguage === "Español"
-                          ? "bg-gray-50 font-semibold text-red-500"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      Español (Spanish)
-                    </button>
-                    <button
-                      onClick={() => changeLanguage("fr", "Français")}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors rounded-b-lg ${
-                        selectedLanguage === "Français"
-                          ? "bg-gray-50 font-semibold text-red-500"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      Français (French)
-                    </button>
-                  </div>
-                )}
+                    />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isLanguageDropdownOpen && !isTranslating && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                      <button
+                        onClick={() => changeLanguage("en", "English")}
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
+                          selectedLanguage === "English"
+                            ? "bg-gray-50 font-semibold text-red-500"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        English
+                      </button>
+                      <button
+                        onClick={() => changeLanguage("zh", "中文")}
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
+                          selectedLanguage === "中文"
+                            ? "bg-gray-50 font-semibold text-red-500"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        中文 (Chinese)
+                      </button>
+                      <button
+                        onClick={() => changeLanguage("ar", "العربية")}
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
+                          selectedLanguage === "العربية"
+                            ? "bg-gray-50 font-semibold text-red-500"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        العربية (Arabic)
+                      </button>
+                      <button
+                        onClick={() => changeLanguage("ru", "Русский")}
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
+                          selectedLanguage === "Русский"
+                            ? "bg-gray-50 font-semibold text-red-500"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        Русский (Russian)
+                      </button>
+                      <button
+                        onClick={() => changeLanguage("de", "Deutsch")}
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
+                          selectedLanguage === "Deutsch"
+                            ? "bg-gray-50 font-semibold text-red-500"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        Deutsch (German)
+                      </button>
+                      <button
+                        onClick={() => changeLanguage("ro", "Română")}
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
+                          selectedLanguage === "Română"
+                            ? "bg-gray-50 font-semibold text-red-500"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        Română (Romanian)
+                      </button>
+                      <button
+                        onClick={() => changeLanguage("es", "Español")}
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
+                          selectedLanguage === "Español"
+                            ? "bg-gray-50 font-semibold text-red-500"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        Español (Spanish)
+                      </button>
+                      <button
+                        onClick={() => changeLanguage("fr", "Français")}
+                        disabled={isTranslating}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors rounded-b-lg disabled:opacity-50 ${
+                          selectedLanguage === "Français"
+                            ? "bg-gray-50 font-semibold text-red-500"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        Français (French)
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="xl:hidden ml-auto px-3 sm:px-4 md:px-6 text-white hover:text-red-500 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? (
-              <X size={24} className="sm:w-6 sm:h-6 md:w-7 md:h-7" />
-            ) : (
-              <Menu size={24} className="sm:w-6 sm:h-6 md:w-7 md:h-7" />
-            )}
-          </button>
-        </div>
-      </header>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="xl:hidden ml-auto px-3 sm:px-4 md:px-6 text-white hover:text-red-500 transition-colors"
+              aria-label="Toggle menu"
+              disabled={isTranslating}
+            >
+              {isMobileMenuOpen ? (
+                <X size={24} className="sm:w-6 sm:h-6 md:w-7 md:h-7" />
+              ) : (
+                <Menu size={24} className="sm:w-6 sm:h-6 md:w-7 md:h-7" />
+              )}
+            </button>
+          </div>
+        </header>
+      </div>
 
       {/* Mobile Navigation Menu - Off-Canvas Drawer */}
       <div
-        className={`h-[calc(100vh-64px)] w-[85vw] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 xl:hidden fixed  top-16  md:top-20 lg:top-24 left-0                   
+        className={`h-[calc(100vh-64px)] w-[85vw] max-w-[320px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 xl:hidden fixed top-16 md:top-20 lg:top-24 left-0 pointer-events-auto
     ${
       isMobileMenuOpen
-        ? "translate-x-0" /* visible */
-        : "-translate-x-full" /* CHANGED from translate-x-full */
+        ? "translate-x-0"
+        : "-translate-x-full"
     }
   `}
       >
@@ -561,6 +672,7 @@ export default function Header() {
                   ? "text-red-500 font-bold"
                   : "text-gray-900 hover:text-red-500"
               }`}
+              disabled={isTranslating}
             >
               <span>PRODUCTS</span>
               <ChevronDown
@@ -607,6 +719,7 @@ export default function Header() {
                               }}
                               className="p-2 hover:text-red-500 transition-colors"
                               aria-label={`Toggle ${category.title} subcategories`}
+                              disabled={isTranslating}
                             >
                               <ChevronDown
                                 size={16}
@@ -730,24 +843,24 @@ export default function Header() {
                 setIsSearchOpen(true);
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-center space-x-2 bg-gray-300 text-primary-blue py-3 px-4 rounded-lg transition-colors"
+              className="w-full flex items-center justify-center space-x-2 bg-gray-300 text-primary-blue py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+              disabled={isTranslating}
             >
               <Search size={20} />
-              <span>Search</span>
+              <span>Search {isTranslating && "..."}</span>
             </button>
           </div>
 
           {/* Mobile Language Selector */}
           <div className="pt-4 border-t border-gray-900/30">
             <h4 className="text-gray-900 text-sm font-bold mb-3 uppercase tracking-wider">
-              Language
+              Language {isTranslating && "..."}
             </h4>
             <div className="space-y-2">
               <button
-                onClick={() => {
-                  changeLanguage("en", "English");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("en", "English")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "English"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -756,10 +869,9 @@ export default function Header() {
                 English
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("zh-CN", "中文");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("zh", "中文")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "中文"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -768,10 +880,9 @@ export default function Header() {
                 中文 (Chinese)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("ar", "العربية");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("ar", "العربية")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "العربية"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -780,10 +891,9 @@ export default function Header() {
                 العربية (Arabic)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("ru", "Русский");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("ru", "Русский")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Русский"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -792,10 +902,9 @@ export default function Header() {
                 Русский (Russian)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("de", "Deutsch");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("de", "Deutsch")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Deutsch"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -804,10 +913,9 @@ export default function Header() {
                 Deutsch (German)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("ro", "Română");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("ro", "Română")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Română"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -816,10 +924,9 @@ export default function Header() {
                 Română (Romanian)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("es", "Español");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("es", "Español")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Español"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -828,10 +935,9 @@ export default function Header() {
                 Español (Spanish)
               </button>
               <button
-                onClick={() => {
-                  changeLanguage("fr", "Français");
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                onClick={() => changeLanguage("fr", "Français")}
+                disabled={isTranslating}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
                   selectedLanguage === "Français"
                     ? "bg-gray-300 text-red-500 font-semibold "
                     : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
@@ -844,29 +950,38 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Overlay */}
+      {/* Overlay - FIXED: pointer-events-none and z-40 (lower than drawer z-50) */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 xl:hidden top-16  md:top-20 lg:top-24  "
+          className="fixed inset-0 bg-black/50 z-40 xl:hidden top-16 md:top-20 lg:top-24 pointer-events-auto"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
-      {/* Products Mega Menu - Full viewport width, drops below header */}
-      {isMegaMenuOpen && (
-        <div
-          ref={megaMenuRef}
-          className="fixed left-0 right-0 w-full z-[9999] bg-white shadow-2xl top-16 md:top-20 lg:top-20"
-          style={{
-            width: "100vw",
-            marginLeft: "calc(-50vw + 50%)",
-          }}
-          onMouseEnter={handleMenuHover}
-          onMouseLeave={handleMenuLeave}
-        >
-          <ProductsMegaMenu onClose={() => setIsMegaMenuOpen(false)} />
-        </div>
-      )}
+      {/* Products Mega Menu - FIXED: Dynamic positioning based on promo bar + pt-2 padding for gap */}
+      <div
+        ref={megaMenuRef}
+        className={`fixed left-0 right-0 z-[9999] pt-2 max-h-[calc(100vh-4rem)] md:max-h-[calc(100vh-5rem)] lg:max-h-none overflow-y-auto transition-opacity duration-200 bg-white ${
+          promoBar?.is_active
+            ? "top-[calc(64px+30px)] md:top-[calc(80px+30px)] lg:top-[calc(80px+30px)]"
+            : "top-16 md:top-20 lg:top-20"
+        } ${
+          isMegaMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        style={{
+          maxWidth: "1200px",
+          marginLeft: "auto",
+          marginRight: "auto",
+          left: 0,
+          right: 0,
+        }}
+        onMouseEnter={handleMenuHover}
+        onMouseLeave={handleMenuLeave}
+      >
+        <ProductsMegaMenu onClose={() => setIsMegaMenuOpen(false)} />
+      </div>
 
       {/* Search Dialog */}
       <SearchDialog
@@ -876,9 +991,11 @@ export default function Header() {
 
       {/* Spacer to prevent content from being hidden under fixed header */}
       <div
-        className={`w-full h-16 md:h-20 lg:h-20 ${
-          currentPath.startsWith("/admin") ? "hidden" : ""
-        }`}
+        className={`w-full ${
+          promoBar?.is_active
+            ? "h-[calc(64px+30px)] md:h-[calc(80px+30px)] lg:h-[calc(80px+30px)]"
+            : "h-16 md:h-20 lg:h-20"
+        } ${currentPath.startsWith("/admin") ? "hidden" : ""}`}
         aria-hidden="true"
       />
     </>
