@@ -55,7 +55,13 @@ const ListOfPartners = () => {
         .order("displayorder", { ascending: true });
 
       if (error) throw error;
-      setCategories(data || []);
+      
+      // Map database columns to interface (displayorder -> displayOrder)
+      const mappedData = (data || []).map((cat: any) => ({
+        ...cat,
+        displayOrder: cat.displayorder,
+      }));
+      setCategories(mappedData);
     } catch (error) {
       console.error("Error fetching categories:", error);
       toast.error("Failed to load partners");
