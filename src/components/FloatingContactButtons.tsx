@@ -1,182 +1,127 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-interface Award {
-  id: string;
-  image_url: string;
-  display_order: number;
-  is_active: boolean;
+interface ContactOption {
+  id: number;
+  name: string;
+  sub_name: string | null;
+  link: string;
+  icon_file_path: string | null;
+  order_index: number;
 }
 
-export default function AwardsCarousel() {
-  const [awards, setAwards] = useState<Award[]>([]);
+export default function FloatingContactButtons() {
+  const [contactOptions, setContactOptions] = useState<ContactOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
-
-  const preloadImage = (url: string): Promise<void> => {
-    return new Promise((resolve) => {
-      const img = new window.Image();
-      img.onload = () => resolve();
-      img.onerror = () => resolve();
-      img.src = url;
-    });
-  };
 
   useEffect(() => {
-    const fetchAwards = async () => {
+    const fetchContactOptions = async () => {
       try {
+        const supabase = createClient();
         const { data, error } = await supabase
-          .from("awards")
-          .select("id,images,is_active,display_order")
+          .from("floating_contact_buttons")
+          .select("*")
           .eq("is_active", true)
-          .order("display_order", { ascending: true });
+          .order("order_index", { ascending: true });
 
-        if (error) throw error;
-
-        if (!data || data.length === 0) {
-          setAwards([]);
+        if (error) {
+          console.error("Error fetching contact options:", error.message);
+          setLoading(false);
           return;
         }
 
-        const allAwards: Award[] = [];
-        data.forEach((award: any, idx: number) => {
-          const images = Array.isArray(award.images) ? award.images : [];
-          images.forEach((img: string, imgIdx: number) => {
-            if (img && img.trim()) {
-              allAwards.push({
-                id: `award-${award.id}-${imgIdx}`,
-                image_url: img,
-                display_order: award.display_order || idx,
-                is_active: true,
-              });
-            }
-          });
-        });
-
-        setAwards(allAwards);
-
-        const preloadPromises = allAwards.map((award) =>
-          preloadImage(award.image_url)
-        );
-        await Promise.all(preloadPromises);
+        setContactOptions(data || []);
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        setError(`Error: ${errorMsg}`);
+        console.error("Unexpected error fetching contact buttons:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAwards();
-  }, [supabase]);
+    fetchContactOptions();
+  }, []);
 
-  if (loading) {
-    return (
-      <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "#ffffff" }}>
-        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
-          Awards
-        </h2>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "#ffffff" }}>
-        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
-          Awards
-        </h2>
-        <div style={{ textAlign: "center", color: "#dc2626", fontSize: "0.875rem" }}>{error}</div>
-      </section>
-    );
-  }
-
-  if (awards.length === 0) {
+  if (loading || contactOptions.length === 0) {
     return null;
   }
 
-  const duplicatedAwards = [...awards, ...awards, ...awards];
-
   return (
-    <section style={{ width: "100vw", marginLeft: "calc(-50vw + 50%)", padding: "3rem 0", backgroundColor: "#ffffff" }}>
-      <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
-        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
-          Awards
-        </h2>
-        <div style={{ 
-          width: "4rem", 
-          height: "0.25rem", 
-          background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
-          margin: "1rem auto 0",
-          borderRadius: "9999px"
-        }} />
-      </div>
+    <div className="fixed bottom-8 right-8 z-[9998] flex flex-col items-end gap-4">
+      {contactOptions.map((option) => {
+        const iconSrc = option.icon_file_path || "/Icons/default.png";
+        const isInternalLink = option.link.startsWith("/");
+        const isWhatsAppOrWeChat =
+          option.name.toLowerCase().includes("whatsapp") ||
+          option.name.toLowerCase().includes("wechat");
 
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          overflow: "hidden",
-          padding: "2rem 0",
-          backgroundColor: "#ffffff"
-        }}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        <div
-          style={{
-            display: "flex",
-            gap: "2.5rem",
-            padding: "0 2rem",
-            animation: isPaused ? "none" : "marquee 110s linear infinite",
-            animationPlayState: isPaused ? "paused" : "running",
-            animationDelay: "0s",
-          }}
-        >
-          {duplicatedAwards.map((award, idx) => (
-            <div
-              key={`${award.id}-${idx}`}
-              style={{
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <img
-                src={award.image_url}
-                alt={`Award ${award.id}`}
-                style={{
-                  width: "20rem",
-                  height: "11rem",
-                  objectFit: "contain",
-                  animation: "fadeIn 0.3s ease-in forwards",
-                }}
+        // Force external link for WhatsApp/WeChat, otherwise check if internal
+        const shouldOpenNewTab = !isInternalLink || isWhatsAppOrWeChat;
+
+        const LinkComponent = isInternalLink && !isWhatsAppOrWeChat ? Link : "a";
+        const linkProps =
+          isInternalLink && !isWhatsAppOrWeChat
+            ? { href: option.link }
+            : {
+                href: option.link,
+                target: "_blank",
+                rel: "noopener noreferrer",
+              };
+
+        return (
+          <LinkComponent
+            key={option.id}
+            {...linkProps}
+            className="relative group w-12 transition-all duration-300 group-hover:w-64"
+            title={option.name}
+            aria-label={option.name}
+          >
+            {/* Expanded button background - shown on hover */}
+            <div className="absolute bottom-0 right-0 hidden group-hover:flex items-center gap-4 bg-[#d4c4b9] rounded-full px-4 py-3 shadow-lg w-64 z-50">
+              {/* Icon */}
+              <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                <Image
+                  src={iconSrc}
+                  alt={option.name}
+                  width={40}
+                  height={40}
+                  className="object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/Icons/default.png";
+                  }}
+                />
+              </div>
+              {/* Text content */}
+              <div className="flex flex-col justify-center min-w-0">
+                <p className="text-sm font-medium text-[#1e2742] leading-tight truncate">
+                  {option.name}
+                </p>
+                {option.sub_name && (
+                  <p className="text-xs text-gray-600 leading-tight truncate">
+                    {option.sub_name}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Icon only - shown by default */}
+            <div className="w-12 h-12 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-lg">
+              <Image
+                src={iconSrc}
+                alt={option.name}
+                width={48}
+                height={48}
+                className="object-contain transition-all duration-300"
                 onError={(e) => {
-                  const img = e.currentTarget as HTMLImageElement;
-                  img.style.display = "none";
+                  (e.target as HTMLImageElement).src = "/Icons/default.png";
                 }}
               />
             </div>
-          ))}
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          10% { transform: translateX(0); }
-          100% { transform: translateX(calc(-100% / 3)); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-      `}</style>
-    </section>
+          </LinkComponent>
+        );
+      })}
+    </div>
   );
 }
