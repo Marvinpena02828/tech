@@ -61,9 +61,6 @@ const footerLinks = {
     { label: "About Us", href: "/about" },
     { label: "News", href: "/news" },
     { label: "Contact Us", href: "/contact" },
-
-   
-
   ],
 };
 
@@ -312,35 +309,39 @@ export default function Footer() {
 
         {/* Main Footer Content */}
         <div className="w-full max-w-7xl mx-auto mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-6">
             
-            {/* Column 1: Brand Section */}
-            <div className="md:col-span-1 footer-column">
-              <div className="mb-4">
+            {/* Column 1: Brand Section + Description (Side by Side) */}
+            <div className="md:col-span-3 footer-column flex gap-6 items-start">
+              {/* Logo */}
+              <div className="flex-shrink-0">
                 {footerLogos.footerLogo ? (
                   <img
                     src={footerLogos.footerLogo}
-                    alt="Ayyan Innovations Footer Logo"
-                    className="h-auto w-40 object-contain"
+                    alt="TechOn Footer Logo"
+                    className="h-auto w-32 object-contain"
                   />
                 ) : footerLogos.mainLogo ? (
                   <img
                     src={footerLogos.mainLogo}
-                    alt="Ayyan Innovations"
-                    className="h-auto w-32 object-contain"
+                    alt="TechOn"
+                    className="h-auto w-28 object-contain"
                   />
                 ) : (
                   <div className="h-20 w-20 bg-white/20 rounded animate-pulse" />
                 )}
               </div>
-              <p className="text-[10px] leading-4 text-white text-opacity-90">
-                {companyInfo.description}
-              </p>
+              {/* Description */}
+              <div className="flex-1">
+                <p className="text-xs leading-5 text-white text-opacity-90 font-arial">
+                  {companyInfo.description}
+                </p>
+              </div>
             </div>
 
             {/* Column 2: Product Categories */}
-            <div className="md:col-span-1 footer-column">
-              <h3 className="text-white font-semibold text-base mb-4 font-arial">
+            <div className="md:col-span-2 footer-column">
+              <h3 className="text-white font-semibold text-sm mb-4 font-arial uppercase tracking-wide">
                 Product Categories
               </h3>
               <ul className="space-y-2">
@@ -348,22 +349,22 @@ export default function Footer() {
                   .filter((category) => category.parent_category_id === null)
                   .slice(0, 4)
                   .map((category) => (
-          <li key={category.id} className="category-item">
-  <Link
-    href={`/products?category=${category.id}`}
-    className="text-sm text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
-  >
-    {category.title}
-  </Link>
-</li>
+                    <li key={category.id} className="category-item">
+                      <Link
+                        href={`/products?category=${category.id}`}
+                        className="text-xs text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
+                      >
+                        {category.title}
+                      </Link>
+                    </li>
                   ))}
               </ul>
             </div>
 
-            {/* Column 3: About Baseus */}
-            <div className="md:col-span-1 footer-column">
-              <h3 className="text-white font-semibold text-base mb-4 font-arial">
-                ABOUT TechOn
+            {/* Column 3: About TechOn */}
+            <div className="md:col-span-2 footer-column">
+              <h3 className="text-white font-semibold text-sm mb-4 font-arial uppercase tracking-wide">
+                About TechOn
               </h3>
               <ul className="space-y-2">
                 {footerLinks.Company.map((link, index) => (
@@ -374,7 +375,7 @@ export default function Footer() {
                   >
                     <Link
                       href={link.href}
-                      className="text-sm text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
+                      className="text-xs text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
                     >
                       {link.label}
                     </Link>
@@ -384,11 +385,11 @@ export default function Footer() {
             </div>
 
             {/* Column 4: Newsletter */}
-            <div className="md:col-span-1 footer-column">
-              <h3 className="text-white font-semibold text-base mb-4 font-arial">
-                NEWSLETTER
+            <div className="md:col-span-2 footer-column">
+              <h3 className="text-white font-semibold text-sm mb-4 font-arial uppercase tracking-wide">
+                Newsletter
               </h3>
-              <p className="text-sm text-white text-opacity-90 mb-4 font-arial">
+              <p className="text-xs text-white text-opacity-90 mb-4 font-arial">
                 Get the latest news from TechOn
               </p>
               
@@ -401,7 +402,7 @@ export default function Footer() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="bg-transparent text-white text-sm placeholder-white placeholder-opacity-70 flex-1 focus:outline-none disabled:opacity-50 font-arial"
+                    className="bg-transparent text-white text-xs placeholder-white placeholder-opacity-70 flex-1 focus:outline-none disabled:opacity-50 font-arial"
                   />
                   <button
                     type="submit"
@@ -449,7 +450,7 @@ export default function Footer() {
                 {/* Success/Error Message */}
                 {message && (
                   <div
-                    className={`p-2 rounded text-sm font-arial ${
+                    className={`p-2 rounded text-xs font-arial ${
                       message.includes("Thank you") || message.includes("Successfully")
                         ? "bg-green-500/30 text-green-100"
                         : "bg-red-500/30 text-red-100"
@@ -462,13 +463,13 @@ export default function Footer() {
             </div>
 
             {/* Column 5: Follow Us */}
-            <div className="md:col-span-1 footer-column">
-              <h3 className="text-white font-semibold text-base mb-4 font-arial">
-                FOLLOW US
+            <div className="md:col-span-3 footer-column">
+              <h3 className="text-white font-semibold text-sm mb-4 font-arial uppercase tracking-wide">
+                Follow Us
               </h3>
               
-              {/* Social Links Grid - Reduced gap, no spacing between icons */}
-              <div className="grid grid-cols-5 gap-0 w-full">
+              {/* Social Links Grid */}
+              <div className="grid grid-cols-7 gap-0 w-full">
                 {socialLinks.map((social) => (
                   <Link
                     target="_blank"
@@ -483,7 +484,7 @@ export default function Footer() {
                       alt={social.name}
                       width={20}
                       height={20}
-                      className="object-contain w-5 h-5 brightness-0 invert social-icon-img"
+                      className="object-contain w-4 h-4 brightness-0 invert social-icon-img"
                     />
                   </Link>
                 ))}
@@ -500,7 +501,7 @@ export default function Footer() {
           className="w-full max-w-7xl mx-auto fade-in-up"
           style={{ animationDelay: "0.6s", opacity: 0 }}
         >
-          <p className="text-sm text-white text-opacity-90 font-arial">
+          <p className="text-xs text-white text-opacity-90 font-arial">
             All rights reserved. TechOn Technology Co., Limited
           </p>
         </div>
