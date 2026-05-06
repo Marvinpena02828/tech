@@ -159,17 +159,17 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
 
   return (
     <div
-      className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden animate-fadeIn"
+      className="w-full bg-white rounded-none md:rounded-xl lg:rounded-2xl border-0 md:border border-gray-200 shadow-xl md:shadow-2xl overflow-hidden animate-fadeIn relative"
       style={{
         maxWidth: "100%",
         margin: "0 auto",
       }}
     >
       {/* Container with full width - increased padding */}
-      <div className="w-full mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-4 sm:py-6 lg:py-8">
+      <div className="w-full mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6 sm:py-8 lg:py-10">
         <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Navigation List */}
-          <div className="w-1/5">
+          <div className="w-full md:w-1/5">
             <nav className="space-y-1 overflow-y-auto scrollbar-thin overflow-x-hidden">
               {categories
                 .filter((cat) => cat.parent_category_id === null)
@@ -214,22 +214,22 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
           </div>
 
           {/* Right Column - Featured Section */}
-          <div className="flex-1">
+          <div className="w-full md:flex-1">
             <div className="h-full flex flex-col justify-between">
-              {/* Featured Items - Admin Manageable */}
-              <div className="flex-1 mt-4">
+              {/* Featured Items - Adjusted spacing to match reference image */}
+              <div className="flex-1 mt-2 mb-4">
                 {loading ? (
-                  <div className="grid grid-cols-3 gap-4">
-                    {[1, 2, 3].map((i) => (
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-6">
+                    {[1, 2, 3, 4, 5].map((i) => (
                       <div
                         key={i}
-                        className="p-6 rounded-xl bg-gray-100 animate-pulse h-32"
+                        className="p-6 rounded-xl bg-gray-100 animate-pulse aspect-square"
                       />
                     ))}
                   </div>
                 ) : (
                   (() => {
-                    // Filter items by current category and limit to 3
+                    // Filter items by current category and limit to 5
                     const categoryItems = featuredItems
                       .filter(
                         (item) =>
@@ -240,7 +240,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                       .slice(0, 5);
 
                     return categoryItems.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
                         {categoryItems.map((item, index) => (
                           <Link
                             key={item.id}
@@ -260,7 +260,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                                   unoptimized
                                 />
                               ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-[#32375A] to-[#4A3A6F] flex items-center justify-center group-hover/featured:scale-105 transition-transform duration-300">
+                                <div className="w-full h-full bg-gradient-to-br from-[#32375A] to-[#4A3A6F] flex items-center justify-center group-hover/featured:scale-105 transition-transform duration-300 rounded-lg">
                                   <svg
                                     className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white opacity-80"
                                     fill="none"
@@ -278,28 +278,30 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                               )}
                             </div>
                             {/* Product Name Below */}
-                            <h6 className="text-xs  lg:text-sm font-regular text-gray-900 mt-1.5 sm:mt-2 text-center line-clamp-2 group-hover/featured:text-[#32375A] transition-colors ">
+                            <h6 className="text-xs sm:text-sm lg:text-sm font-regular text-gray-900 mt-2 sm:mt-2.5 text-center line-clamp-2 group-hover/featured:text-[#32375A] transition-colors">
                               {item.product.title}
                             </h6>
                           </Link>
                         ))}
                       </div>
                     ) : (
-                      <div className="p-4 sm:p-6 text-center text-gray-500">
-                        <p className="text-xs sm:text-sm">
-                          No featured products for {hoveredCategory.title}
-                        </p>
-                        <p className="text-[10px] sm:text-xs mt-1">
-                          Add items from the admin dashboard
-                        </p>
+                      <div className="p-8 sm:p-12 text-center text-gray-500 flex items-center justify-center min-h-[240px]">
+                        <div>
+                          <p className="text-sm sm:text-base">
+                            No featured products for {hoveredCategory.title}
+                          </p>
+                          <p className="text-xs sm:text-sm mt-2">
+                            Add items from the admin dashboard
+                          </p>
+                        </div>
                       </div>
                     );
                   })()
                 )}
               </div>
 
-              {/* CTA Section */}
-              <div className="flex flex-col sm:flex-row items-center justify-start gap-6 pt-3 sm:pt-4">
+              {/* CTA Section - MOVED CLOSER to featured items */}
+              <div className="flex flex-col sm:flex-row items-center justify-start gap-3 sm:gap-4 pt-3 sm:pt-4">
                 {categories
                   .filter(
                     (cat) => cat.parent_category_id === hoveredCategory.id,
@@ -309,13 +311,13 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                     <Link
                       key={index}
                       href={`/products?category=${cat.id}`}
-                      className="inline-flex items-center text-left space-x-1 sm:space-x-1.5 text-[#b1b5d1] text-xs sm:text-sm hover:text-primary-blue transition-colors duration-200 group/link"
+                      className="inline-flex items-center text-left space-x-1 sm:space-x-1.5 text-[#b1b5d1] text-xs hover:text-primary-blue transition-colors duration-200 group/link"
                       onClick={onClose}
                     >
                       <span className="w-max">{cat.title}</span>
                       <ChevronRight
-                        width={16}
-                        height={16}
+                        width={14}
+                        height={14}
                         className="flex-shrink-0"
                       />
                     </Link>
@@ -323,11 +325,11 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
 
                 <Link
                   href={`/products?category=${hoveredCategory.id}`}
-                  className="inline-flex flex-shrink-0 ml-auto items-center space-x-1.5 sm:space-x-2 text-[#32375A] border border-primary-blue rounded-full px-3 py-2 hover:bg-primary-blue hover:text-white font-semibold text-xs sm:text-sm hover:text-[#32375A] transition-colors duration-200 group/link"
+                  className="inline-flex flex-shrink-0 ml-auto items-center space-x-1.5 text-[#32375A] border border-[#32375A] rounded-full px-3 py-1.5 hover:bg-[#32375A] hover:text-white font-semibold text-xs transition-colors duration-200 group/link"
                   onClick={onClose}
                 >
                   <span>View All</span>
-                  <ChevronRight width={20} height={20} />
+                  <ChevronRight width={16} height={16} />
                 </Link>
               </div>
             </div>
