@@ -321,13 +321,13 @@ export default function Footer() {
                   <img
                     src={footerLogos.footerLogo}
                     alt="Ayyan Innovations Footer Logo"
-                    className="h-auto w-40 object-contain"
+                    className="h-auto w-24 object-contain"
                   />
                 ) : footerLogos.mainLogo ? (
                   <img
                     src={footerLogos.mainLogo}
                     alt="Ayyan Innovations"
-                    className="h-auto w-32 object-contain"
+                    className="h-auto w-20 object-contain"
                   />
                 ) : (
                   <div className="h-20 w-20 bg-white/20 rounded animate-pulse" />
