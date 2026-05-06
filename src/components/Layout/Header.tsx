@@ -961,7 +961,7 @@ export default function Header({ logos }: HeaderProps) {
       {/* Products Mega Menu - FIXED: Dynamic positioning based on promo bar + pt-2 padding for gap */}
       <div
         ref={megaMenuRef}
-        className={`fixed left-0 right-0 z-[9999] pt-2 max-h-[calc(100vh-4rem)] md:max-h-[calc(100vh-5rem)] lg:max-h-none overflow-y-auto transition-opacity duration-200 ${
+        className={`fixed left-0 right-0 z-[9999] pt-2 max-h-[calc(100vh-4rem)] md:max-h-[calc(100vh-5rem)] lg:max-h-none overflow-y-auto transition-opacity duration-200 bg-white ${
           promoBar?.is_active
             ? "top-[calc(64px+30px)] md:top-[calc(80px+30px)] lg:top-[calc(80px+30px)]"
             : "top-16 md:top-20 lg:top-20"
@@ -970,6 +970,13 @@ export default function Header({ logos }: HeaderProps) {
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
         }`}
+        style={{
+          maxWidth: "1200px",
+          marginLeft: "auto",
+          marginRight: "auto",
+          left: 0,
+          right: 0,
+        }}
         onMouseEnter={handleMenuHover}
         onMouseLeave={handleMenuLeave}
       >
