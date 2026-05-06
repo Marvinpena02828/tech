@@ -98,12 +98,9 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
   // Show loading state
   if (loading) {
     return (
-      <div
-        className="w-full bg-white overflow-hidden"
-        style={{ maxWidth: "100%" }}
-      >
-        <div className="w-full px-6 md:px-8 py-8 md:py-10">
-          <div className="flex items-center justify-center min-h-[300px]">
+      <div className="w-full bg-white overflow-hidden">
+        <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+          <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#32375A] mx-auto mb-4"></div>
               <p className="text-gray-600">Loading menu...</p>
@@ -117,12 +114,9 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
   // Show error state
   if (error || !hoveredCategory || categories.length === 0) {
     return (
-      <div
-        className="w-full bg-white overflow-hidden"
-        style={{ maxWidth: "100%" }}
-      >
-        <div className="w-full px-6 md:px-8 py-8 md:py-10">
-          <div className="flex items-center justify-center min-h-[300px]">
+      <div className="w-full bg-white overflow-hidden">
+        <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+          <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
               <div className="text-red-500 mb-2">
                 <svg
@@ -159,11 +153,11 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
   }
 
   return (
-    <div className="bg-white">
-      {/* Content wrapper - centered with max-width */}
-      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 md:px-12 py-8 md:py-10">
+    <div className="w-full bg-white overflow-hidden">
+      {/* Container with max-width matching site layout */}
+      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-10">
         <div className="flex flex-col md:flex-row gap-8 md:gap-10">
-          {/* Left Column - Navigation List (WIDER - was 1/5, now 1/4) */}
+          {/* Left Column - Navigation List (WIDER) */}
           <div className="w-full md:w-80 flex-shrink-0">
             <nav className="space-y-3 overflow-y-auto scrollbar-thin overflow-x-hidden max-h-[500px]">
               {categories
@@ -245,7 +239,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                             onClick={onClose}
                           >
                             {/* Image Container */}
-                            <div className="relative w-full aspect-square animate-fadeInScale">
+                            <div className="relative w-full aspect-square">
                               {item.product.images.length > 0 ? (
                                 <AppImage
                                   src={item.product.images[0]}
