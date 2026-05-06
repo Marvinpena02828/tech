@@ -1,12 +1,64 @@
- "use client";
+"use client";
 import React from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import Link from "next/link";
 import Image from "next/image";
-import { customerCategories } from "@/app/partners/components/ListOfPartners";
 Image;
 export default function BusinessNeedsSection() {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.2 });
+  
+  // Static fallback - can be updated via CMS in ListOfPartners
+  const customerCategories = [
+    {
+      id: "1",
+      type: "Are You a Brand Owner?",
+      description: "Elevate your brand with bespoke manufacturing and strategic support.",
+      items: [
+        { id: "1", title: "Exclusive Cooperation", detail: "Market differentiation and protection for your unique product designs." },
+        { id: "2", title: "Complete OEM/ODM Services", detail: "Full-cycle support from concept design to mass production." },
+        { id: "3", title: "Customized Product Certification", detail: "Tailored certification support aligned with your target market needs." },
+        { id: "4", title: "Dedicated Service Team", detail: "Fast, responsive, and expert support from a single point of contact." },
+      ],
+      displayOrder: 0,
+    },
+    {
+      id: "2",
+      type: "Are You a Trading Company?",
+      description: "Your supply chain partner for reliable manufacturing and market growth.",
+      items: [
+        { id: "1", title: "Original Factory Pricing", detail: "Maximizing margins with direct access to competitive manufacturer pricing." },
+        { id: "2", title: "Customer Brand Protection Agreement", detail: "Guaranteeing security and confidentiality of your clients' intellectual property." },
+        { id: "3", title: "Comprehensive OEM/ODM Resources", detail: "Access to a full suite of R&D and production capabilities." },
+        { id: "4", title: "Quick Team Service", detail: "Ensuring rapid communication and smooth project execution." },
+      ],
+      displayOrder: 1,
+    },
+    {
+      id: "3",
+      type: "Are You a Wholesaler?",
+      description: "Streamline your supply chain with our comprehensive one-stop distribution solutions.",
+      items: [
+        { id: "1", title: "Wide Product Portfolio", detail: "Access to a broad range of established, high-demand product series." },
+        { id: "2", title: "Sufficient Stock", detail: "Reliable inventory levels to consistently meet high-volume demands." },
+        { id: "3", title: "Flexible Ordering", detail: "Accommodating minimum order quantities (MOQ) and production schedules." },
+        { id: "4", title: "Overseas Warehouse & Fast Delivery", detail: "Reduced lead times and logistics costs with international fulfillment centers." },
+      ],
+      displayOrder: 2,
+    },
+    {
+      id: "4",
+      type: "Are you Cross-Border E-Commerce Partner?",
+      description: "Accelerate your online growth with tools designed for global marketplaces.",
+      items: [
+        { id: "1", title: "Complete Sales Toolkit", detail: "High-resolution images, detailed descriptions, and marketing videos for quick listing creation." },
+        { id: "2", title: "Extended Quality Guarantee", detail: "24-month quality guarantee to minimize returns and build customer trust." },
+        { id: "3", title: "Overseas Warehouse & Logistics", detail: "Fast, efficient shipping and reduced operational complexity." },
+        { id: "4", title: "1-to-1 Customer Service", detail: "Personalized support to resolve post-sale or platform-related issues quickly." },
+      ],
+      displayOrder: 3,
+    },
+  ];
+
   return (
     <section
       ref={ref as React.RefObject<HTMLElement>}
@@ -14,36 +66,35 @@ export default function BusinessNeedsSection() {
     >
       <div className="container">
         <div
-          className={text-center mb-12 transition-all duration-700 ${
+          className={`text-center mb-12 transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }}
+          }`}
         >
-        <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "
-#111827" }}>Who Are Our Partners?</h2>
- <div style={{ 
-            width: "4rem", 
-            height: "0.25rem", 
-            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
-            margin: "1rem auto 0",
-            borderRadius: "9999px"
-          }} />
+          <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+            <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>Who Are Our Partners?</h2>
+            <div style={{
+              width: "4rem",
+              height: "0.25rem",
+              background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))",
+              margin: "1rem auto 0",
+              borderRadius: "9999px"
+            }} />
+          </div>
         </div>
 
-        </div>
         {/* Desktop Grid View (Hidden on Mobile/Tablet) */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full gap-16 lg:gap-8">
-          {[customerCategories.map](http://customerCategories.map)((item, index) => (
+          {customerCategories.map((item, index) => (
             <div
               key={index}
-              className={grid h-full transition-all duration-700 ${
+              className={`grid h-full transition-all duration-700 ${
                 isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
-              }}
+              }`}
               style={{
                 gridTemplateRows: "20% 20% 50% 20%",
-                transitionDelay: ${index * 100 + 200}ms,
+                transitionDelay: `${index * 100 + 200}ms`,
                 transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)",
               }}
             >
@@ -54,7 +105,7 @@ export default function BusinessNeedsSection() {
                 {item.description}
               </p>
               <ul className="list-disc list-inside text-sm lg:text-md text-gray-600 mb-6 lg:mb-8 space-y-1 lg:space-y-2 leading-4">
-                {[item.items.map](http://item.items.map)((point, idx) => (
+                {item.items && item.items.map((point, idx) => (
                   <div className="flex items-center gap-2" key={idx}>
                     <Image
                       src="/check.png"
@@ -68,9 +119,8 @@ export default function BusinessNeedsSection() {
                 ))}
               </ul>
               <Link
-                href={/partners#partners-${index}}
-                className="mt-auto block max-w-[150px] button-animation py-1 lg:py-2 text-center px-6 rounded-full border border-gray-200 shadow-sm text-sm lg:text-base transition-all duration-300 hover:shadow-md hover:scale-105 hover:bg-[
-#1a1a3a]"
+                href={`/partners#partners-${index}`}
+                className="mt-auto block max-w-[150px] button-animation py-1 lg:py-2 text-center px-6 rounded-full border border-gray-200 shadow-sm text-sm lg:text-base transition-all duration-300 hover:shadow-md hover:scale-105 hover:bg-[#1a1a3a]"
               >
                 Learn More
               </Link>
