@@ -88,9 +88,9 @@ export default function BusinessNeedsSection() {
           <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
             <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>Who Are Our Partners?</h2>
             <div style={{
-              width: "4rem",
+              width: "3rem",
               height: "0.25rem",
-              background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))",
+              background: "#2563eb",
               margin: "1rem auto 0",
               borderRadius: "9999px"
             }} />
@@ -135,7 +135,7 @@ export default function BusinessNeedsSection() {
               </ul>
               <Link
                 href={`/partners#partners-${item.id}`}
-                className="mt-auto block max-w-[150px] button-animation py-1 lg:py-2 text-center px-6 rounded-full border border-gray-200 shadow-sm text-sm lg:text-base transition-all duration-300 hover:shadow-md hover:scale-105 hover:bg-[#1a1a3a]"
+                className="mt-auto block max-w-[150px] button-animation py-1 lg:py-2 text-center px-6 rounded-full border border-gray-200 shadow-sm text-sm lg:text-base transition-all duration-300 hover:shadow-md hover:scale-105 hover:bg-red-600 hover:border-red-600 hover:text-white"
               >
                 Learn More
               </Link>
