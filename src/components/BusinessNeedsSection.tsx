@@ -135,7 +135,7 @@ export default function BusinessNeedsSection() {
               </ul>
               <Link
                 href={`/partners#partners-${item.id}`}
-                className="mt-auto block max-w-[150px] button-animation py-1 lg:py-2 text-center px-6 rounded-full border border-gray-200 shadow-sm text-sm lg:text-base transition-all duration-300 hover:shadow-md hover:scale-105 hover:bg-red-600 hover:border-red-600 hover:text-white"
+                className="mt-auto block max-w-[150px] button-animation py-1 lg:py-2 text-center px-6 rounded-full border border-gray-200 shadow-sm text-sm lg:text-base bg-white text-gray-900 transition-all duration-300 hover:shadow-md hover:scale-105 hover:bg-red-600 hover:border-red-600 hover:text-white"
               >
                 Learn More
               </Link>
