@@ -74,12 +74,12 @@ export default function FloatingContactButtons() {
           <LinkComponent
             key={option.id}
             {...linkProps}
-            className="relative group w-12 transition-all duration-300 group-hover:w-64"
+            className="relative group w-12 transition-all duration-300 group-hover:w-56"
             title={option.name}
             aria-label={option.name}
           >
             {/* Expanded button background - shown on hover */}
-            <div className="absolute bottom-0 right-0 hidden group-hover:flex items-center gap-4 bg-[#d4c4b9] rounded-full px-4 py-3 shadow-lg w-64 z-50">
+            <div className="absolute bottom-0 right-0 hidden group-hover:flex items-center gap-4 bg-[#e5dedb] rounded-full px-4 py-3 shadow-lg w-56 z-50">
               {/* Icon */}
               <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
                 <Image
