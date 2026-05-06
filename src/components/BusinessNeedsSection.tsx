@@ -135,7 +135,24 @@ export default function BusinessNeedsSection() {
               </ul>
               <Link
                 href={`/partners#partners-${item.id}`}
-                className="mt-auto block max-w-[150px] button-animation py-1 lg:py-2 text-center px-6 rounded-full border border-gray-200 shadow-sm text-sm lg:text-base bg-white text-gray-900 transition-all duration-300 hover:shadow-md hover:scale-105 hover:bg-red-600 hover:border-red-600 hover:text-white"
+                className="mt-auto block max-w-[150px] button-animation py-1 lg:py-2 text-center px-6 rounded-full border border-gray-200 shadow-sm text-sm lg:text-base bg-white text-gray-900 transition-all duration-300"
+                style={{
+                  cursor: "pointer"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#dc2626";
+                  e.currentTarget.style.borderColor = "#dc2626";
+                  e.currentTarget.style.color = "white";
+                  e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+                  e.currentTarget.style.transform = "scale(1.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "rgb(229, 231, 235)";
+                  e.currentTarget.style.color = "rgb(17, 24, 39)";
+                  e.currentTarget.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.05)";
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
               >
                 Learn More
               </Link>
