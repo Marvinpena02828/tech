@@ -159,13 +159,8 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
   }
 
   return (
-    <div
-      className="w-screen bg-white overflow-hidden animate-fadeIn"
-      style={{
-        maxWidth: "100vw",
-      }}
-    >
-      {/* Container - optimized padding with max-width constraint for centered content */}
+    <div className="bg-white">
+      {/* Content wrapper - centered with max-width */}
       <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 md:px-12 py-8 md:py-10">
         <div className="flex flex-col md:flex-row gap-8 md:gap-10">
           {/* Left Column - Navigation List (WIDER - was 1/5, now 1/4) */}
