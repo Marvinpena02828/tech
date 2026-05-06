@@ -116,7 +116,7 @@ export default function PopularProductLineup() {
   return (
     <section
       ref={ref as React.RefObject<HTMLElement>}
-      className="w-full py-20 lg:mt-2 bg-white "
+      className="w-full py-32 lg:mt-2 bg-white "
     >
       {/* Desktop/Tablet View */}
       <div className="hidden sm:block relative container">
@@ -164,7 +164,7 @@ export default function PopularProductLineup() {
 
           {/* Product Grid */}
           <div
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mt-8"
             key={`grid-${startIndex}`}
           >
             {visibleProducts.map((product, idx) => {
@@ -197,7 +197,7 @@ export default function PopularProductLineup() {
                     transitionDelay: isAnimating ? `${idx * 80}ms` : "0ms",
                   }}
                 >
-                  <div className="w-full aspect-square bg-white p-1 md:p-2 flex items-center justify-center relative overflow-hidden">
+                  <div className="w-full aspect-square bg-white p-1 md:p-2 flex items-center justify-center relative overflow-hidden min-h-[320px] md:min-h-[400px]">
                     {currentImage ? (
                       <AppImage
                         src={currentImage}
