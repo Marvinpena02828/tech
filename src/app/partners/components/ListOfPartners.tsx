@@ -52,7 +52,7 @@ const ListOfPartners = () => {
       const { data, error } = await supabase
         .from("partners_categories")
         .select("*")
-        .order("displayOrder", { ascending: true });
+        .order("displayorder", { ascending: true });
 
       if (error) throw error;
       setCategories(data || []);
