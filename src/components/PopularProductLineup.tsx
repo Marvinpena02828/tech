@@ -323,7 +323,7 @@ export default function PopularProductLineup() {
       {/* View All Button */}
       <Link
         href="/products"
-        className="flex justify-center mt-6 md:mt-8 px-8 md:px-12 py-2.5 md:py-3 w-fit mx-auto rounded-full transition-all text-sm md:text-base bg-white hover:bg-red-600 text-blue-600 hover:text-white border border-blue-600 hover:border-red-600 shadow-md hover:shadow-lg"
+        className="flex justify-center mt-6 md:mt-8 px-8 md:px-12 py-2.5 md:py-3 w-fit mx-auto rounded-full transition-all text-sm md:text-base font-medium bg-white hover:bg-red-600 text-gray-900 hover:text-white border-2 border-gray-900 hover:border-red-600"
       >
         View All
       </Link>
