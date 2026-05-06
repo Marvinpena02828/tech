@@ -234,7 +234,7 @@ export default function PartnersCMS() {
             {
               ...dataToSave,
               items: [],
-              dropdownItems: [],
+              dropdownitems: [], // Use lowercase
               contact: {
                 company: "",
                 address: "",
