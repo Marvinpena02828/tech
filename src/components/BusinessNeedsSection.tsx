@@ -1,14 +1,33 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import Link from "next/link";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+
+interface PartnerItem {
+  id: string;
+  title: string;
+  detail: string;
+}
+
+interface CustomerCategory {
+  id: string;
+  type: string;
+  description: string;
+  items: PartnerItem[];
+  displayOrder: number;
+}
+
 Image;
 export default function BusinessNeedsSection() {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.2 });
-  
-  // Static fallback - can be updated via CMS in ListOfPartners
-  const customerCategories = [
+  const supabase = createClient();
+  const [categories, setCategories] = useState<CustomerCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Static fallback for when CMS data isn't available
+  const defaultCategories = [
     {
       id: "1",
       type: "Are You a Brand Owner?",
@@ -59,6 +78,37 @@ export default function BusinessNeedsSection() {
     },
   ];
 
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("partners_categories")
+        .select("id, type, description, items, displayOrder")
+        .order("displayOrder", { ascending: true })
+        .limit(4); // Only show first 4 categories in preview
+
+      if (error) {
+        console.error("Error fetching categories:", error);
+        setCategories(defaultCategories);
+      } else if (data && data.length > 0) {
+        setCategories(data);
+      } else {
+        setCategories(defaultCategories);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setCategories(defaultCategories);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Use fetched categories if available, otherwise use default
+  const displayCategories = categories.length > 0 ? categories : defaultCategories;
+
   return (
     <section
       ref={ref as React.RefObject<HTMLElement>}
@@ -84,9 +134,9 @@ export default function BusinessNeedsSection() {
 
         {/* Desktop Grid View (Hidden on Mobile/Tablet) */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full gap-16 lg:gap-8">
-          {customerCategories.map((item, index) => (
+          {displayCategories.map((item, index) => (
             <div
-              key={index}
+              key={item.id}
               className={`grid h-full transition-all duration-700 ${
                 isVisible
                   ? "opacity-100 translate-y-0"
@@ -119,7 +169,7 @@ export default function BusinessNeedsSection() {
                 ))}
               </ul>
               <Link
-                href={`/partners#partners-${index}`}
+                href={`/partners#partners-${item.id}`}
                 className="mt-auto block max-w-[150px] button-animation py-1 lg:py-2 text-center px-6 rounded-full border border-gray-200 shadow-sm text-sm lg:text-base transition-all duration-300 hover:shadow-md hover:scale-105 hover:bg-[#1a1a3a]"
               >
                 Learn More
