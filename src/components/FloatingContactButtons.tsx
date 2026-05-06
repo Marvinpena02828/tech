@@ -78,9 +78,22 @@ export default function FloatingContactButtons() {
             title={option.name}
             aria-label={option.name}
           >
-            {/* Expanded button background - shown on hover (text only) */}
+            {/* Expanded button background - shown on hover */}
             <div className="absolute bottom-0 right-0 hidden group-hover:flex items-center gap-4 bg-[#d4c4b9] rounded-full px-4 py-3 shadow-lg w-64 z-50">
-              {/* Text content only */}
+              {/* Icon */}
+              <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                <Image
+                  src={iconSrc}
+                  alt={option.name}
+                  width={40}
+                  height={40}
+                  className="object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/Icons/default.png";
+                  }}
+                />
+              </div>
+              {/* Text content */}
               <div className="flex flex-col justify-center min-w-0">
                 <p className="text-sm font-medium text-[#1e2742] leading-tight truncate">
                   {option.name}
