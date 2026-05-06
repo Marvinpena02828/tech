@@ -517,13 +517,17 @@ export default function PartnersCMS() {
 
       setLoading(true);
 
+      // Convert to lowercase column names
+      const dataToSave = {
+        platform: bannerForm.platform,
+        imageurl: bannerForm.imageUrl,
+        alttext: bannerForm.altText || "Partners Banner",
+      };
+
       if (editingBannerId) {
         const { error } = await supabase
           .from("partners_banners")
-          .update({
-            imageUrl: bannerForm.imageUrl,
-            altText: bannerForm.altText,
-          })
+          .update(dataToSave)
           .eq("id", editingBannerId);
 
         if (error) throw error;
@@ -538,8 +542,8 @@ export default function PartnersCMS() {
         const { error } = await supabase.from("partners_banners").insert([
           {
             platform: bannerForm.platform,
-            imageUrl: bannerForm.imageUrl,
-            altText: bannerForm.altText || "Partners Banner",
+            imageurl: bannerForm.imageUrl,
+            alttext: bannerForm.altText || "Partners Banner",
           },
         ]);
 
