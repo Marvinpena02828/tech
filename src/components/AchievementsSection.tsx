@@ -113,7 +113,7 @@ export default function AchievementsSection() {
     >
       <div className="container">
     
-
+  <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
 
         <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
           Our Milestones in Excellence
@@ -127,7 +127,7 @@ export default function AchievementsSection() {
         }} />
 
 
-
+      </div>
 
         
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6  place-items-center">
