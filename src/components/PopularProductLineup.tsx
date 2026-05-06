@@ -323,7 +323,18 @@ export default function PopularProductLineup() {
       {/* View All Button */}
       <Link
         href="/products"
-        className="flex justify-center mt-6 md:mt-8 px-8 md:px-12 py-2.5 md:py-3 w-fit mx-auto rounded-full transition-all text-sm md:text-base font-medium bg-white hover:bg-red-600 text-gray-900 hover:text-white border-2 border-gray-900 hover:border-red-600"
+        className="flex justify-center mt-6 md:mt-8 px-8 md:px-12 py-2.5 md:py-3 w-fit mx-auto rounded-full transition-all text-sm md:text-base font-medium bg-white hover:bg-red-600 text-gray-900 hover:text-white"
+        style={{
+          borderWidth: "2px",
+          borderColor: "#232250",
+          color: "rgb(17, 24, 39)"
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "#232250";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = "#232250";
+        }}
       >
         View All
       </Link>
