@@ -958,25 +958,24 @@ export default function Header({ logos }: HeaderProps) {
         />
       )}
 
-      {/* Products Mega Menu - FIXED: Full viewport width, drops BELOW header */}
-      <div
-        ref={megaMenuRef}
-        className={`fixed left-0 right-0 w-screen z-[9999] transition-opacity duration-200 ${
-          promoBar?.is_active
-            ? "top-[calc(64px+30px)] md:top-[calc(80px+30px)] lg:top-[calc(80px+30px)]"
-            : "top-16 md:top-20 lg:top-20"
-        } ${
-          isMegaMenuOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
-        onMouseEnter={handleMenuHover}
-        onMouseLeave={handleMenuLeave}
-      >
-        <div className="w-screen bg-white shadow-2xl">
+      {/* Products Mega Menu - Full viewport width edge-to-edge */}
+      {isMegaMenuOpen && (
+        <div
+          ref={megaMenuRef}
+          className="fixed left-0 right-0 w-full z-[9999] bg-white shadow-2xl"
+          style={{
+            width: "100vw",
+            marginLeft: "calc(-50vw + 50%)",
+            top: promoBar?.is_active
+              ? "calc(64px + 30px)"
+              : "64px",
+          }}
+          onMouseEnter={handleMenuHover}
+          onMouseLeave={handleMenuLeave}
+        >
           <ProductsMegaMenu onClose={() => setIsMegaMenuOpen(false)} />
         </div>
-      </div>
+      )}
 
       {/* Search Dialog */}
       <SearchDialog
