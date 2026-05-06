@@ -3,6 +3,7 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 import Image from "next/image";
 import Link from "next/link";
 
+
 export default function ServicesSection() {
   const { ref, isVisible } = useScrollReveal({ threshold: 0.3 });
 
