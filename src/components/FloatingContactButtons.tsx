@@ -78,33 +78,30 @@ export default function FloatingContactButtons() {
             title={option.name}
             aria-label={option.name}
           >
-            {/* Rounded square container - matches design exactly */}
-            <div className="w-12 h-12 group p-1 bg-[#e7dfd9] rounded-2xl shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:w-auto">
-              {/* Icon */}
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Image
-                  src={iconSrc}
-                  alt={option.name}
-                  width={24}
-                  height={24}
-                  className="object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/Icons/default.png";
-                  }}
-                />
-              </div>
+            {/* Icon container - no background, just image */}
+            <div className="w-12 h-12 flex items-center justify-center transition-all duration-300 hover:scale-110">
+              <Image
+                src={iconSrc}
+                alt={option.name}
+                width={48}
+                height={48}
+                className="object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/Icons/default.png";
+                }}
+              />
+            </div>
 
-              {/* Tooltip Text - shown on hover */}
-              <div className="text-[#1e2742] hidden group-hover:block pl-4 pr-4 whitespace-nowrap">
-                <p className="text-sm font-medium leading-tight">
-                  {option.name}
+            {/* Tooltip Text - shown on hover */}
+            <div className="absolute bottom-16 right-0 hidden group-hover:block bg-white rounded-lg shadow-lg p-3 whitespace-nowrap z-50">
+              <p className="text-sm font-medium text-[#1e2742] leading-tight">
+                {option.name}
+              </p>
+              {option.sub_name && (
+                <p className="text-xs text-gray-600 leading-tight">
+                  {option.sub_name}
                 </p>
-                {option.sub_name && (
-                  <p className="text-xs text-gray-600 leading-tight">
-                    {option.sub_name}
-                  </p>
-                )}
-              </div>
+              )}
             </div>
           </LinkComponent>
         );
