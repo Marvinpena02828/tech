@@ -111,8 +111,8 @@ export default function FloatingContactButtons() {
               <Image
                 src={iconSrc}
                 alt={option.name}
-                width={48}
-                height={48}
+                width={56}
+                height={56}
                 className="object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "/Icons/default.png";
