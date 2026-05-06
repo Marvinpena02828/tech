@@ -117,10 +117,16 @@ export default function PartnersCMS() {
 
       if (error) throw error;
       
-      // Map database columns to interface (displayorder -> displayOrder)
+      // Map database columns to interface (lowercase -> camelCase)
       const mappedData = (data || []).map((cat: any) => ({
-        ...cat,
-        displayOrder: cat.displayorder,
+        id: cat.id,
+        type: cat.type,
+        description: cat.description,
+        image: cat.image,
+        items: cat.items || [],
+        dropdownItems: cat.dropdownitems || [], // dropdownitems → dropdownItems
+        contact: cat.contact,
+        displayOrder: cat.displayorder, // displayorder → displayOrder
       }));
       setCategories(mappedData);
     } catch (error) {
@@ -138,10 +144,15 @@ export default function PartnersCMS() {
         .select("*")
         .order("platform", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching banner images:", error);
+        // Silently fail if table doesn't exist yet
+        return;
+      }
       setBannerImages(data || []);
     } catch (error) {
       console.error("Error fetching banner images:", error);
+      // Silently fail
     }
   };
 
@@ -197,11 +208,15 @@ export default function PartnersCMS() {
 
       setLoading(true);
 
-      // Convert displayOrder to displayorder for database
-      const { displayOrder, ...rest } = categoryForm;
+      // Convert to lowercase column names for database
       const dataToSave = {
-        ...rest,
-        displayorder: displayOrder || 0,
+        type: categoryForm.type,
+        description: categoryForm.description,
+        image: categoryForm.image,
+        items: categoryForm.items || [],
+        dropdownitems: categoryForm.dropdownItems || [],
+        contact: categoryForm.contact,
+        displayorder: categoryForm.displayOrder || 0,
       };
 
       if (editingCategoryId) {
