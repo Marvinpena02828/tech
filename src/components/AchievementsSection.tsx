@@ -52,10 +52,7 @@ function AchievementItem({
           src={image}
           alt="icon"
           fill
-          className="object-center aspect-square group-hover:brightness-0 group-hover:invert transition-colors duration-300"
-          style={{
-            filter: 'invert(0)',
-          }}
+          className="object-center aspect-square group-hover:brightness-200 transition-all duration-300"
         />
       </div>
 
