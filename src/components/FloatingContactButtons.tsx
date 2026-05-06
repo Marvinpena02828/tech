@@ -59,15 +59,16 @@ export default function FloatingContactButtons() {
 
         // Force external link for WhatsApp/WeChat, otherwise check if internal
         const shouldOpenNewTab = !isInternalLink || isWhatsAppOrWeChat;
-        const LinkComponent = isInternalLink && !isWhatsAppOrWeChat ? Link : "a";
 
-        const linkProps = isInternalLink && !isWhatsAppOrWeChat
-          ? { href: option.link }
-          : {
-              href: option.link,
-              target: "_blank",
-              rel: "noopener noreferrer",
-            };
+        const LinkComponent = isInternalLink && !isWhatsAppOrWeChat ? Link : "a";
+        const linkProps =
+          isInternalLink && !isWhatsAppOrWeChat
+            ? { href: option.link }
+            : {
+                href: option.link,
+                target: "_blank",
+                rel: "noopener noreferrer",
+              };
 
         return (
           <LinkComponent
@@ -78,7 +79,7 @@ export default function FloatingContactButtons() {
             aria-label={option.name}
           >
             {/* Rounded square container - matches design exactly */}
-            <div className="w-12 h-12 group p-1 bg-white rounded-2xl shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:w-auto">
+            <div className="w-12 h-12 group p-1 bg-[#e7dfd9] rounded-2xl shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:w-auto">
               {/* Icon */}
               <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Image
@@ -92,6 +93,7 @@ export default function FloatingContactButtons() {
                   }}
                 />
               </div>
+
               {/* Tooltip Text - shown on hover */}
               <div className="text-[#1e2742] hidden group-hover:block pl-4 pr-4 whitespace-nowrap">
                 <p className="text-sm font-medium leading-tight">
