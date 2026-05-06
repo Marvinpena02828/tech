@@ -94,7 +94,12 @@ export default function BusinessNeedsSection() {
         console.error("Error fetching categories:", error);
         setCategories(defaultCategories);
       } else if (data && data.length > 0) {
-        setCategories(data);
+        // Map database columns to interface (displayorder -> displayOrder)
+        const mappedData = data.map((cat: any) => ({
+          ...cat,
+          displayOrder: cat.displayorder,
+        }));
+        setCategories(mappedData);
       } else {
         setCategories(defaultCategories);
       }
