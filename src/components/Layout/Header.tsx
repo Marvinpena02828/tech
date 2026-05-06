@@ -958,10 +958,10 @@ export default function Header({ logos }: HeaderProps) {
         />
       )}
 
-      {/* Products Mega Menu - FIXED: Dynamic positioning based on promo bar + pt-2 padding for gap */}
+      {/* Products Mega Menu - FIXED: Drops BELOW header, full width */}
       <div
         ref={megaMenuRef}
-        className={`fixed left-0 right-0 z-[9999] pt-2 max-h-[calc(100vh-4rem)] md:max-h-[calc(100vh-5rem)] lg:max-h-none overflow-y-auto transition-opacity duration-200 bg-white ${
+        className={`fixed left-0 right-0 w-full z-[9999] transition-opacity duration-200 ${
           promoBar?.is_active
             ? "top-[calc(64px+30px)] md:top-[calc(80px+30px)] lg:top-[calc(80px+30px)]"
             : "top-16 md:top-20 lg:top-20"
@@ -970,17 +970,14 @@ export default function Header({ logos }: HeaderProps) {
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
         }`}
-        style={{
-          maxWidth: "1200px",
-          marginLeft: "auto",
-          marginRight: "auto",
-          left: 0,
-          right: 0,
-        }}
         onMouseEnter={handleMenuHover}
         onMouseLeave={handleMenuLeave}
       >
-        <ProductsMegaMenu onClose={() => setIsMegaMenuOpen(false)} />
+        <div className="w-full bg-white shadow-2xl">
+          <div className="w-full max-w-[1800px] mx-auto px-4 md:px-12">
+            <ProductsMegaMenu onClose={() => setIsMegaMenuOpen(false)} />
+          </div>
+        </div>
       </div>
 
       {/* Search Dialog */}
