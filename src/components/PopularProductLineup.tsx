@@ -116,10 +116,10 @@ export default function PopularProductLineup() {
   return (
     <section
       ref={ref as React.RefObject<HTMLElement>}
-      className="w-full py-32 lg:mt-2 bg-white "
+      className="w-full py-20 lg:mt-2 bg-white "
     >
       {/* Desktop/Tablet View */}
-      <div className="hidden sm:block relative container">
+      <div className="hidden sm:block relative  container">
         {/* Navigation Arrows */}
 
         <button
@@ -139,7 +139,7 @@ export default function PopularProductLineup() {
         <button
           onClick={nextSlide}
           disabled={startIndex >= products.length - itemsToShow}
-          className={`absolute flex items-center gap-1 -right-1 md:right-2 top-1/2 -translate-y-1/2 p-2 text-black transition-all ${
+          className={`absolute  flex items-center gap-1  -right-1 md:right-2 top-1/2 -translate-y-1/2 p-2 text-black  transition-all ${
             startIndex >= products.length - itemsToShow
               ? "opacity-30 cursor-not-allowed"
               : "hover:bg-gray-800"
@@ -150,77 +150,66 @@ export default function PopularProductLineup() {
           <ChevronRight size={24} className="absolute right-2" />
         </button>
 
-        <div style={{ maxWidth: "100%", margin: "0 auto", paddingLeft: "0.5rem", paddingRight: "0.5rem", marginBottom: "3rem" }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
-            Popular Product Lineup
-          </h2>
-          <div style={{ 
-            width: "4rem", 
-            height: "0.25rem", 
-            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
-            margin: "1rem auto 0",
-            borderRadius: "9999px"
-          }} />
+        <h1 className="heading text-center mb-6">Popular Product Lineup</h1>
 
-          {/* Product Grid */}
-          <div
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mt-8 max-w-full"
-            key={`grid-${startIndex}`}
-          >
-            {visibleProducts.map((product, idx) => {
-              const productImages = Array.isArray(product.product?.images) ? product.product.images : [];
-              const productImage = product.product?.thumbnail || productImages[0] || null;
-              const currentImage = productImages.length > 0 
-                ? productImages[getImageIndex(product.id, productImages)] 
-                : productImage;
-              
-              return (
-                <Link
-                  href={`/products/${product.product_id}`}
-                  onMouseEnter={() => handleMouseEnter(product.id)}
-                  onMouseLeave={handleMouseLeave}
-                  key={`${startIndex}-${idx}`}
-                  className={`group flex flex-col bg-white overflow-hidden transition-all duration-300 cursor-pointer ${
-                    isAnimating
-                      ? slideDirection === "right"
-                        ? "opacity-100 translate-x-0 animate-slideInRight"
-                        : "opacity-100 translate-x-0 animate-slideInLeft"
-                      : "opacity-100 translate-x-0"
-                  } ${
-                    isVisible && !isAnimating
-                      ? "opacity-100 translate-y-0"
-                      : isVisible
-                      ? ""
-                      : "opacity-0 translate-y-8"
-                  }`}
-                  style={{
-                    transitionDelay: isAnimating ? `${idx * 80}ms` : "0ms",
-                  }}
-                >
-                  <div className="w-full aspect-square bg-white p-1 md:p-2 flex items-center justify-center relative overflow-hidden min-h-[320px] md:min-h-[400px]">
-                    {currentImage ? (
-                      <AppImage
-                        src={currentImage}
-                        alt={product.product?.title || "Product"}
-                        width={600}
-                        height={600}
-                        className="w-full h-full object-contain transition-all duration-500 ease-in-out scale-125"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400">No Image</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3 md:p-4 text-center">
-                    <h3 className="text-sm font-normal text-gray-900 leading-snug line-clamp-3 min-h-[3rem] md:min-h-[3.5rem]">
-                      {product.product?.title || "Untitled Product"}
-                    </h3>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+        {/* Product Grid */}
+        <div
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6"
+          key={`grid-${startIndex}`}
+        >
+          {visibleProducts.map((product, idx) => {
+            const productImages = Array.isArray(product.product?.images) ? product.product.images : [];
+            const productImage = product.product?.thumbnail || productImages[0] || null;
+            const currentImage = productImages.length > 0 
+              ? productImages[getImageIndex(product.id, productImages)] 
+              : productImage;
+            
+            return (
+              <Link
+                href={`/products/${product.product_id}`}
+                onMouseEnter={() => handleMouseEnter(product.id)}
+                onMouseLeave={handleMouseLeave}
+                key={`${startIndex}-${idx}`}
+                className={`group flex flex-col bg-white  overflow-hidden transition-all duration-300 cursor-pointer ${
+                  isAnimating
+                    ? slideDirection === "right"
+                      ? "opacity-100 translate-x-0 animate-slideInRight"
+                      : "opacity-100 translate-x-0 animate-slideInLeft"
+                    : "opacity-100 translate-x-0"
+                } ${
+                  isVisible && !isAnimating
+                    ? "opacity-100 translate-y-0"
+                    : isVisible
+                    ? ""
+                    : "opacity-0 translate-y-8"
+                }`}
+                style={{
+                  transitionDelay: isAnimating ? `${idx * 80}ms` : "0ms",
+                }}
+              >
+                <div className="w-full aspect-square bg-white p-4 md:p-6 flex items-center justify-center relative overflow-hidden">
+                  {currentImage ? (
+                    <AppImage
+                      src={currentImage}
+                      alt={product.product?.title || "Product"}
+                      width={600}
+                      height={600}
+                      className="w-full h-full object-contain transition-all duration-500 ease-in-out"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-400">No Image</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 md:p-4  text-center">
+                  <h3 className="text-sm font-normal text-gray-900 leading-snug line-clamp-3 min-h-[3rem] md:min-h-[3.5rem]">
+                    {product.product?.title || "Untitled Product"}
+                  </h3>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
@@ -273,7 +262,7 @@ export default function PopularProductLineup() {
                 onMouseEnter={() => handleMouseEnter(product.id)}
                 onMouseLeave={handleMouseLeave}
                 key={`${startIndex}-${idx}`}
-                className={`group bg-white w-full shadow-sm hover:shadow-lg overflow-hidden transition-all duration-300 cursor-pointer ${
+                className={`group bg-white w-full shadow-sm hover:shadow-lgoverflow-hidden transition-all duration-300 cursor-pointer ${
                   isAnimating
                     ? slideDirection === "right"
                       ? "opacity-100 translate-x-0 animate-slideInRight"
@@ -296,7 +285,7 @@ export default function PopularProductLineup() {
                       src={currentImage}
                       alt={product.product?.title || "Product"}
                       fill
-                      className="w-full h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105 scale-125"
+                      className="w-full h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105"
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -304,7 +293,7 @@ export default function PopularProductLineup() {
                     </div>
                   )}
                 </div>
-                <div className="p-3 md:p-4 text-center">
+                <div className="p-3 md:p-4  text-center">
                   <h3 className="text-base md:text-lg font-normal text-gray-900 leading-snug line-clamp-3 min-h-[3rem] md:min-h-[3.5rem]">
                     {product.product?.title || "Untitled Product"}
                   </h3>
@@ -323,24 +312,7 @@ export default function PopularProductLineup() {
       {/* View All Button */}
       <Link
         href="/products"
-        className="flex justify-center mt-6 md:mt-8 px-8 md:px-12 py-2.5 md:py-3 w-fit mx-auto rounded-full transition-all text-sm md:text-base font-medium"
-        style={{
-          background: "#ffffff",
-          borderWidth: "2px",
-          borderColor: "#232250",
-          color: "#111827",
-          cursor: "pointer"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "#dc2626";
-          e.currentTarget.style.color = "#ffffff";
-          e.currentTarget.style.borderColor = "#dc2626";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "#ffffff";
-          e.currentTarget.style.color = "#111827";
-          e.currentTarget.style.borderColor = "#232250";
-        }}
+        className="flex justify-center mt-6 md:mt-8 px-8 md:px-12 py-2.5 md:py-3 button-animation w-fit mx-auto rounded-full transition-colors text-sm md:text-base"
       >
         View All
       </Link>
