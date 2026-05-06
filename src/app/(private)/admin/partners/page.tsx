@@ -42,53 +42,69 @@ interface CustomerCategory {
   displayOrder: number;
 }
 
+interface BannerImage {
+  id: string;
+  platform: "mobile" | "desktop";
+  imageUrl: string;
+  altText: string;
+}
+
 export default function PartnersCMS() {
   const supabase = createClient();
 
-  // States
+  // ============ STATES ============
   const [categories, setCategories] = useState<CustomerCategory[]>([]);
+  const [bannerImages, setBannerImages] = useState<BannerImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "categories" | "items" | "dropdown" | "contact"
+    "categories" | "items" | "dropdown" | "contact" | "banner"
   >("categories");
   const [selectedCategory, setSelectedCategory] =
     useState<CustomerCategory | null>(null);
 
-  // Form states
+  // Category form states
   const [categoryForm, setCategoryForm] = useState<Partial<CustomerCategory>>({
     type: "",
     description: "",
     image: "",
     displayOrder: 0,
   });
-  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(
-    null
-  );
-  const [uploading, setUploading] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 
+  // Item form states
   const [itemForm, setItemForm] = useState<Partial<PartnerItem>>({
     title: "",
     detail: "",
   });
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
+  // Dropdown form states
   const [dropdownForm, setDropdownForm] = useState<Partial<DropdownItem>>({
     title: "",
     detail: "",
   });
-  const [editingDropdownId, setEditingDropdownId] = useState<string | null>(
-    null
-  );
+  const [editingDropdownId, setEditingDropdownId] = useState<string | null>(null);
 
+  // Contact form states
   const [contactForm, setContactForm] = useState({
     company: "",
     address: "",
     email: "",
   });
 
-  // Fetch categories
+  // Banner form states
+  const [bannerForm, setBannerForm] = useState<Partial<BannerImage>>({
+    platform: "desktop",
+    imageUrl: "",
+    altText: "Partners Banner",
+  });
+  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+
+  // ============ FETCH DATA ============
   useEffect(() => {
     fetchCategories();
+    fetchBannerImages();
   }, []);
 
   const fetchCategories = async () => {
@@ -97,7 +113,7 @@ export default function PartnersCMS() {
       const { data, error } = await supabase
         .from("partners_categories")
         .select("*")
-        .order("displayOrder", { ascending: true });
+        .order("displayorder", { ascending: true });
 
       if (error) throw error;
       setCategories(data || []);
@@ -109,15 +125,33 @@ export default function PartnersCMS() {
     }
   };
 
-  // ============ CATEGORIES TAB ============
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fetchBannerImages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("partners_banners")
+        .select("*")
+        .order("platform", { ascending: true });
+
+      if (error) throw error;
+      setBannerImages(data || []);
+    } catch (error) {
+      console.error("Error fetching banner images:", error);
+    }
+  };
+
+  // ============ IMAGE UPLOAD ============
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "category" | "banner"
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       setUploading(true);
-      const fileName = `partners/${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
+      const folderPath = type === "category" ? "partners" : "partners/banner";
+      const fileName = `${folderPath}/${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage
         .from("images")
         .upload(fileName, file, { upsert: false });
 
@@ -127,10 +161,17 @@ export default function PartnersCMS() {
         data: { publicUrl },
       } = supabase.storage.from("images").getPublicUrl(fileName);
 
-      setCategoryForm((prev) => ({
-        ...prev,
-        image: publicUrl,
-      }));
+      if (type === "category") {
+        setCategoryForm((prev) => ({
+          ...prev,
+          image: publicUrl,
+        }));
+      } else {
+        setBannerForm((prev) => ({
+          ...prev,
+          imageUrl: publicUrl,
+        }));
+      }
       toast.success("Image uploaded");
     } catch (error) {
       console.error("Upload error:", error);
@@ -140,6 +181,7 @@ export default function PartnersCMS() {
     }
   };
 
+  // ============ CATEGORIES HANDLERS ============
   const handleSaveCategory = async () => {
     try {
       if (!categoryForm.type || !categoryForm.description) {
@@ -191,7 +233,6 @@ export default function PartnersCMS() {
     setCategoryForm(category);
     setEditingCategoryId(category.id);
     setSelectedCategory(category);
-    setActiveTab("categories");
   };
 
   const handleDeleteCategory = async (id: string) => {
@@ -209,12 +250,7 @@ export default function PartnersCMS() {
       fetchCategories();
       if (selectedCategory?.id === id) {
         setSelectedCategory(null);
-        setCategoryForm({
-          type: "",
-          description: "",
-          image: "",
-          displayOrder: 0,
-        });
+        resetCategoryForm();
       }
     } catch (error) {
       console.error("Delete error:", error);
@@ -234,7 +270,7 @@ export default function PartnersCMS() {
     setEditingCategoryId(null);
   };
 
-  // ============ ITEMS TAB ============
+  // ============ ITEMS HANDLERS ============
   const handleSaveItem = async () => {
     if (!selectedCategory) {
       toast.error("Please select a category first");
@@ -251,7 +287,9 @@ export default function PartnersCMS() {
 
       if (editingItemId) {
         updatedItems = updatedItems.map((item) =>
-          item.id === editingItemId ? { ...(itemForm as PartnerItem) } : item
+          item.id === editingItemId
+            ? { id: item.id, title: itemForm.title || "", detail: itemForm.detail || "" }
+            : item
         );
       } else {
         updatedItems.push({
@@ -322,7 +360,7 @@ export default function PartnersCMS() {
     setEditingItemId(null);
   };
 
-  // ============ DROPDOWN ITEMS TAB ============
+  // ============ DROPDOWN HANDLERS ============
   const handleSaveDropdownItem = async () => {
     if (!selectedCategory) {
       toast.error("Please select a category first");
@@ -339,7 +377,9 @@ export default function PartnersCMS() {
 
       if (editingDropdownId) {
         updatedDropdownItems = updatedDropdownItems.map((item) =>
-          item.id === editingDropdownId ? { ...(dropdownForm as DropdownItem) } : item
+          item.id === editingDropdownId
+            ? { id: item.id, title: dropdownForm.title || "", detail: dropdownForm.detail || "" }
+            : item
         );
       } else {
         updatedDropdownItems.push({
@@ -410,7 +450,7 @@ export default function PartnersCMS() {
     setEditingDropdownId(null);
   };
 
-  // ============ CONTACT TAB ============
+  // ============ CONTACT HANDLERS ============
   const handleSaveContact = async () => {
     if (!selectedCategory) {
       toast.error("Please select a category first");
@@ -439,7 +479,92 @@ export default function PartnersCMS() {
     }
   };
 
-  // Handle category selection
+  // ============ BANNER HANDLERS ============
+  const handleSaveBanner = async () => {
+    try {
+      if (!bannerForm.platform || !bannerForm.imageUrl) {
+        toast.error("Platform and image required");
+        return;
+      }
+
+      setLoading(true);
+
+      if (editingBannerId) {
+        const { error } = await supabase
+          .from("partners_banners")
+          .update({
+            imageUrl: bannerForm.imageUrl,
+            altText: bannerForm.altText,
+          })
+          .eq("id", editingBannerId);
+
+        if (error) throw error;
+        toast.success("Banner updated");
+      } else {
+        const existing = bannerImages.find((b) => b.platform === bannerForm.platform);
+        if (existing) {
+          toast.error(`${bannerForm.platform} banner already exists. Edit it instead.`);
+          return;
+        }
+
+        const { error } = await supabase.from("partners_banners").insert([
+          {
+            platform: bannerForm.platform,
+            imageUrl: bannerForm.imageUrl,
+            altText: bannerForm.altText || "Partners Banner",
+          },
+        ]);
+
+        if (error) throw error;
+        toast.success("Banner created");
+      }
+
+      fetchBannerImages();
+      resetBannerForm();
+    } catch (error) {
+      console.error("Save error:", error);
+      toast.error("Failed to save banner");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditBanner = (banner: BannerImage) => {
+    setBannerForm(banner);
+    setEditingBannerId(banner.id);
+  };
+
+  const handleDeleteBanner = async (id: string) => {
+    if (!confirm("Delete this banner?")) return;
+
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from("partners_banners")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      toast.success("Banner deleted");
+      fetchBannerImages();
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete banner");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetBannerForm = () => {
+    setBannerForm({
+      platform: "desktop",
+      imageUrl: "",
+      altText: "Partners Banner",
+    });
+    setEditingBannerId(null);
+  };
+
+  // ============ CATEGORY SELECTION ============
   const handleSelectCategory = (category: CustomerCategory) => {
     setSelectedCategory(category);
     setCategoryForm(category);
@@ -467,13 +592,13 @@ export default function PartnersCMS() {
       <div>
         <h1 className="text-3xl font-bold">Partners Management</h1>
         <p className="text-gray-600">
-          Manage customer categories, benefits, and details
+          Manage categories, benefits, details, contact info, and banners
         </p>
       </div>
 
       {/* Tab Navigation */}
       <div className="bg-white rounded-lg border border-gray-200">
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 overflow-x-auto">
           {[
             { id: "categories", label: "Categories" },
             {
@@ -487,12 +612,13 @@ export default function PartnersCMS() {
               disabled: !selectedCategory,
             },
             { id: "contact", label: "Contact Info", disabled: !selectedCategory },
+            { id: "banner", label: "Banner Images" },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               disabled={tab.disabled}
-              className={`px-6 py-4 font-medium border-b-2 transition-colors ${
+              className={`px-6 py-4 font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab.id
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
@@ -590,7 +716,7 @@ export default function PartnersCMS() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={handleImageUpload}
+                        onChange={(e) => handleImageUpload(e, "category")}
                         disabled={uploading}
                         className="hidden"
                       />
@@ -706,9 +832,7 @@ export default function PartnersCMS() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Detail
-                  </label>
+                  <label className="block text-sm font-medium mb-2">Detail</label>
                   <textarea
                     placeholder="Item description"
                     value={itemForm.detail || ""}
@@ -777,9 +901,7 @@ export default function PartnersCMS() {
                     </div>
                   ))}
                   {(!selectedCategory.items || selectedCategory.items.length === 0) && (
-                    <p className="text-center py-8 text-gray-600">
-                      No items yet
-                    </p>
+                    <p className="text-center py-8 text-gray-600">No items yet</p>
                   )}
                 </div>
               </div>
@@ -857,9 +979,7 @@ export default function PartnersCMS() {
 
               {/* Dropdown Items List */}
               <div>
-                <h3 className="font-semibold text-lg mb-4">
-                  Learn More Details
-                </h3>
+                <h3 className="font-semibold text-lg mb-4">Learn More Details</h3>
                 <div className="space-y-3">
                   {(selectedCategory.dropdownItems || []).map((item) => (
                     <div
@@ -894,9 +1014,7 @@ export default function PartnersCMS() {
                   ))}
                   {(!selectedCategory.dropdownItems ||
                     selectedCategory.dropdownItems.length === 0) && (
-                    <p className="text-center py-8 text-gray-600">
-                      No details yet
-                    </p>
+                    <p className="text-center py-8 text-gray-600">No details yet</p>
                   )}
                 </div>
               </div>
@@ -975,6 +1093,154 @@ export default function PartnersCMS() {
                   <Save size={18} />
                   Save Contact Info
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* ============ BANNER TAB ============ */}
+          {activeTab === "banner" && (
+            <div className="space-y-6">
+              {/* Form */}
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">
+                    {editingBannerId ? "Edit Banner" : "Add New Banner"}
+                  </h3>
+                  {editingBannerId && (
+                    <button
+                      onClick={resetBannerForm}
+                      className="text-sm text-gray-600 hover:text-gray-900"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Platform</label>
+                  <select
+                    value={bannerForm.platform || "desktop"}
+                    onChange={(e) =>
+                      setBannerForm((prev) => ({
+                        ...prev,
+                        platform: e.target.value as "mobile" | "desktop",
+                      }))
+                    }
+                    disabled={!!editingBannerId}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100"
+                  >
+                    <option value="desktop">Desktop (1920x500px)</option>
+                    <option value="mobile">Mobile (540x360px)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Alt Text</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Partners Banner Image"
+                    value={bannerForm.altText || ""}
+                    onChange={(e) =>
+                      setBannerForm((prev) => ({
+                        ...prev,
+                        altText: e.target.value,
+                      }))
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Banner Image</label>
+                  <div className="flex gap-4">
+                    <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
+                      <Upload size={18} />
+                      <span className="text-sm text-gray-600">
+                        {uploading ? "Uploading..." : "Click to upload"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, "banner")}
+                        disabled={uploading}
+                        className="hidden"
+                      />
+                    </label>
+                    {bannerForm.imageUrl && (
+                      <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-gray-300">
+                        <Image
+                          src={bannerForm.imageUrl}
+                          alt="Preview"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleSaveBanner}
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium flex items-center justify-center gap-2"
+                >
+                  <Save size={18} />
+                  {editingBannerId ? "Update Banner" : "Add Banner"}
+                </button>
+              </div>
+
+              {/* Banners List */}
+              <div>
+                <h3 className="font-semibold text-lg mb-4">Banner Images</h3>
+                <div className="space-y-3">
+                  {bannerImages.map((banner) => (
+                    <div
+                      key={banner.id}
+                      className="p-4 rounded-lg border border-gray-200 hover:shadow-md transition"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-gray-300 flex-shrink-0">
+                          <Image
+                            src={banner.imageUrl}
+                            alt={banner.altText}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+
+                        <div className="flex-1">
+                          <h4 className="font-semibold">
+                            {banner.platform === "desktop" ? "🖥️ Desktop" : "📱 Mobile"}
+                          </h4>
+                          <p className="text-sm text-gray-600 mt-1">{banner.altText}</p>
+                          <div className="text-xs text-gray-500 mt-2">
+                            {banner.platform === "desktop"
+                              ? "1920x500px"
+                              : "540x360px"}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditBanner(banner)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBanner(banner.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {bannerImages.length === 0 && (
+                    <p className="text-center py-8 text-gray-600">No banners yet</p>
+                  )}
+                </div>
               </div>
             </div>
           )}
