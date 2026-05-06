@@ -87,13 +87,13 @@ export default function BusinessNeedsSection() {
         >
           <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
             <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>Who Are Our Partners?</h2>
-            <div style={{
-              width: "3rem",
-              height: "0.25rem",
-              background: "#2563eb",
-              margin: "1rem auto 0",
-              borderRadius: "9999px"
-            }} />
+             <div style={{ 
+            width: "4rem", 
+            height: "0.25rem", 
+            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
+            margin: "1rem auto 0",
+            borderRadius: "9999px"
+          }} />
           </div>
         </div>
 
