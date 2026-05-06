@@ -197,14 +197,14 @@ export default function PopularProductLineup() {
                     transitionDelay: isAnimating ? `${idx * 80}ms` : "0ms",
                   }}
                 >
-                  <div className="w-full aspect-square bg-white p-4 md:p-6 flex items-center justify-center relative overflow-hidden">
+                  <div className="w-full aspect-square bg-white p-2 md:p-3 flex items-center justify-center relative overflow-hidden">
                     {currentImage ? (
                       <AppImage
                         src={currentImage}
                         alt={product.product?.title || "Product"}
                         width={600}
                         height={600}
-                        className="w-full h-full object-contain transition-all duration-500 ease-in-out"
+                        className="w-full h-full object-contain transition-all duration-500 ease-in-out scale-110"
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -296,7 +296,7 @@ export default function PopularProductLineup() {
                       src={currentImage}
                       alt={product.product?.title || "Product"}
                       fill
-                      className="w-full h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105"
+                      className="w-full h-full object-contain transition-all duration-500 ease-in-out group-hover:scale-105 scale-110"
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
