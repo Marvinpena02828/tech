@@ -74,34 +74,50 @@ export default function FloatingContactButtons() {
           <LinkComponent
             key={option.id}
             {...linkProps}
-            className="relative group"
+            className="relative group w-12 transition-all duration-300 group-hover:w-64"
             title={option.name}
             aria-label={option.name}
           >
-            {/* Icon container - no background, just image */}
-            <div className="w-12 h-12 flex items-center justify-center transition-all duration-300 hover:scale-110">
+            {/* Expanded button background - shown on hover */}
+            <div className="absolute bottom-0 right-0 hidden group-hover:flex items-center gap-4 bg-[#e7dfd9] rounded-full px-4 py-3 shadow-lg w-64 z-50">
+              {/* Icon */}
+              <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                <Image
+                  src={iconSrc}
+                  alt={option.name}
+                  width={40}
+                  height={40}
+                  className="object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/Icons/default.png";
+                  }}
+                />
+              </div>
+              {/* Text content */}
+              <div className="flex flex-col justify-center min-w-0">
+                <p className="text-sm font-medium text-[#1e2742] leading-tight truncate">
+                  {option.name}
+                </p>
+                {option.sub_name && (
+                  <p className="text-xs text-gray-600 leading-tight truncate">
+                    {option.sub_name}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Icon only - shown by default */}
+            <div className="w-12 h-12 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-lg">
               <Image
                 src={iconSrc}
                 alt={option.name}
                 width={48}
                 height={48}
-                className="object-contain"
+                className="object-contain transition-all duration-300"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "/Icons/default.png";
                 }}
               />
-            </div>
-
-            {/* Tooltip Text - shown on hover */}
-            <div className="absolute bottom-16 right-0 hidden group-hover:block bg-white rounded-lg shadow-lg p-3 whitespace-nowrap z-50">
-              <p className="text-sm font-medium text-[#1e2742] leading-tight">
-                {option.name}
-              </p>
-              {option.sub_name && (
-                <p className="text-xs text-gray-600 leading-tight">
-                  {option.sub_name}
-                </p>
-              )}
             </div>
           </LinkComponent>
         );
