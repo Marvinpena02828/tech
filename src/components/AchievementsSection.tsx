@@ -128,10 +128,10 @@ export default function AchievementsSection() {
             Our Milestones in Excellence
           </h2>
           {/* Blue oval bar - smaller size */}
-          <div style={{ 
-            width: "3rem", 
+       <div style={{ 
+            width: "4rem", 
             height: "0.25rem", 
-            background: "#2563eb", 
+            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
             margin: "1rem auto 0",
             borderRadius: "9999px"
           }} />
