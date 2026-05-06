@@ -130,7 +130,7 @@ export default function AwardsCarousel() {
         <div
           style={{
             display: "flex",
-            gap: "3rem",
+            gap: "2.5rem",
             padding: "0 2rem",
             animation: isPaused ? "none" : "marquee 110s linear infinite",
             animationPlayState: isPaused ? "paused" : "running",
@@ -151,8 +151,8 @@ export default function AwardsCarousel() {
                 src={award.image_url}
                 alt={`Award ${award.id}`}
                 style={{
-                  width: "18rem",
-                  height: "10rem",
+                  width: "20rem",
+                  height: "11rem",
                   objectFit: "contain",
                   animation: "fadeIn 0.3s ease-in forwards",
                 }}
