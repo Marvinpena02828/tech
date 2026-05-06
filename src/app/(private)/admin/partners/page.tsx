@@ -197,10 +197,17 @@ export default function PartnersCMS() {
 
       setLoading(true);
 
+      // Convert displayOrder to displayorder for database
+      const { displayOrder, ...rest } = categoryForm;
+      const dataToSave = {
+        ...rest,
+        displayorder: displayOrder || 0,
+      };
+
       if (editingCategoryId) {
         const { error } = await supabase
           .from("partners_categories")
-          .update(categoryForm)
+          .update(dataToSave)
           .eq("id", editingCategoryId);
 
         if (error) throw error;
@@ -210,7 +217,7 @@ export default function PartnersCMS() {
           .from("partners_categories")
           .insert([
             {
-              ...categoryForm,
+              ...dataToSave,
               items: [],
               dropdownItems: [],
               contact: {
