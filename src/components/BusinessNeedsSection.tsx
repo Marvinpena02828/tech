@@ -86,8 +86,8 @@ export default function BusinessNeedsSection() {
     try {
       const { data, error } = await supabase
         .from("partners_categories")
-        .select("id, type, description, items, displayOrder")
-        .order("displayOrder", { ascending: true })
+        .select("id, type, description, items, displayorder")
+        .order("displayorder", { ascending: true })
         .limit(4); // Only show first 4 categories in preview
 
       if (error) {
