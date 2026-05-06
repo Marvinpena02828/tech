@@ -33,7 +33,7 @@ export default function PopularProductLineup() {
     "right"
   );
   const [isAnimating, setIsAnimating] = useState(false);
-  const itemsToShow = 4;
+  const itemsToShow = 5;
   const mobileItemsToShow = 1;
   const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
 
@@ -43,8 +43,8 @@ export default function PopularProductLineup() {
         <div className="container text-center">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-8"></div>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+              {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="h-64 bg-gray-200 rounded"></div>
               ))}
             </div>
@@ -164,7 +164,7 @@ export default function PopularProductLineup() {
 
           {/* Product Grid */}
           <div
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 mt-8 max-w-full"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mt-8 max-w-full"
             key={`grid-${startIndex}`}
           >
             {visibleProducts.map((product, idx) => {
