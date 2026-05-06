@@ -256,7 +256,8 @@ export default function PartnersCMS() {
       } else {
         updatedItems.push({
           id: Math.random().toString(),
-          ...(itemForm as PartnerItem),
+          title: itemForm.title || "",
+          detail: itemForm.detail || "",
         });
       }
 
@@ -343,7 +344,8 @@ export default function PartnersCMS() {
       } else {
         updatedDropdownItems.push({
           id: Math.random().toString(),
-          ...(dropdownForm as DropdownItem),
+          title: dropdownForm.title || "",
+          detail: dropdownForm.detail || "",
         });
       }
 
