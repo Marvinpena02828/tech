@@ -107,13 +107,13 @@ export default function FloatingContactButtons() {
             </div>
 
             {/* Icon only - shown by default */}
-            <div className="w-12 h-12 flex items-center justify-center bg-white rounded-full shadow-md transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-lg">
+            <div className="w-12 h-12 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-lg">
               <Image
                 src={iconSrc}
                 alt={option.name}
-                width={40}
-                height={40}
-                className="object-contain w-10 h-10"
+                width={48}
+                height={48}
+                className="object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "/Icons/default.png";
                 }}
