@@ -99,7 +99,7 @@ export default function AwardsCarousel() {
     return null;
   }
 
-  const duplicatedAwards = [...awards, ...awards, ...awards];
+  const duplicatedAwards = [...awards, ...awards, ...awards, ...awards, ...awards, ...awards];
 
   return (
     <section style={{ width: "100vw", marginLeft: "calc(-50vw + 50%)", padding: "3rem 0", backgroundColor: "#ffffff" }}>
@@ -132,7 +132,7 @@ export default function AwardsCarousel() {
             display: "flex",
             gap: "2rem",
             padding: "0 2rem",
-            animation: isPaused ? "none" : "marquee 110s linear infinite",
+            animation: isPaused ? "none" : "marquee 180s linear infinite",
             animationPlayState: isPaused ? "paused" : "running",
             animationDelay: "0s",
           }}
@@ -151,8 +151,8 @@ export default function AwardsCarousel() {
                 src={award.image_url}
                 alt={`Award ${award.id}`}
                 style={{
-                  width: "22rem",
-                  height: "12rem",
+                  width: "14rem",
+                  height: "8rem",
                   objectFit: "contain",
                   animation: "fadeIn 0.3s ease-in forwards",
                 }}
@@ -170,7 +170,7 @@ export default function AwardsCarousel() {
         @keyframes marquee {
           0% { transform: translateX(0); }
           10% { transform: translateX(0); }
-          100% { transform: translateX(calc(-100% / 3)); }
+          100% { transform: translateX(calc(-100% / 6)); }
         }
         @keyframes fadeIn {
           from { opacity: 0; }
