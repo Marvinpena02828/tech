@@ -8,7 +8,6 @@ export const usePageTranslation = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const pathname = usePathname();
 
-  // Map language codes
   const LANG_MAP: { [key: string]: string } = {
     en: "en",
     zh: "zh-Hans",
@@ -20,95 +19,71 @@ export const usePageTranslation = () => {
     fr: "fr",
   };
 
-  // Translate text with localStorage cache
-  const translateText = async (
-    text: string,
-    targetLang: string
-  ): Promise<string> => {
+  const translateText = async (text: string, targetLang: string): Promise<string> => {
     if (!text || targetLang === "en") return text;
 
+    // Check localStorage first
     const cacheKey = `trans_${targetLang}_${text}`;
-    const localCached = localStorage.getItem(cacheKey);
-    if (localCached) {
-      return localCached;
-    }
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return cached;
 
     try {
       const response = await fetch("/api/translate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: text,
-          targetLanguage: LANG_MAP[targetLang] || targetLang,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, targetLanguage: LANG_MAP[targetLang] || targetLang }),
       });
 
-      if (!response.ok) {
-        return text;
-      }
-
       const data = await response.json();
-      const translatedText = data.translatedText || text;
+      const translated = data.translatedText || text;
 
-      if (translatedText !== text) {
-        localStorage.setItem(cacheKey, translatedText);
+      // Cache it
+      if (translated !== text) {
+        localStorage.setItem(cacheKey, translated);
       }
 
-      return translatedText;
+      return translated;
     } catch (error) {
-      console.error("Translation error:", error);
       return text;
     }
   };
 
-  // Get all text elements to translate
-  const getTextElements = () => {
-    const elements: { el: HTMLElement; text: string }[] = [];
-    
-    try {
-      const walker = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_ELEMENT,
-        null
-      );
+  const getTextNodes = () => {
+    const results: { node: Node; text: string }[] = [];
+    const seen = new Set<string>();
 
-      let node: any;
-      const seenTexts = new Set<string>();
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
 
-      while ((node = walker.nextNode())) {
-        if (
-          node.tagName === "SCRIPT" ||
-          node.tagName === "STYLE" ||
-          node.tagName === "NOSCRIPT" ||
-          pathname.includes("/admin") ||
-          node.classList.contains("language-btn") ||
-          node.closest(".goog-te-bubble") ||
-          node.closest("#google_translate_element")
-        ) {
-          continue;
-        }
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      const text = node.textContent?.trim();
+      const parent = node.parentElement;
 
-        const text = node.innerText?.trim();
-        if (
-          text &&
-          text.length > 3 &&
-          text.length < 1000 &&
-          !seenTexts.has(text)
-        ) {
-          seenTexts.add(text);
-          elements.push({ el: node, text });
-        }
+      if (
+        !text ||
+        text.length < 3 ||
+        text.length > 500 ||
+        !parent ||
+        seen.has(text) ||
+        parent.tagName === "SCRIPT" ||
+        parent.tagName === "STYLE" ||
+        pathname.includes("/admin") ||
+        parent.classList.contains("language-btn")
+      ) {
+        continue;
       }
-    } catch (error) {
-      console.error("Error getting text elements:", error);
+
+      seen.add(text);
+      results.push({ node, text });
     }
 
-    return elements;
+    return results;
   };
 
-  // Translate page
   const translatePage = async (targetLanguage: string) => {
     if (targetLanguage === "en") {
       localStorage.setItem("currentLanguage", "en");
@@ -121,52 +96,43 @@ export const usePageTranslation = () => {
       localStorage.setItem("currentLanguage", targetLanguage);
       setCurrentLanguage(targetLanguage);
 
-      const elements = getTextElements();
-      if (elements.length === 0) {
+      const textNodes = getTextNodes();
+      if (textNodes.length === 0) {
         setIsTranslating(false);
         return;
       }
 
-      console.log(`Translating ${elements.length} elements`);
-      let successCount = 0;
+      console.log(`Translating ${textNodes.length} text nodes`);
+      let count = 0;
 
-      // Translate in batches
-      const batchSize = 5;
-      for (let i = 0; i < elements.length; i += batchSize) {
-        const batch = elements.slice(i, i + batchSize);
+      // Translate in small batches
+      for (let i = 0; i < textNodes.length; i += 3) {
+        const batch = textNodes.slice(i, i + 3);
 
-        const results = await Promise.all(
-          batch.map(async ({ text }) => {
-            const translated = await translateText(text, targetLanguage);
-            return { original: text, translated };
-          })
+        const translations = await Promise.all(
+          batch.map(({ text }) => translateText(text, targetLanguage))
         );
 
-        // Apply translations
-        results.forEach(({ original, translated }) => {
-          if (translated !== original) {
-            const elementsToUpdate = elements.filter(
-              (e) => e.text === original
-            );
-            elementsToUpdate.forEach(({ el }) => {
-              try {
-                if (el.innerText?.trim() === original) {
-                  el.innerText = translated;
-                  successCount++;
-                }
-              } catch (err) {
-                // Silently fail
+        batch.forEach(({ node, text }, idx) => {
+          const translated = translations[idx];
+          if (translated && translated !== text) {
+            try {
+              if (node.parentNode) {
+                node.textContent = translated;
+                count++;
               }
-            });
+            } catch (err) {
+              // Silently skip
+            }
           }
         });
 
-        if (i + batchSize < elements.length) {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        if (i + 3 < textNodes.length) {
+          await new Promise((resolve) => setTimeout(resolve, 150));
         }
       }
 
-      console.log(`Translated ${successCount} elements`);
+      console.log(`Translated ${count} nodes`);
     } catch (error) {
       console.error("Translation error:", error);
     } finally {
@@ -174,31 +140,26 @@ export const usePageTranslation = () => {
     }
   };
 
-  // Initialize
+  // Init
   useEffect(() => {
     if (typeof window !== "undefined" && !isInitialized) {
-      const savedLanguage = localStorage.getItem("currentLanguage");
-
-      if (savedLanguage && savedLanguage !== "en") {
-        setCurrentLanguage(savedLanguage);
-        setTimeout(() => {
-          translatePage(savedLanguage);
-        }, 1500);
+      const saved = localStorage.getItem("currentLanguage");
+      if (saved && saved !== "en") {
+        setCurrentLanguage(saved);
+        setTimeout(() => translatePage(saved), 1500);
       } else {
         setCurrentLanguage("en");
       }
-
       setIsInitialized(true);
     }
   }, []);
 
-  // Re-translate on page change
+  // Page change
   useEffect(() => {
     if (isInitialized && currentLanguage && currentLanguage !== "en") {
       const timer = setTimeout(() => {
         translatePage(currentLanguage);
       }, 1500);
-
       return () => clearTimeout(timer);
     }
   }, [pathname, isInitialized]);
