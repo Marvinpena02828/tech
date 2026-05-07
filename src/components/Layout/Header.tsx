@@ -10,7 +10,6 @@ import { getPublicCategories } from "@/app/(private)/admin/categories/models/cat
 import { Category } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { usePageTranslation } from "@/app/hooks/usePageTranslation";
- 
 
 interface LogosProps {
   main?: string;
