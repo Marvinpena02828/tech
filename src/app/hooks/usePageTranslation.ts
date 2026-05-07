@@ -8,10 +8,10 @@ export const usePageTranslation = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const pathname = usePathname();
 
-  // Map language codes to LibreTranslate codes
+  // Map language codes to MyMemory codes
   const LANG_MAP: { [key: string]: string } = {
-    en: "en",
-    zh: "zh",
+    en: "en-US",
+    zh: "zh-CN",
     ar: "ar",
     ru: "ru",
     de: "de",
@@ -20,13 +20,22 @@ export const usePageTranslation = () => {
     fr: "fr",
   };
 
-  // Translate text using LibreTranslate API (no char limit, with Supabase caching)
+  // Check cache first: localStorage → Supabase → API
   const translateText = async (
     text: string,
     targetLang: string
   ): Promise<string> => {
     if (!text || targetLang === "en") return text;
 
+    // 1. Check localStorage cache first (instant, offline)
+    const cacheKey = `trans_${targetLang}_${text}`;
+    const localCached = localStorage.getItem(cacheKey);
+    if (localCached) {
+      console.log("Local cache hit");
+      return localCached;
+    }
+
+    // 2. Call backend (checks Supabase, then MyMemory if needed)
     try {
       const response = await fetch("/api/translate", {
         method: "POST",
@@ -45,7 +54,14 @@ export const usePageTranslation = () => {
       }
 
       const data = await response.json();
-      return data.translatedText || text;
+      const translatedText = data.translatedText || text;
+
+      // 3. Save to localStorage for next time (avoid repeat API calls)
+      if (translatedText !== text) {
+        localStorage.setItem(cacheKey, translatedText);
+      }
+
+      return translatedText;
     } catch (error) {
       console.error("Translation error:", error);
       return text;
@@ -54,7 +70,7 @@ export const usePageTranslation = () => {
 
   // Get all translatable text from page
   const getPageText = () => {
-    const texts: Map<string, HTMLElement[]> = new Map();
+    const texts: Map<string, { nodes: Node[]; parent: HTMLElement }[]> = new Map();
     const visited = new Set<Node>();
 
     // Walk through ALL nodes in the DOM
@@ -86,13 +102,35 @@ export const usePageTranslation = () => {
         continue;
       }
 
-      const textParent = node.parentElement;
-      if (!textParent) continue;
-
-      if (!texts.has(text)) {
-        texts.set(text, []);
+      // Get all consecutive text nodes in parent (combine fragmented text)
+      const textNodes: Node[] = [];
+      let combinedText = "";
+      
+      for (let i = 0; i < parent.childNodes.length; i++) {
+        const child = parent.childNodes[i];
+        
+        // Skip script/style tags
+        if (child.nodeType === 1) {
+          const tag = (child as Element).tagName;
+          if (tag === "SCRIPT" || tag === "STYLE") continue;
+        }
+        
+        // Collect text nodes
+        if (child.nodeType === 3) {
+          const nodeText = child.textContent?.trim();
+          if (nodeText && nodeText.length > 0) {
+            textNodes.push(child);
+            combinedText += (combinedText ? " " : "") + nodeText;
+          }
+        }
       }
-      texts.get(text)!.push(textParent);
+
+      if (combinedText.length < 3) continue;
+
+      if (!texts.has(combinedText)) {
+        texts.set(combinedText, []);
+      }
+      texts.get(combinedText)!.push({ nodes: textNodes, parent });
     }
 
     return texts;
@@ -115,7 +153,9 @@ export const usePageTranslation = () => {
 
       const pageTexts = getPageText();
       const textsToTranslate = Array.from(pageTexts.keys())
-        .filter((text) => text.length > 3);
+        .filter((text) => text.length > 3)
+        // Deduplicate to avoid translating same text twice
+        .filter((value, index, self) => self.indexOf(value) === index);
 
       if (textsToTranslate.length === 0) {
         console.log("No text found to translate");
@@ -123,11 +163,11 @@ export const usePageTranslation = () => {
         return;
       }
 
-      console.log(`Found ${textsToTranslate.length} text items to translate`);
+      console.log(`Found ${textsToTranslate.length} unique text items to translate`);
       let successCount = 0;
 
-      // Translate with batching (optimized batch size)
-      const batchSize = 20;
+      // Translate with batching (reduce API calls)
+      const batchSize = 10;
       for (let i = 0; i < textsToTranslate.length; i += batchSize) {
         const batch = textsToTranslate.slice(i, i + batchSize);
 
@@ -139,28 +179,24 @@ export const usePageTranslation = () => {
           const translatedText = translations[idx];
           if (translatedText && translatedText !== originalText) {
             const elements = pageTexts.get(originalText) || [];
-            elements.forEach((el) => {
+            elements.forEach(({ nodes, parent }) => {
               try {
-                let found = false;
-                for (let i = 0; i < el.childNodes.length; i++) {
-                  const child = el.childNodes[i];
-                  if (
-                    child.nodeType === 3 &&
-                    child.textContent?.trim() === originalText
-                  ) {
-                    child.textContent = translatedText;
-                    found = true;
-                    successCount++;
-                    break;
+                // Replace combined text nodes
+                if (nodes.length > 0) {
+                  // Replace first node with translated text
+                  nodes[0].textContent = translatedText;
+                  
+                  // Remove other nodes
+                  for (let i = 1; i < nodes.length; i++) {
+                    nodes[i].parentNode?.removeChild(nodes[i]);
                   }
-                }
-
-                if (
-                  !found &&
-                  el.childNodes.length === 1 &&
-                  el.childNodes[0].nodeType === 3
+                  
+                  successCount++;
+                } else if (
+                  parent.childNodes.length === 1 &&
+                  parent.childNodes[0].nodeType === 3
                 ) {
-                  el.textContent = translatedText;
+                  parent.textContent = translatedText;
                   successCount++;
                 }
               } catch (err) {
@@ -170,8 +206,9 @@ export const usePageTranslation = () => {
           }
         });
 
+        // Delay between batches (be nice to MyMemory API)
         if (i + batchSize < textsToTranslate.length) {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
       }
 
