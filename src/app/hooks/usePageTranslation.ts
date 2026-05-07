@@ -34,7 +34,7 @@ export const usePageTranslation = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text: text.substring(0, 500),
+          text: text,
           targetLanguage: LANG_MAP[targetLang] || targetLang,
         }),
       });
@@ -115,8 +115,7 @@ export const usePageTranslation = () => {
 
       const pageTexts = getPageText();
       const textsToTranslate = Array.from(pageTexts.keys())
-        .filter((text) => text.length > 3)
-        .slice(0, 150);
+        .filter((text) => text.length > 3);
 
       if (textsToTranslate.length === 0) {
         console.log("No text found to translate");
@@ -127,8 +126,8 @@ export const usePageTranslation = () => {
       console.log(`Found ${textsToTranslate.length} text items to translate`);
       let successCount = 0;
 
-      // Translate with batching
-      const batchSize = 10;
+      // Translate with batching (optimized batch size)
+      const batchSize = 20;
       for (let i = 0; i < textsToTranslate.length; i += batchSize) {
         const batch = textsToTranslate.slice(i, i + batchSize);
 
@@ -172,7 +171,7 @@ export const usePageTranslation = () => {
         });
 
         if (i + batchSize < textsToTranslate.length) {
-          await new Promise((resolve) => setTimeout(resolve, 400));
+          await new Promise((resolve) => setTimeout(resolve, 200));
         }
       }
 
