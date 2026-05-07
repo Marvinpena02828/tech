@@ -1,119 +1,64 @@
 // src/app/api/translate/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Language code mapping for Bing Translator
-const LANG_MAP: { [key: string]: string } = {
-  en: "en",
-  zh: "zh-Hans",
-  ar: "ar",
-  ru: "ru",
-  de: "de",
-  ro: "ro",
-  es: "es",
-  fr: "fr",
-};
 
 export async function POST(request: NextRequest) {
-  let text = "";
-  let targetLanguage = "";
-
   try {
     const body = await request.json();
-    text = body.text;
-    targetLanguage = body.targetLanguage;
+    const { text, targetLanguage } = body;
 
     if (!text || !targetLanguage) {
       return NextResponse.json(
-        { error: "Missing text or targetLanguage" },
+        { error: "Missing text or targetLanguage", translatedText: text },
         { status: 400 }
       );
     }
 
-    const targetLang = LANG_MAP[targetLanguage] || targetLanguage;
+    // If English, return as is
+    if (targetLanguage === "en") {
+      return NextResponse.json({ translatedText: text });
+    }
 
-    // Check Supabase cache first
+    // Map to Bing language codes
+    const langMap: { [key: string]: string } = {
+      "en": "en",
+      "zh-Hans": "zh-Hans",
+      "zh": "zh-Hans",
+      "ar": "ar",
+      "ru": "ru",
+      "de": "de",
+      "ro": "ro",
+      "es": "es",
+      "fr": "fr",
+    };
+
+    const bingLang = langMap[targetLanguage] || targetLanguage;
+
+    // Try Bing Translator
     try {
-      const { data: cached, error: cacheError } = await supabase
-        .from("translations")
-        .select("translated_text")
-        .eq("original_text", text)
-        .eq("target_language", targetLang)
-        .single();
+      const bingUrl = `https://api.microsofttranslator.com/v2/Ajax.svc/Translate?text=${encodeURIComponent(text)}&from=en&to=${bingLang}`;
 
-      if (cached && !cacheError) {
-        console.log("Cache hit for:", text.substring(0, 30));
-        return NextResponse.json({
-          translatedText: cached.translated_text,
-          fromCache: true,
-        });
+      const response = await fetch(bingUrl, {
+        method: "GET",
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.text();
+        const translated = result.replace(/^"(.*)"$/, "$1") || text;
+        return NextResponse.json({ translatedText: translated });
       }
-    } catch (cacheErr) {
-      console.log("Cache check skipped");
+    } catch (err) {
+      console.error("Bing error:", err);
     }
 
-    // Call Bing Translator API (free, no key needed)
-    // Bing uses query parameter in URL
-    const bingUrl = `https://api.microsofttranslator.com/v2/Ajax.svc/Translate?text=${encodeURIComponent(text)}&from=en&to=${targetLang}`;
-
-    const response = await fetch(bingUrl, {
-      method: "GET",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
-    });
-
-    if (!response.ok) {
-      console.error("Bing Translator API error:", response.status);
-      // Fallback to text if translation fails
-      return NextResponse.json(
-        { error: "Translation failed", translatedText: text },
-        { status: response.status }
-      );
-    }
-
-    const responseText = await response.text();
-    // Bing returns text wrapped in quotes, remove them
-    const translatedText = responseText.replace(/^"(.*)"$/, "$1") || text;
-
-    // Save to cache (non-blocking) - fire and forget
-    (async () => {
-      try {
-        await supabase
-          .from("translations")
-          .insert({
-            original_text: text,
-            translated_text: translatedText,
-            target_language: targetLang,
-          });
-        console.log("Translation cached");
-      } catch (err) {
-        console.log(
-          "Cache save skipped:",
-          err instanceof Error ? err.message : "Unknown error"
-        );
-      }
-    })();
-
-    return NextResponse.json({
-      translatedText: translatedText,
-      fromCache: false,
-    });
+    // Fallback: return original text
+    return NextResponse.json({ translatedText: text });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Translation API error:", errorMessage);
+    console.error("API error:", error);
     return NextResponse.json(
-      {
-        error: "Translation failed",
-        details: errorMessage,
-        translatedText: text || "Translation failed",
-      },
+      { error: "Translation service error", translatedText: "" },
       { status: 500 }
     );
   }
