@@ -8,10 +8,10 @@ export const usePageTranslation = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const pathname = usePathname();
 
-  // Map language codes to MyMemory codes
+  // Map language codes
   const LANG_MAP: { [key: string]: string } = {
-    en: "en-US",
-    zh: "zh-CN",
+    en: "en",
+    zh: "zh-Hans",
     ar: "ar",
     ru: "ru",
     de: "de",
@@ -20,22 +20,19 @@ export const usePageTranslation = () => {
     fr: "fr",
   };
 
-  // Check cache first: localStorage → Supabase → API
+  // Translate text with localStorage cache
   const translateText = async (
     text: string,
     targetLang: string
   ): Promise<string> => {
     if (!text || targetLang === "en") return text;
 
-    // 1. Check localStorage cache first (instant, offline)
     const cacheKey = `trans_${targetLang}_${text}`;
     const localCached = localStorage.getItem(cacheKey);
     if (localCached) {
-      console.log("Local cache hit");
       return localCached;
     }
 
-    // 2. Call backend (checks Supabase, then MyMemory if needed)
     try {
       const response = await fetch("/api/translate", {
         method: "POST",
@@ -49,14 +46,12 @@ export const usePageTranslation = () => {
       });
 
       if (!response.ok) {
-        console.error("Translation API error:", response.statusText);
         return text;
       }
 
       const data = await response.json();
       const translatedText = data.translatedText || text;
 
-      // 3. Save to localStorage for next time (avoid repeat API calls)
       if (translatedText !== text) {
         localStorage.setItem(cacheKey, translatedText);
       }
@@ -68,57 +63,54 @@ export const usePageTranslation = () => {
     }
   };
 
-  // Get all translatable text from page
-  const getPageText = () => {
-    const texts: Map<string, HTMLElement[]> = new Map();
-    const visited = new Set<Node>();
-    const processedParents = new Set<HTMLElement>();
+  // Get all text elements to translate
+  const getTextElements = () => {
+    const elements: { el: HTMLElement; text: string }[] = [];
+    
+    try {
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_ELEMENT,
+        null
+      );
 
-    // Walk through ALL nodes in the DOM
-    const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT,
-      null
-    );
+      let node: any;
+      const seenTexts = new Set<string>();
 
-    let node: Node | null;
-    while ((node = walker.nextNode())) {
-      if (visited.has(node)) continue;
-      visited.add(node);
+      while ((node = walker.nextNode())) {
+        if (
+          node.tagName === "SCRIPT" ||
+          node.tagName === "STYLE" ||
+          node.tagName === "NOSCRIPT" ||
+          pathname.includes("/admin") ||
+          node.classList.contains("language-btn") ||
+          node.closest(".goog-te-bubble") ||
+          node.closest("#google_translate_element")
+        ) {
+          continue;
+        }
 
-      const parent = node.parentElement;
-      if (!parent || processedParents.has(parent)) continue;
-
-      const parentText = parent.innerText?.trim();
-      
-      if (
-        !parentText ||
-        parentText.length < 3 ||
-        parent.tagName === "SCRIPT" ||
-        parent.tagName === "STYLE" ||
-        pathname.includes("/admin") ||
-        parent.classList.contains("language-btn") ||
-        parent.closest(".goog-te-bubble") ||
-        parent.closest("#google_translate_element")
-      ) {
-        continue;
+        const text = node.innerText?.trim();
+        if (
+          text &&
+          text.length > 3 &&
+          text.length < 1000 &&
+          !seenTexts.has(text)
+        ) {
+          seenTexts.add(text);
+          elements.push({ el: node, text });
+        }
       }
-
-      processedParents.add(parent);
-
-      if (!texts.has(parentText)) {
-        texts.set(parentText, []);
-      }
-      texts.get(parentText)!.push(parent);
+    } catch (error) {
+      console.error("Error getting text elements:", error);
     }
 
-    return texts;
+    return elements;
   };
 
-  // Translate page content
+  // Translate page
   const translatePage = async (targetLanguage: string) => {
     if (targetLanguage === "en") {
-      // Reset to English - save to localStorage and reload
       localStorage.setItem("currentLanguage", "en");
       window.location.reload();
       return;
@@ -126,65 +118,55 @@ export const usePageTranslation = () => {
 
     setIsTranslating(true);
     try {
-      // Save language preference BEFORE translating
       localStorage.setItem("currentLanguage", targetLanguage);
       setCurrentLanguage(targetLanguage);
 
-      const pageTexts = getPageText();
-      const textsToTranslate = Array.from(pageTexts.keys())
-        .filter((text) => text.length > 3)
-        // Deduplicate to avoid translating same text twice
-        .filter((value, index, self) => self.indexOf(value) === index);
-
-      if (textsToTranslate.length === 0) {
-        console.log("No text found to translate");
+      const elements = getTextElements();
+      if (elements.length === 0) {
         setIsTranslating(false);
         return;
       }
 
-      console.log(`Found ${textsToTranslate.length} unique text items to translate`);
+      console.log(`Translating ${elements.length} elements`);
       let successCount = 0;
 
-      // Translate with batching (reduce API calls)
-      const batchSize = 10;
-      for (let i = 0; i < textsToTranslate.length; i += batchSize) {
-        const batch = textsToTranslate.slice(i, i + batchSize);
+      // Translate in batches
+      const batchSize = 5;
+      for (let i = 0; i < elements.length; i += batchSize) {
+        const batch = elements.slice(i, i + batchSize);
 
-        const translations = await Promise.all(
-          batch.map((text) => translateText(text, targetLanguage))
+        const results = await Promise.all(
+          batch.map(async ({ text }) => {
+            const translated = await translateText(text, targetLanguage);
+            return { original: text, translated };
+          })
         );
 
-        batch.forEach((originalText, idx) => {
-          const translatedText = translations[idx];
-          if (translatedText && translatedText !== originalText) {
-            const elements = pageTexts.get(originalText) || [];
-            elements.forEach((el) => {
+        // Apply translations
+        results.forEach(({ original, translated }) => {
+          if (translated !== original) {
+            const elementsToUpdate = elements.filter(
+              (e) => e.text === original
+            );
+            elementsToUpdate.forEach(({ el }) => {
               try {
-                // Check if element still exists in DOM
-                if (!document.contains(el)) {
-                  console.log("Element no longer in DOM, skipping");
-                  return;
-                }
-                
-                // Simple replacement using innerText
-                if (el.innerText?.trim() === originalText) {
-                  el.innerText = translatedText;
+                if (el.innerText?.trim() === original) {
+                  el.innerText = translated;
                   successCount++;
                 }
               } catch (err) {
-                console.error("Error replacing text:", err);
+                // Silently fail
               }
             });
           }
         });
 
-        // Delay between batches (be nice to MyMemory API)
-        if (i + batchSize < textsToTranslate.length) {
-          await new Promise((resolve) => setTimeout(resolve, 300));
+        if (i + batchSize < elements.length) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
         }
       }
 
-      console.log(`Successfully translated ${successCount} text elements`);
+      console.log(`Translated ${successCount} elements`);
     } catch (error) {
       console.error("Translation error:", error);
     } finally {
@@ -192,15 +174,13 @@ export const usePageTranslation = () => {
     }
   };
 
-  // Initialize language from localStorage on mount
+  // Initialize
   useEffect(() => {
     if (typeof window !== "undefined" && !isInitialized) {
       const savedLanguage = localStorage.getItem("currentLanguage");
-      console.log("Saved language from localStorage:", savedLanguage);
 
       if (savedLanguage && savedLanguage !== "en") {
         setCurrentLanguage(savedLanguage);
-        // Translate page after a delay to ensure it's loaded
         setTimeout(() => {
           translatePage(savedLanguage);
         }, 1500);
@@ -210,13 +190,11 @@ export const usePageTranslation = () => {
 
       setIsInitialized(true);
     }
-  }, []); // Only run once on mount
+  }, []);
 
-  // Re-translate when navigating to a new page
+  // Re-translate on page change
   useEffect(() => {
     if (isInitialized && currentLanguage && currentLanguage !== "en") {
-      console.log("Page changed, re-translating to:", currentLanguage);
-      // Delay to allow page content to load
       const timer = setTimeout(() => {
         translatePage(currentLanguage);
       }, 1500);
