@@ -84,16 +84,21 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
     const translatedText = data.translatedText || text;
 
-    // Save to cache (non-blocking)
-    supabase
-      .from("translations")
-      .insert({
-        original_text: text,
-        translated_text: translatedText,
-        target_language: targetLang,
-      })
-      .then(() => console.log("Translation cached"))
-      .catch((err) => console.log("Cache save skipped:", err.message));
+    // Save to cache (non-blocking) - fire and forget
+    (async () => {
+      try {
+        await supabase
+          .from("translations")
+          .insert({
+            original_text: text,
+            translated_text: translatedText,
+            target_language: targetLang,
+          });
+        console.log("Translation cached");
+      } catch (err) {
+        console.log("Cache save skipped:", err instanceof Error ? err.message : "Unknown error");
+      }
+    })();
 
     return NextResponse.json({
       translatedText: translatedText,
