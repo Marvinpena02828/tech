@@ -222,7 +222,7 @@
 }
 
 :root {
-  --background: #e8e8e8;
+  --background: rgb(229, 222, 219);
   --foreground: #171717;
   --primary-blue: #171847;
 }
