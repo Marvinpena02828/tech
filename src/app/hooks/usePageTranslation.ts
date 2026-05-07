@@ -8,10 +8,10 @@ export const usePageTranslation = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const pathname = usePathname();
 
-  // Map language codes to MyMemory codes
+  // Map language codes to LibreTranslate codes
   const LANG_MAP: { [key: string]: string } = {
-    en: "en-US",
-    zh: "zh-CN",
+    en: "en",
+    zh: "zh",
     ar: "ar",
     ru: "ru",
     de: "de",
@@ -20,71 +20,34 @@ export const usePageTranslation = () => {
     fr: "fr",
   };
 
-  // Translate text using our API route (backend proxy to MyMemory)
+  // Translate text using LibreTranslate API (no char limit, with Supabase caching)
   const translateText = async (
     text: string,
     targetLang: string
   ): Promise<string> => {
     if (!text || targetLang === "en") return text;
 
-    // MyMemory has 500 char limit, so chunk if needed
-    const MAX_CHARS = 500;
-    
-    if (text.length <= MAX_CHARS) {
-      try {
-        const response = await fetch("/api/translate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: text,
-            targetLanguage: LANG_MAP[targetLang] || targetLang,
-          }),
-        });
+    try {
+      const response = await fetch("/api/translate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: text,
+          targetLanguage: LANG_MAP[targetLang] || targetLang,
+        }),
+      });
 
-        if (!response.ok) {
-          console.error("Translation API error:", response.statusText);
-          return text;
-        }
-
-        const data = await response.json();
-        return data.translatedText || text;
-      } catch (error) {
-        console.error("Translation error:", error);
+      if (!response.ok) {
+        console.error("Translation API error:", response.statusText);
         return text;
       }
-    }
 
-    // For longer text, chunk it up
-    try {
-      const chunks = [];
-      for (let i = 0; i < text.length; i += MAX_CHARS) {
-        chunks.push(text.slice(i, i + MAX_CHARS));
-      }
-
-      const translatedChunks = await Promise.all(
-        chunks.map(async (chunk) => {
-          const response = await fetch("/api/translate", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              text: chunk,
-              targetLanguage: LANG_MAP[targetLang] || targetLang,
-            }),
-          });
-
-          if (!response.ok) return chunk;
-          const data = await response.json();
-          return data.translatedText || chunk;
-        })
-      );
-
-      return translatedChunks.join("");
+      const data = await response.json();
+      return data.translatedText || text;
     } catch (error) {
-      console.error("Translation chunking error:", error);
+      console.error("Translation error:", error);
       return text;
     }
   };
