@@ -70,8 +70,9 @@ export const usePageTranslation = () => {
 
   // Get all translatable text from page
   const getPageText = () => {
-    const texts: Map<string, { nodes: Node[]; parent: HTMLElement }[]> = new Map();
+    const texts: Map<string, HTMLElement[]> = new Map();
     const visited = new Set<Node>();
+    const processedParents = new Set<HTMLElement>();
 
     // Walk through ALL nodes in the DOM
     const walker = document.createTreeWalker(
@@ -85,13 +86,14 @@ export const usePageTranslation = () => {
       if (visited.has(node)) continue;
       visited.add(node);
 
-      const text = node.textContent?.trim();
       const parent = node.parentElement;
+      if (!parent || processedParents.has(parent)) continue;
 
+      const parentText = parent.innerText?.trim();
+      
       if (
-        !text ||
-        text.length < 3 ||
-        !parent ||
+        !parentText ||
+        parentText.length < 3 ||
         parent.tagName === "SCRIPT" ||
         parent.tagName === "STYLE" ||
         pathname.includes("/admin") ||
@@ -102,35 +104,12 @@ export const usePageTranslation = () => {
         continue;
       }
 
-      // Get all consecutive text nodes in parent (combine fragmented text)
-      const textNodes: Node[] = [];
-      let combinedText = "";
-      
-      for (let i = 0; i < parent.childNodes.length; i++) {
-        const child = parent.childNodes[i];
-        
-        // Skip script/style tags
-        if (child.nodeType === 1) {
-          const tag = (child as Element).tagName;
-          if (tag === "SCRIPT" || tag === "STYLE") continue;
-        }
-        
-        // Collect text nodes
-        if (child.nodeType === 3) {
-          const nodeText = child.textContent?.trim();
-          if (nodeText && nodeText.length > 0) {
-            textNodes.push(child);
-            combinedText += (combinedText ? " " : "") + nodeText;
-          }
-        }
-      }
+      processedParents.add(parent);
 
-      if (combinedText.length < 3) continue;
-
-      if (!texts.has(combinedText)) {
-        texts.set(combinedText, []);
+      if (!texts.has(parentText)) {
+        texts.set(parentText, []);
       }
-      texts.get(combinedText)!.push({ nodes: textNodes, parent });
+      texts.get(parentText)!.push(parent);
     }
 
     return texts;
@@ -179,24 +158,11 @@ export const usePageTranslation = () => {
           const translatedText = translations[idx];
           if (translatedText && translatedText !== originalText) {
             const elements = pageTexts.get(originalText) || [];
-            elements.forEach(({ nodes, parent }) => {
+            elements.forEach((el) => {
               try {
-                // Replace combined text nodes
-                if (nodes.length > 0) {
-                  // Replace first node with translated text
-                  nodes[0].textContent = translatedText;
-                  
-                  // Remove other nodes
-                  for (let i = 1; i < nodes.length; i++) {
-                    nodes[i].parentNode?.removeChild(nodes[i]);
-                  }
-                  
-                  successCount++;
-                } else if (
-                  parent.childNodes.length === 1 &&
-                  parent.childNodes[0].nodeType === 3
-                ) {
-                  parent.textContent = translatedText;
+                // Simple replacement using innerText
+                if (el.innerText?.trim() === originalText) {
+                  el.innerText = translatedText;
                   successCount++;
                 }
               } catch (err) {
