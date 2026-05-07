@@ -7,8 +7,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const LIBRETRANSLATE_API = "https://api.libretranslate.de/translate";
-
 export async function POST(request: NextRequest) {
   let text = "";
   let targetLanguage = "";
@@ -25,16 +23,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Language code mapping for LibreTranslate
+    // Language code mapping for MyMemory
     const langMap: { [key: string]: string } = {
-      "en-US": "en",
-      "zh-CN": "zh",
-      "ar": "ar",
-      "ru": "ru",
-      "de": "de",
-      "ro": "ro",
-      "es": "es",
-      "fr": "fr",
+      en: "en-US",
+      zh: "zh-CN",
+      ar: "ar",
+      ru: "ru",
+      de: "de",
+      ro: "ro",
+      es: "es",
+      fr: "fr",
     };
 
     const targetLang = langMap[targetLanguage] || targetLanguage;
@@ -56,25 +54,22 @@ export async function POST(request: NextRequest) {
         });
       }
     } catch (cacheErr) {
-      // Table might not exist yet, continue to translation
       console.log("Cache check skipped");
     }
 
-    // Call LibreTranslate API
-    const response = await fetch(LIBRETRANSLATE_API, {
-      method: "POST",
+    // Call MyMemory API (free, no key required, works in China)
+    const encodedText = encodeURIComponent(text);
+    const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=en|${targetLang}`;
+
+    const response = await fetch(myMemoryUrl, {
       headers: {
-        "Content-Type": "application/json",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
-      body: JSON.stringify({
-        q: text,
-        source_language: "en",
-        target_language: targetLang,
-      }),
     });
 
     if (!response.ok) {
-      console.error("LibreTranslate API error:", response.status);
+      console.error("MyMemory API error:", response.status);
       return NextResponse.json(
         { error: "Translation failed", translatedText: text },
         { status: response.status }
@@ -82,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    const translatedText = data.translatedText || text;
+    const translatedText = data?.responseData?.translatedText || text;
 
     // Save to cache (non-blocking) - fire and forget
     (async () => {
@@ -96,7 +91,10 @@ export async function POST(request: NextRequest) {
           });
         console.log("Translation cached");
       } catch (err) {
-        console.log("Cache save skipped:", err instanceof Error ? err.message : "Unknown error");
+        console.log(
+          "Cache save skipped:",
+          err instanceof Error ? err.message : "Unknown error"
+        );
       }
     })();
 
@@ -107,9 +105,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Translation API error:", errorMessage);
-    console.error("Full error object:", error);
-    console.error("Text was:", text);
-    console.error("Target language was:", targetLanguage);
     return NextResponse.json(
       {
         error: "Translation failed",
