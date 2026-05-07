@@ -52,6 +52,38 @@ export const usePageTranslation = () => {
     }
   };
 
+  // Recursively translate all text in element and children
+  const translateElement = async (el: HTMLElement, targetLanguage: string) => {
+    try {
+      // Translate direct text content first
+      for (let i = 0; i < el.childNodes.length; i++) {
+        const node = el.childNodes[i];
+
+        // Text node
+        if (node.nodeType === 3) {
+          const text = node.textContent?.trim();
+          if (text && text.length > 2) {
+            const translated = await translateText(text, targetLanguage);
+            if (translated !== text) {
+              node.textContent = translated;
+            }
+          }
+        }
+
+        // Element node - recurse
+        if (node.nodeType === 1) {
+          const tag = (node as Element).tagName;
+          // Skip script, style, and interactive elements
+          if (!["SCRIPT", "STYLE", "BUTTON", "INPUT", "TEXTAREA"].includes(tag)) {
+            await translateElement(node as HTMLElement, targetLanguage);
+          }
+        }
+      }
+    } catch (err) {
+      // Silent fail
+    }
+  };
+
   const translatePageContent = async (targetLanguage: string) => {
     if (targetLanguage === "en") {
       localStorage.setItem("currentLanguage", "en");
@@ -64,84 +96,50 @@ export const usePageTranslation = () => {
       localStorage.setItem("currentLanguage", targetLanguage);
       setCurrentLanguage(targetLanguage);
 
-      // Get ALL text nodes in page
-      const textNodes: { node: Node; parent: HTMLElement; text: string }[] = [];
-      const seen = new Set<string>();
+      // Find main content areas
+      const contentSelectors = [
+        "main",
+        "article",
+        "[role='main']",
+        ".content",
+        ".main-content",
+        "body > *:not(script):not(style):not(noscript)",
+      ];
 
-      const walker = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_TEXT,
-        null
-      );
+      let contentElements: HTMLElement[] = [];
 
-      let node: Node | null;
-      while ((node = walker.nextNode())) {
-        const text = node.textContent?.trim();
-        const parent = node.parentElement;
+      for (const selector of contentSelectors) {
+        const elements = Array.from(document.querySelectorAll(selector));
+        contentElements.push(...(elements as HTMLElement[]));
+      }
 
-        // Skip non-translatable content
+      // If nothing found, use body
+      if (contentElements.length === 0) {
+        contentElements = [document.body];
+      }
+
+      // Remove duplicates
+      contentElements = Array.from(new Set(contentElements));
+
+      console.log(`Translating ${contentElements.length} elements`);
+
+      // Translate each element
+      for (const el of contentElements) {
+        // Skip admin and language buttons
         if (
-          !text ||
-          text.length < 2 ||
-          !parent ||
-          parent.tagName === "SCRIPT" ||
-          parent.tagName === "STYLE" ||
-          parent.tagName === "NOSCRIPT" ||
           pathname.includes("/admin") ||
-          parent.classList.contains("language-btn") ||
-          parent.closest(".goog-te-bubble") ||
-          parent.closest("#google_translate_element")
+          el.classList.contains("language-btn") ||
+          el.closest(".goog-te-bubble") ||
+          el.closest("#google_translate_element")
         ) {
           continue;
         }
 
-        // Skip duplicates
-        if (seen.has(text)) continue;
-        seen.add(text);
-
-        textNodes.push({ node, parent, text });
+        await translateElement(el, targetLanguage);
+        await new Promise((resolve) => setTimeout(resolve, 50));
       }
 
-      if (textNodes.length === 0) {
-        setIsTranslating(false);
-        return;
-      }
-
-      console.log(`Found ${textNodes.length} text nodes to translate`);
-      let successCount = 0;
-
-      // Translate in batches (smaller batches = safer)
-      const batchSize = 5;
-      for (let i = 0; i < textNodes.length; i += batchSize) {
-        const batch = textNodes.slice(i, i + batchSize);
-
-        const translations = await Promise.all(
-          batch.map(({ text }) => translateText(text, targetLanguage))
-        );
-
-        // Apply translations
-        batch.forEach(({ node, parent, text }, idx) => {
-          const translated = translations[idx];
-          if (translated && translated !== text) {
-            try {
-              // Check if node is still in DOM
-              if (node.parentNode && document.contains(node)) {
-                node.textContent = translated;
-                successCount++;
-              }
-            } catch (err) {
-              // Skip if error
-            }
-          }
-        });
-
-        // Delay between batches
-        if (i + batchSize < textNodes.length) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      }
-
-      console.log(`Successfully translated ${successCount}/${textNodes.length} nodes`);
+      console.log(`Translation complete`);
     } catch (error) {
       console.error("Translation page error:", error);
     } finally {
