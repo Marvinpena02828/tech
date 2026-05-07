@@ -160,6 +160,12 @@ export const usePageTranslation = () => {
             const elements = pageTexts.get(originalText) || [];
             elements.forEach((el) => {
               try {
+                // Check if element still exists in DOM
+                if (!document.contains(el)) {
+                  console.log("Element no longer in DOM, skipping");
+                  return;
+                }
+                
                 // Simple replacement using innerText
                 if (el.innerText?.trim() === originalText) {
                   el.innerText = translatedText;
