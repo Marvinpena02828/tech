@@ -105,10 +105,15 @@ export async function POST(request: NextRequest) {
       fromCache: false,
     });
   } catch (error) {
-    console.error("Translation API error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Translation API error:", errorMessage);
+    console.error("Full error object:", error);
+    console.error("Text was:", text);
+    console.error("Target language was:", targetLanguage);
     return NextResponse.json(
       {
         error: "Translation failed",
+        details: errorMessage,
         translatedText: text || "Translation failed",
       },
       { status: 500 }
