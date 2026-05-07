@@ -64,77 +64,108 @@ export const usePageTranslation = () => {
     const cached = localStorage.getItem(cacheKey);
     if (cached) return cached;
 
-    try {
-      // If text is very long, split into sentences
-      let textToTranslate = text;
-      if (text.length > 500) {
-        // Split by sentences (., !, ?)
-        const sentences = text.split(/([.!?])\s+/);
-        const chunks: string[] = [];
-        let current = "";
+    // Retry logic
+    const maxRetries = 3;
+    let lastError: any;
 
-        for (let i = 0; i < sentences.length; i += 2) {
-          const sentence = sentences[i] + (sentences[i + 1] || "");
-          if ((current + sentence).length < 450) {
-            current += sentence + " ";
-          } else {
-            if (current) chunks.push(current.trim());
-            current = sentence + " ";
-          }
-        }
-        if (current) chunks.push(current.trim());
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        // If text is very long, split into sentences
+        let textToTranslate = text;
+        if (text.length > 500) {
+          // Split by sentences (., !, ?)
+          const sentences = text.split(/([.!?])\s+/);
+          const chunks: string[] = [];
+          let current = "";
 
-        // Translate each chunk and rejoin
-        const translatedChunks = await Promise.all(
-          chunks.map(async (chunk) => {
-            try {
-              const response = await fetch("/api/translate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  text: chunk,
-                  targetLanguage: LANG_MAP[targetLang] || targetLang,
-                }),
-              });
-
-              const data = await response.json();
-              return data.translatedText || chunk;
-            } catch (error) {
-              return chunk;
+          for (let i = 0; i < sentences.length; i += 2) {
+            const sentence = sentences[i] + (sentences[i + 1] || "");
+            if ((current + sentence).length < 400) {
+              current += sentence + " ";
+            } else {
+              if (current) chunks.push(current.trim());
+              current = sentence + " ";
             }
-          })
-        );
+          }
+          if (current) chunks.push(current.trim());
 
-        const translated = translatedChunks.join(" ");
+          console.log(`Translating ${chunks.length} chunks (attempt ${attempt + 1})`);
+
+          // Translate each chunk and rejoin
+          const translatedChunks = await Promise.all(
+            chunks.map(async (chunk, idx) => {
+              // Add delay between chunks
+              await new Promise((resolve) =>
+                setTimeout(resolve, idx * 100)
+              );
+
+              try {
+                const response = await fetch("/api/translate", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    text: chunk,
+                    targetLanguage: LANG_MAP[targetLang] || targetLang,
+                  }),
+                });
+
+                if (!response.ok) {
+                  console.warn(`Chunk ${idx} failed with status ${response.status}`);
+                  return chunk;
+                }
+
+                const data = await response.json();
+                return data.translatedText || chunk;
+              } catch (error) {
+                console.warn(`Chunk ${idx} error:`, error);
+                return chunk;
+              }
+            })
+          );
+
+          const translated = translatedChunks.join(" ");
+          if (translated !== text) {
+            localStorage.setItem(cacheKey, translated);
+          }
+          return translated;
+        }
+
+        // Short text - translate directly
+        const response = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: textToTranslate,
+            targetLanguage: LANG_MAP[targetLang] || targetLang,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const translated = data.translatedText || text;
+
+        // Cache it
         if (translated !== text) {
           localStorage.setItem(cacheKey, translated);
         }
+
         return translated;
+      } catch (error) {
+        lastError = error;
+        console.error(`Translation attempt ${attempt + 1} failed:`, error);
+        
+        // Wait before retrying
+        if (attempt < maxRetries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
       }
-
-      // Short text - translate directly
-      const response = await fetch("/api/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: textToTranslate,
-          targetLanguage: LANG_MAP[targetLang] || targetLang,
-        }),
-      });
-
-      const data = await response.json();
-      const translated = data.translatedText || text;
-
-      // Cache it
-      if (translated !== text) {
-        localStorage.setItem(cacheKey, translated);
-      }
-
-      return translated;
-    } catch (error) {
-      console.error("Translation error:", error);
-      return text;
     }
+
+    console.error(`Translation failed after ${maxRetries} attempts:`, lastError);
+    return text;
   };
 
   // Translate mixed language text intelligently
