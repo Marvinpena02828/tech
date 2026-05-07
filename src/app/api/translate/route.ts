@@ -7,6 +7,18 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Language code mapping for Bing Translator
+const LANG_MAP: { [key: string]: string } = {
+  en: "en",
+  zh: "zh-Hans",
+  ar: "ar",
+  ru: "ru",
+  de: "de",
+  ro: "ro",
+  es: "es",
+  fr: "fr",
+};
+
 export async function POST(request: NextRequest) {
   let text = "";
   let targetLanguage = "";
@@ -23,19 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Language code mapping for MyMemory
-    const langMap: { [key: string]: string } = {
-      en: "en-US",
-      zh: "zh-CN",
-      ar: "ar",
-      ru: "ru",
-      de: "de",
-      ro: "ro",
-      es: "es",
-      fr: "fr",
-    };
-
-    const targetLang = langMap[targetLanguage] || targetLanguage;
+    const targetLang = LANG_MAP[targetLanguage] || targetLanguage;
 
     // Check Supabase cache first
     try {
@@ -57,72 +57,30 @@ export async function POST(request: NextRequest) {
       console.log("Cache check skipped");
     }
 
-    // Call MyMemory API with chunking for long text
-    let translatedText = text;
-    
-    if (text.length <= 500) {
-      // Short text - single request
-      const encodedText = encodeURIComponent(text);
-      const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=en|${targetLang}`;
+    // Call Bing Translator API (free, no key needed)
+    // Bing uses query parameter in URL
+    const bingUrl = `https://api.microsofttranslator.com/v2/Ajax.svc/Translate?text=${encodeURIComponent(text)}&from=en&to=${targetLang}`;
 
-      const response = await fetch(myMemoryUrl, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-      });
+    const response = await fetch(bingUrl, {
+      method: "GET",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      },
+    });
 
-      if (!response.ok) {
-        console.error("MyMemory API error:", response.status);
-        return NextResponse.json(
-          { error: "Translation failed", translatedText: text },
-          { status: response.status }
-        );
-      }
-
-      const data = await response.json();
-      translatedText = data?.responseData?.translatedText || text;
-    } else {
-      // Long text - chunk it
-      console.log(`Text too long (${text.length} chars), chunking...`);
-      const chunks = [];
-      
-      // Split by sentences or every 450 chars
-      const sentences = text.split(/(?<=[.!?])\s+/);
-      let currentChunk = "";
-      
-      for (const sentence of sentences) {
-        if ((currentChunk + sentence).length <= 450) {
-          currentChunk += (currentChunk ? " " : "") + sentence;
-        } else {
-          if (currentChunk) chunks.push(currentChunk);
-          currentChunk = sentence;
-        }
-      }
-      if (currentChunk) chunks.push(currentChunk);
-      
-      console.log(`Split into ${chunks.length} chunks`);
-      
-      const translatedChunks = await Promise.all(
-        chunks.map(async (chunk) => {
-          const encodedText = encodeURIComponent(chunk);
-          const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=en|${targetLang}`;
-
-          const response = await fetch(myMemoryUrl, {
-            headers: {
-              "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            },
-          });
-
-          if (!response.ok) return chunk;
-          const data = await response.json();
-          return data?.responseData?.translatedText || chunk;
-        })
+    if (!response.ok) {
+      console.error("Bing Translator API error:", response.status);
+      // Fallback to text if translation fails
+      return NextResponse.json(
+        { error: "Translation failed", translatedText: text },
+        { status: response.status }
       );
-      
-      translatedText = translatedChunks.join(" ");
     }
+
+    const responseText = await response.text();
+    // Bing returns text wrapped in quotes, remove them
+    const translatedText = responseText.replace(/^"(.*)"$/, "$1") || text;
 
     // Save to cache (non-blocking) - fire and forget
     (async () => {
