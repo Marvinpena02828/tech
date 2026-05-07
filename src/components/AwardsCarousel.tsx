@@ -13,6 +13,7 @@ interface Award {
 export default function AwardsCarousel() {
   const [awards, setAwards] = useState<Award[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
@@ -98,10 +99,10 @@ export default function AwardsCarousel() {
     return null;
   }
 
-  const displayAwards = awards.slice(0, 5);
+  const duplicatedAwards = [...awards, ...awards, ...awards];
 
   return (
-    <section style={{ width: "100%", padding: "3rem 0", backgroundColor: "#ffffff" }}>
+    <section style={{ width: "100vw", marginLeft: "calc(-50vw + 50%)", padding: "3rem 0", backgroundColor: "#ffffff" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
         <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
           Awards
@@ -117,39 +118,41 @@ export default function AwardsCarousel() {
 
       <div
         style={{
-          maxWidth: "1280px",
-          margin: "0 auto",
-          paddingLeft: "1rem",
-          paddingRight: "1rem",
-          padding: "2rem 1rem",
+          position: "relative",
+          width: "100%",
+          overflow: "hidden",
+          padding: "2rem 0",
+          backgroundColor: "#ffffff"
         }}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
       >
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(5, 1fr)",
+            display: "flex",
             gap: "2rem",
-            alignItems: "center",
-            justifyItems: "center",
+            padding: "0 2rem",
+            animation: isPaused ? "none" : "marquee 110s linear infinite",
+            animationPlayState: isPaused ? "paused" : "running",
+            animationDelay: "0s",
           }}
         >
-          {displayAwards.map((award) => (
+          {duplicatedAwards.map((award, idx) => (
             <div
-              key={award.id}
+              key={`${award.id}-${idx}`}
               style={{
+                flexShrink: 0,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "100%",
               }}
             >
               <img
                 src={award.image_url}
                 alt={`Award ${award.id}`}
                 style={{
-                  width: "100%",
-                  height: "auto",
-                  maxWidth: "12rem",
+                  width: "22rem",
+                  height: "12rem",
                   objectFit: "contain",
                   animation: "fadeIn 0.3s ease-in forwards",
                 }}
@@ -164,6 +167,11 @@ export default function AwardsCarousel() {
       </div>
 
       <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          10% { transform: translateX(0); }
+          100% { transform: translateX(calc(-100% / 3)); }
+        }
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
