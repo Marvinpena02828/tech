@@ -27,27 +27,64 @@ export const usePageTranslation = () => {
   ): Promise<string> => {
     if (!text || targetLang === "en") return text;
 
-    try {
-      const response = await fetch("/api/translate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: text,
-          targetLanguage: LANG_MAP[targetLang] || targetLang,
-        }),
-      });
+    // MyMemory has 500 char limit, so chunk if needed
+    const MAX_CHARS = 500;
+    
+    if (text.length <= MAX_CHARS) {
+      try {
+        const response = await fetch("/api/translate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: text,
+            targetLanguage: LANG_MAP[targetLang] || targetLang,
+          }),
+        });
 
-      if (!response.ok) {
-        console.error("Translation API error:", response.statusText);
+        if (!response.ok) {
+          console.error("Translation API error:", response.statusText);
+          return text;
+        }
+
+        const data = await response.json();
+        return data.translatedText || text;
+      } catch (error) {
+        console.error("Translation error:", error);
         return text;
       }
+    }
 
-      const data = await response.json();
-      return data.translatedText || text;
+    // For longer text, chunk it up
+    try {
+      const chunks = [];
+      for (let i = 0; i < text.length; i += MAX_CHARS) {
+        chunks.push(text.slice(i, i + MAX_CHARS));
+      }
+
+      const translatedChunks = await Promise.all(
+        chunks.map(async (chunk) => {
+          const response = await fetch("/api/translate", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              text: chunk,
+              targetLanguage: LANG_MAP[targetLang] || targetLang,
+            }),
+          });
+
+          if (!response.ok) return chunk;
+          const data = await response.json();
+          return data.translatedText || chunk;
+        })
+      );
+
+      return translatedChunks.join("");
     } catch (error) {
-      console.error("Translation error:", error);
+      console.error("Translation chunking error:", error);
       return text;
     }
   };
