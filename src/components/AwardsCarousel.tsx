@@ -127,12 +127,40 @@ export default function AwardsCarousel() {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
+        {/* Left gradient fade */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: "8rem",
+            background: "linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
+            zIndex: 10,
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Right gradient fade */}
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: "8rem",
+            background: "linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
+            zIndex: 10,
+            pointerEvents: "none",
+          }}
+        />
+
         <div
           style={{
             display: "flex",
-            gap: "2rem",
-            padding: "0 2rem",
-            animation: isPaused ? "none" : "marquee 180s linear infinite",
+            gap: "1.5rem",
+            padding: "0 1rem",
+            animation: isPaused ? "none" : "marquee 45s linear infinite",
             animationPlayState: isPaused ? "paused" : "running",
             animationDelay: "0s",
           }}
@@ -145,14 +173,15 @@ export default function AwardsCarousel() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                width: "calc(100% / 6 - 1.5rem)",
               }}
             >
               <img
                 src={award.image_url}
                 alt={`Award ${award.id}`}
                 style={{
-                  width: "14rem",
-                  height: "8rem",
+                  width: "100%",
+                  height: "6rem",
                   objectFit: "contain",
                   animation: "fadeIn 0.3s ease-in forwards",
                 }}
@@ -169,8 +198,7 @@ export default function AwardsCarousel() {
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
-          10% { transform: translateX(0); }
-          100% { transform: translateX(calc(-100% / 6)); }
+          100% { transform: translateX(calc(-100%)); }
         }
         @keyframes fadeIn {
           from { opacity: 0; }
