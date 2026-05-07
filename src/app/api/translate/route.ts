@@ -1,6 +1,11 @@
 // src/app/api/translate/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
+// We'll use a public Google Sheets that has GOOGLETRANSLATE formula
+// Or we can use a workaround via google-translate-api unofficial
+
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -13,16 +18,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If English, return as is
     if (targetLanguage === "en") {
       return NextResponse.json({ translatedText: text });
     }
 
-    // Map to Bing language codes
+    // Use unofficial google-translate-api endpoint (works without key)
     const langMap: { [key: string]: string } = {
       "en": "en",
-      "zh-Hans": "zh-Hans",
-      "zh": "zh-Hans",
+      "zh-Hans": "zh-CN",
+      "zh": "zh-CN",
       "ar": "ar",
       "ru": "ru",
       "de": "de",
@@ -31,34 +35,34 @@ export async function POST(request: NextRequest) {
       "fr": "fr",
     };
 
-    const bingLang = langMap[targetLanguage] || targetLanguage;
+    const targetLang = langMap[targetLanguage] || targetLanguage;
 
-    // Try Bing Translator
     try {
-      const bingUrl = `https://api.microsofttranslator.com/v2/Ajax.svc/Translate?text=${encodeURIComponent(text)}&from=en&to=${bingLang}`;
+      // Use translate.googleapis.com (free, no key needed)
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
 
-      const response = await fetch(bingUrl, {
-        method: "GET",
+      const response = await fetch(url, {
         headers: {
-          "User-Agent": "Mozilla/5.0",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         },
       });
 
       if (response.ok) {
-        const result = await response.text();
-        const translated = result.replace(/^"(.*)"$/, "$1") || text;
+        const data = await response.json();
+        // Response format: [[[translated_text, original_text, ...]]]
+        const translated = data[0][0][0] || text;
         return NextResponse.json({ translatedText: translated });
       }
     } catch (err) {
-      console.error("Bing error:", err);
+      console.error("Google Translate error:", err);
     }
 
-    // Fallback: return original text
+    // Fallback
     return NextResponse.json({ translatedText: text });
   } catch (error) {
     console.error("API error:", error);
     return NextResponse.json(
-      { error: "Translation service error", translatedText: "" },
+      { error: "Translation failed", translatedText: "" },
       { status: 500 }
     );
   }
