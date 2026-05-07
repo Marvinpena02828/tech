@@ -1,5 +1,13 @@
 // src/app/api/translate/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+const LIBRETRANSLATE_API = "https://api.libretranslate.de/translate";
 
 export async function POST(request: NextRequest) {
   let text = "";
@@ -17,10 +25,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Language code mapping
+    // Language code mapping for LibreTranslate
     const langMap: { [key: string]: string } = {
-      "en": "en-US",
-      "zh-CN": "zh-CN",
+      "en-US": "en",
+      "zh-CN": "zh",
       "ar": "ar",
       "ru": "ru",
       "de": "de",
@@ -31,33 +39,73 @@ export async function POST(request: NextRequest) {
 
     const targetLang = langMap[targetLanguage] || targetLanguage;
 
-    // Use MyMemory Translation API (free, no key, works in China)
-    const encodedText = encodeURIComponent(text);
-    const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=en|${targetLang}`;
+    // Check Supabase cache first
+    try {
+      const { data: cached, error: cacheError } = await supabase
+        .from("translations")
+        .select("translated_text")
+        .eq("original_text", text)
+        .eq("target_language", targetLang)
+        .single();
 
-    const response = await fetch(myMemoryUrl, {
+      if (cached && !cacheError) {
+        console.log("Cache hit for:", text.substring(0, 30));
+        return NextResponse.json({
+          translatedText: cached.translated_text,
+          fromCache: true,
+        });
+      }
+    } catch (cacheErr) {
+      // Table might not exist yet, continue to translation
+      console.log("Cache check skipped");
+    }
+
+    // Call LibreTranslate API
+    const response = await fetch(LIBRETRANSLATE_API, {
+      method: "POST",
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        q: text,
+        source_language: "en",
+        target_language: targetLang,
+      }),
     });
 
     if (!response.ok) {
-      throw new Error(`MyMemory API error: ${response.status}`);
+      console.error("LibreTranslate API error:", response.status);
+      return NextResponse.json(
+        { error: "Translation failed", translatedText: text },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
+    const translatedText = data.translatedText || text;
 
-    if (data?.responseData?.translatedText) {
-      return NextResponse.json({ 
-        translatedText: data.responseData.translatedText 
-      });
-    }
+    // Save to cache (non-blocking)
+    supabase
+      .from("translations")
+      .insert({
+        original_text: text,
+        translated_text: translatedText,
+        target_language: targetLang,
+      })
+      .then(() => console.log("Translation cached"))
+      .catch((err) => console.log("Cache save skipped:", err.message));
 
-    return NextResponse.json({ translatedText: text });
+    return NextResponse.json({
+      translatedText: translatedText,
+      fromCache: false,
+    });
   } catch (error) {
     console.error("Translation API error:", error);
     return NextResponse.json(
-      { error: "Translation failed", translatedText: text || "Translation failed" },
+      {
+        error: "Translation failed",
+        translatedText: text || "Translation failed",
+      },
       { status: 500 }
     );
   }
