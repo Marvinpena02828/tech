@@ -70,7 +70,7 @@ export default function HeroBanner({ banners }: HeroProps) {
   }
 
   return (
-    <section className="relative h-[700px] md:h-[900px] lg:h-[700px] w-full aspect-video overflow-hidden bg-black">
+    <section className="relative h-[550px] md:h-[600px] lg:h-[700px] w-full overflow-hidden bg-black">
       {/* Carousel - Images and Videos */}
       {banners.map((banner, index) => (
         <React.Fragment key={banner.id}>
@@ -95,9 +95,38 @@ export default function HeroBanner({ banners }: HeroProps) {
                 alt={`Mobile Banner ${index + 1}`}
                 fill
                 sizes="100vw"
-                className="object-fill"
+                className="object-cover"
                 priority={index === 0}
                 quality={75}
+                unoptimized
+              />
+            ) : null}
+          </div>
+
+          {/* TABLET - Video if available, else image */}
+          <div
+            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden md:block lg:hidden ${
+              index === currentIndex ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {banner.desktop_video ? (
+              <video
+                src={banner.desktop_video}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            ) : banner.desktop_banner ? (
+              <Image
+                src={banner.desktop_banner}
+                alt={`Tablet Banner ${index + 1}`}
+                fill
+                sizes="100vw"
+                className="object-cover"
+                priority={index === 0}
+                quality={85}
                 unoptimized
               />
             ) : null}
@@ -124,7 +153,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 alt={`Desktop Banner ${index + 1}`}
                 fill
                 sizes="100vw"
-                className="object-center lg:aspect-8/3"
+                className="object-cover"
                 priority={index === 0}
                 quality={100}
                 unoptimized
