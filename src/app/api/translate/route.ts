@@ -56,11 +56,11 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        q: text,
-        source_language: sourceLang,
-        target_language: targetLang,
-      }),
+    body: JSON.stringify({
+  q: text,
+  source: sourceLang,
+  target: targetLang,
+}),
     });
 
     console.log("[TRANSLATE] LibreTranslate response:", response.status);
