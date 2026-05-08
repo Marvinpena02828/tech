@@ -1,15 +1,30 @@
 // src/app/api/translate/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-// We'll use a public Google Sheets that has GOOGLETRANSLATE formula
-// Or we can use a workaround via google-translate-api unofficial
+const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || "https://libretranslate.example.com";
 
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+// Language code mapping for LibreTranslate
+const LANG_MAP: { [key: string]: string } = {
+  en: "en",
+  "zh-Hans": "zh",
+  zh: "zh",
+  ar: "ar",
+  ru: "ru",
+  de: "de",
+  ro: "ro",
+  es: "es",
+  fr: "fr",
+};
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { text, targetLanguage } = body;
+
+    console.log("[TRANSLATE] Request:", {
+      textLength: text?.length,
+      targetLanguage,
+    });
 
     if (!text || !targetLanguage) {
       return NextResponse.json(
@@ -22,47 +37,58 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ translatedText: text });
     }
 
-    // Use unofficial google-translate-api endpoint (works without key)
-    const langMap: { [key: string]: string } = {
-      "en": "en",
-      "zh-Hans": "zh-CN",
-      "zh": "zh-CN",
-      "ar": "ar",
-      "ru": "ru",
-      "de": "de",
-      "ro": "ro",
-      "es": "es",
-      "fr": "fr",
-    };
+    const targetLang = LANG_MAP[targetLanguage] || targetLanguage;
 
-    const targetLang = langMap[targetLanguage] || targetLanguage;
+    // Auto-detect source language
+    const hasChinese = /[\u4E00-\u9FFF]/.test(text);
+    const sourceLang = hasChinese ? "zh" : "en";
 
-    try {
-      // Use translate.googleapis.com (free, no key needed)
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+    console.log("[TRANSLATE] Calling LibreTranslate:", {
+      url: LIBRETRANSLATE_URL,
+      sourceLang,
+      targetLang,
+      textLength: text.length,
+    });
 
-      const response = await fetch(url, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-      });
+    // Call self-hosted LibreTranslate
+    const response = await fetch(`${LIBRETRANSLATE_URL}/translate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        q: text,
+        source_language: sourceLang,
+        target_language: targetLang,
+      }),
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Response format: [[[translated_text, original_text, ...]]]
-        const translated = data[0][0][0] || text;
-        return NextResponse.json({ translatedText: translated });
-      }
-    } catch (err) {
-      console.error("Google Translate error:", err);
+    console.log("[TRANSLATE] LibreTranslate response:", response.status);
+
+    if (!response.ok) {
+      console.error("[TRANSLATE] Failed:", response.status, response.statusText);
+      return NextResponse.json(
+        { error: "Translation failed", translatedText: text },
+        { status: response.status }
+      );
     }
 
-    // Fallback
-    return NextResponse.json({ translatedText: text });
+    const data = await response.json();
+    const translatedText = data.translatedText || text;
+
+    console.log("[TRANSLATE] Success:", translatedText.substring(0, 50));
+
+    return NextResponse.json({
+      translatedText: translatedText,
+    });
   } catch (error) {
-    console.error("API error:", error);
+    console.error("[TRANSLATE] Error:", error);
     return NextResponse.json(
-      { error: "Translation failed", translatedText: "" },
+      {
+        error: "Translation failed",
+        details: error instanceof Error ? error.message : String(error),
+        translatedText: "",
+      },
       { status: 500 }
     );
   }
