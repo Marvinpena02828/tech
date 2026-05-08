@@ -1,7 +1,7 @@
 // src/app/api/translate/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || "https://libretranslate-production-d4e6.up.railway.app";
+const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || "https://libretranslate-production-d4e6.up.railway.app/";
 
 // Language code mapping for LibreTranslate
 const LANG_MAP: { [key: string]: string } = {
