@@ -499,7 +499,7 @@ export default function Footer() {
 
         {/* Bottom Section */}
         <div
-          className="w-full max-w-7xl mx-auto fade-in-up pt-8"
+          className="w-full max-w-7xl mx-auto fade-in-up pt-4"
           style={{ animationDelay: "0.6s", opacity: 0 }}
         >
           <p className="text-sm text-white text-opacity-90 font-arial">
