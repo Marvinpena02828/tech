@@ -70,13 +70,13 @@ export default function HeroBanner({ banners }: HeroProps) {
   }
 
   return (
-    <section className="relative h-[300px] sm:h-[350px] md:h-[500px] lg:h-[700px] w-full overflow-hidden bg-black">
+    <section className="relative w-full overflow-hidden bg-black" style={{ aspectRatio: "16/9" }}>
       {/* Carousel - Images and Videos */}
       {banners.map((banner, index) => (
         <React.Fragment key={banner.id}>
           {/* MOBILE - Video if available, else image */}
           <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 lg:hidden flex items-center justify-center bg-black ${
+            className={`absolute inset-0 z-0 transition-opacity duration-1000 lg:hidden ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -87,7 +87,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 muted
                 loop
                 playsInline
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             ) : banner.mobile_banner ? (
               <Image
@@ -95,7 +95,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 alt={`Mobile Banner ${index + 1}`}
                 fill
                 sizes="100vw"
-                className="object-contain"
+                className="object-cover"
                 priority={index === 0}
                 quality={75}
                 unoptimized
@@ -105,7 +105,7 @@ export default function HeroBanner({ banners }: HeroProps) {
 
           {/* TABLET - Video if available, else image */}
           <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden md:flex lg:hidden items-center justify-center bg-black ${
+            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden md:block lg:hidden ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -116,7 +116,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 muted
                 loop
                 playsInline
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             ) : banner.desktop_banner ? (
               <Image
@@ -124,7 +124,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 alt={`Tablet Banner ${index + 1}`}
                 fill
                 sizes="100vw"
-                className="object-contain"
+                className="object-cover"
                 priority={index === 0}
                 quality={85}
                 unoptimized
@@ -134,7 +134,7 @@ export default function HeroBanner({ banners }: HeroProps) {
 
           {/* DESKTOP - Video if available, else image */}
           <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden lg:flex items-center justify-center bg-black ${
+            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden lg:block ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -145,7 +145,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 muted
                 loop
                 playsInline
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             ) : banner.desktop_banner ? (
               <Image
@@ -153,7 +153,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 alt={`Desktop Banner ${index + 1}`}
                 fill
                 sizes="100vw"
-                className="object-contain"
+                className="object-cover"
                 priority={index === 0}
                 quality={100}
                 unoptimized
