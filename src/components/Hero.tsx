@@ -76,9 +76,10 @@ export default function HeroBanner({ banners }: HeroProps) {
         <React.Fragment key={banner.id}>
           {/* MOBILE - Video if available, else image */}
           <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 lg:hidden ${
+            className={`absolute inset-0 z-0 transition-opacity duration-1000 lg:hidden flex items-center justify-center ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
+            style={{ backgroundColor: "rgb(0, 0, 0)" }}
           >
             {banner.mobile_video ? (
               <video
@@ -87,7 +88,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 muted
                 loop
                 playsInline
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             ) : banner.mobile_banner ? (
               <Image
@@ -95,7 +96,7 @@ export default function HeroBanner({ banners }: HeroProps) {
                 alt={`Mobile Banner ${index + 1}`}
                 fill
                 sizes="100vw"
-                className="object-cover"
+                className="object-contain"
                 priority={index === 0}
                 quality={75}
                 unoptimized
@@ -105,9 +106,10 @@ export default function HeroBanner({ banners }: HeroProps) {
 
           {/* TABLET - Video if available, else image */}
           <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden md:block lg:hidden ${
+            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden md:flex lg:hidden items-center justify-center ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
+            style={{ backgroundColor: "rgb(0, 0, 0)" }}
           >
             {banner.desktop_video ? (
               <video
@@ -134,9 +136,10 @@ export default function HeroBanner({ banners }: HeroProps) {
 
           {/* DESKTOP - Video if available, else image */}
           <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden lg:block ${
+            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden lg:flex items-center justify-center ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
+            style={{ backgroundColor: "rgb(0, 0, 0)" }}
           >
             {banner.desktop_video ? (
               <video
