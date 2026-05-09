@@ -206,14 +206,14 @@ export default function ProductCategory({
                   ? categories
                   : visibleDesktopCategories
                 ).map((cat, idx) => {
-                  // Responsive sizing based on items shown
-                  let containerSize = "w-48 h-56";
+                  // Responsive width based on items shown - keep height fixed!
+                  let containerWidth = "w-32";
                   if (desktopItemsToShow === 3) {
-                    containerSize = "w-56 h-64";
+                    containerWidth = "w-40";
                   } else if (desktopItemsToShow === 4) {
-                    containerSize = "w-52 h-60";
+                    containerWidth = "w-36";
                   } else if (desktopItemsToShow === 5) {
-                    containerSize = "w-44 h-52";
+                    containerWidth = "w-32";
                   }
 
                   return (
@@ -226,23 +226,19 @@ export default function ProductCategory({
                         minWidth: `${100 / desktopItemsToShow}%`,
                       }}
                     >
-                      {/* Responsive oval container */}
+                      {/* Responsive oval container - width adjusts, height fixed */}
                       <div
-                        className={`${containerSize} bg-gradient-to-br from-[#E5E9EC] to-[#D5DDE2] rounded-full mb-3 lg:mb-4 flex items-center justify-center relative shadow-md hover:shadow-xl transition-all duration-300 group-hover:bg-white flex-shrink-0`}
-                        style={{ aspectRatio: "4/5" }}
+                        className={`${containerWidth} h-80 xl:h-96 bg-gradient-to-br from-[#E5E9EC] to-[#D5DDE2] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group-hover:bg-white`}
                       >
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          <AppImage
-                            src={getImageUrl(cat.image_link)}
-                            alt={cat.title}
-                            fill
-                            className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
-                            unoptimized
-                            sizes="(max-width: 1024px) 224px, (max-width: 1280px) 208px, 176px"
-                          />
-                        </div>
+                        <AppImage
+                          src={getImageUrl(cat.image_link)}
+                          alt={cat.title}
+                          fill
+                          className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+                          unoptimized
+                        />
                       </div>
-                      <h3 className="text-xs lg:text-sm font-semibold text-gray-900 text-center font-display tracking-tight px-1 line-clamp-2">
+                      <h3 className="text-sm lg:text-base font-semibold text-gray-900 text-center font-display tracking-tight px-2 line-clamp-2">
                         {cat.title}
                       </h3>
                     </Link>
@@ -362,19 +358,16 @@ export default function ProductCategory({
                 style={{ transitionDelay: isAnimating ? `${idx * 50}ms` : "0ms" }}
               >
                 {/* Mobile image display */}
-                <div className="w-48 h-56 sm:w-56 sm:h-64 bg-gradient-to-br from-[#E5E9EC] to-[#D5DDE2] rounded-full mb-4 flex items-center justify-center relative shadow-md active:shadow-lg transition-all duration-300 group-hover:bg-white flex-shrink-0" style={{ aspectRatio: "4/5" }}>
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    <AppImage
-                      src={getImageUrl(cat.image_link)}
-                      alt={cat.title}
-                      fill
-                      className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
-                      unoptimized
-                      sizes="(max-width: 640px) 192px, 224px"
-                    />
-                  </div>
+                <div className="w-40 sm:w-48 h-96 bg-gradient-to-br from-[#E5E9EC] to-[#D5DDE2] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300 group-hover:bg-white">
+                  <AppImage
+                    src={getImageUrl(cat.image_link)}
+                    alt={cat.title}
+                    fill
+                    className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+                    unoptimized
+                  />
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-gray-900 text-center font-display tracking-tight px-2 line-clamp-2">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 text-center font-display tracking-tight px-2 line-clamp-2">
                   {cat.title}
                 </h3>
               </Link>
