@@ -238,7 +238,7 @@ export default function ProductCategory({
                           src={getImageUrl(cat.image_link)}
                           alt={cat.title}
                           fill
-                          className="object-contain p-2 sm:p-3 md:p-4 transition-transform duration-500 group-hover:scale-105"
+                          className="object-contain p-0 sm:p-1 transition-transform duration-500 group-hover:scale-105"
                           unoptimized
                         />
                       </div>
@@ -367,7 +367,7 @@ export default function ProductCategory({
                     src={getImageUrl(cat.image_link)}
                     alt={cat.title}
                     fill
-                    className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+                    className="object-contain p-0 sm:p-1 transition-transform duration-500 group-hover:scale-105"
                     unoptimized
                   />
                 </div>
