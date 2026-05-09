@@ -19,18 +19,16 @@ export const usePageTranslation = () => {
     fr: "fr",
   };
 
-  // Detect if text contains Chinese/CJK characters
-  const hasCJK = (text: string) => {
-    return /[\u4E00-\u9FFF\u3040-\u309F\uAC00-\uD7AF]/.test(text);
-  };
-
   const translateText = async (text: string, targetLang: string): Promise<string> => {
     if (!text || targetLang === "en") return text;
 
     // Check localStorage cache
-    const cacheKey = `trans_${targetLang}_${text}`;
+    const cacheKey = `trans_${targetLang}_${text.substring(0, 50)}`;
     const cached = localStorage.getItem(cacheKey);
-    if (cached) return cached;
+    if (cached) {
+      console.log(`[CACHE HIT] ${text.substring(0, 30)}... → ${cached.substring(0, 30)}...`);
+      return cached;
+    }
 
     // Retry logic
     const maxRetries = 3;
@@ -38,7 +36,10 @@ export const usePageTranslation = () => {
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        // Send FULL text to backend - let backend handle chunking
+        console.log(
+          `[TRANSLATE START] Attempt ${attempt + 1}/${maxRetries}, Text length: ${text.length}, Target: ${targetLang}`
+        );
+
         const response = await fetch("/api/translate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -48,12 +49,20 @@ export const usePageTranslation = () => {
           }),
         });
 
+        console.log(`[API RESPONSE] Status: ${response.status}`);
+
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[API ERROR] ${response.status}: ${errorText}`);
           throw new Error(`API error: ${response.status}`);
         }
 
         const data = await response.json();
         const translated = data.translatedText || text;
+
+        console.log(
+          `[TRANSLATE SUCCESS] Original: ${text.substring(0, 30)}... → Translated: ${translated.substring(0, 30)}...`
+        );
 
         // Cache it
         if (translated !== text) {
@@ -63,7 +72,7 @@ export const usePageTranslation = () => {
         return translated;
       } catch (error) {
         lastError = error;
-        console.error(`Translation attempt ${attempt + 1} failed:`, error);
+        console.error(`[TRANSLATE ERROR] Attempt ${attempt + 1}:`, error);
 
         // Wait before retrying
         if (attempt < maxRetries - 1) {
@@ -72,13 +81,16 @@ export const usePageTranslation = () => {
       }
     }
 
-    console.error(`Translation failed after ${maxRetries} attempts:`, lastError);
+    console.error(`[TRANSLATE FAILED] After ${maxRetries} attempts:`, lastError);
     return text;
   };
 
   // Recursively translate all text in element and children
-  const translateElement = async (el: HTMLElement, targetLanguage: string) => {
+  const translateElement = async (el: HTMLElement, targetLanguage: string, depth = 0) => {
     try {
+      const indent = "  ".repeat(depth);
+      console.log(`${indent}[ELEMENT] ${el.tagName}, Children: ${el.childNodes.length}`);
+
       // Translate direct text content first
       for (let i = 0; i < el.childNodes.length; i++) {
         const node = el.childNodes[i];
@@ -87,10 +99,16 @@ export const usePageTranslation = () => {
         if (node.nodeType === 3) {
           const text = node.textContent?.trim();
           if (text && text.length > 2) {
+            console.log(`${indent}  [TEXT NODE] "${text.substring(0, 40)}..."`);
             const translated = await translateText(text, targetLanguage);
             if (translated !== text) {
+              console.log(`${indent}  [TEXT UPDATED]`);
               node.textContent = translated;
+            } else {
+              console.log(`${indent}  [TEXT UNCHANGED - NO TRANSLATION]`);
             }
+          } else {
+            console.log(`${indent}  [TEXT SKIPPED] Too short (${text?.length || 0} chars)`);
           }
         }
 
@@ -98,13 +116,16 @@ export const usePageTranslation = () => {
         if (node.nodeType === 1) {
           const tag = (node as Element).tagName;
           // Skip script, style, and interactive elements
-          if (!["SCRIPT", "STYLE", "BUTTON", "INPUT", "TEXTAREA"].includes(tag)) {
-            await translateElement(node as HTMLElement, targetLanguage);
+          if (!["SCRIPT", "STYLE", "BUTTON", "INPUT", "TEXTAREA", "NOSCRIPT"].includes(tag)) {
+            console.log(`${indent}  [RECURSE] ${tag}`);
+            await translateElement(node as HTMLElement, targetLanguage, depth + 1);
+          } else {
+            console.log(`${indent}  [SKIP] ${tag}`);
           }
         }
       }
     } catch (err) {
-      // Silent fail
+      console.error(`[ELEMENT ERROR]`, err);
     }
   };
 
@@ -127,28 +148,31 @@ export const usePageTranslation = () => {
         "[role='main']",
         ".content",
         ".main-content",
-        "body > *:not(script):not(style):not(noscript)",
       ];
 
       let contentElements: HTMLElement[] = [];
 
       for (const selector of contentSelectors) {
         const elements = Array.from(document.querySelectorAll(selector));
+        console.log(`[SELECTOR] "${selector}" found ${elements.length} elements`);
         contentElements.push(...(elements as HTMLElement[]));
       }
 
       // If nothing found, use body
       if (contentElements.length === 0) {
+        console.log(`[NO SELECTORS FOUND] Using body`);
         contentElements = [document.body];
       }
 
       // Remove duplicates
       contentElements = Array.from(new Set(contentElements));
 
-      console.log(`Translating ${contentElements.length} elements`);
+      console.log(`[TRANSLATION START] ${contentElements.length} elements, Language: ${targetLanguage}`);
 
       // Translate each element
-      for (const el of contentElements) {
+      for (let idx = 0; idx < contentElements.length; idx++) {
+        const el = contentElements[idx];
+
         // Skip admin and language buttons
         if (
           pathname.includes("/admin") ||
@@ -156,16 +180,18 @@ export const usePageTranslation = () => {
           el.closest(".goog-te-bubble") ||
           el.closest("#google_translate_element")
         ) {
+          console.log(`[SKIP] Element ${idx} - admin/language button`);
           continue;
         }
 
+        console.log(`[ELEMENT ${idx}/${contentElements.length}]`);
         await translateElement(el, targetLanguage);
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
-      console.log(`Translation complete`);
+      console.log(`[TRANSLATION COMPLETE]`);
     } catch (error) {
-      console.error("Translation page error:", error);
+      console.error("[TRANSLATION ERROR]", error);
     } finally {
       setIsTranslating(false);
     }
@@ -179,6 +205,7 @@ export const usePageTranslation = () => {
       if (saved && saved !== "en") {
         setCurrentLanguage(saved);
         setTimeout(() => {
+          console.log(`[INIT] Auto-translating to ${saved}`);
           translatePageContent(saved);
         }, 1500);
       } else {
@@ -193,6 +220,7 @@ export const usePageTranslation = () => {
   useEffect(() => {
     if (isInitialized && currentLanguage && currentLanguage !== "en") {
       const timer = setTimeout(() => {
+        console.log(`[PAGE CHANGE] Re-translating to ${currentLanguage}`);
         translatePageContent(currentLanguage);
       }, 1500);
 
