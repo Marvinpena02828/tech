@@ -81,7 +81,8 @@ async function getLogos() {
 export const metadata: Metadata = {
   title: {
     default:
-      "TechOn – Innovative Electronics & Smart Tech Accessories | tech-on.net",
+      "TechOn – Power Banks, Wall chargers, Car Chargers. Smaller, Cooler, Faster. 
+High-performance charging solutions | tech-on.net",
     template: "%s | TechOn",
   },
   description:
