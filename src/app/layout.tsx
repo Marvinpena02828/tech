@@ -105,7 +105,7 @@ export const metadata: Metadata = {
     apple: "/Unknown-18.png",
   },
   openGraph: {
-    title: "TechOn – Innovative Electronics & Smart Tech Accessories",
+    title: "TechOn – Power Banks, Wall chargers, Car Chargers. Smaller, Cooler, Faster. High-performance charging solutions | tech-on.net",
     description:
       "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
     url: "https://tech-on.net",
@@ -115,7 +115,7 @@ export const metadata: Metadata = {
         url: "/Unknown-18.png",
         width: 1200,
         height: 630,
-        alt: "TechOn – Innovative Electronics & Smart Tech Accessories",
+        alt: "TechOn – Power Banks, Wall chargers, Car Chargers. Smaller, Cooler, Faster. High-performance charging solutions | tech-on.net",
       },
     ],
     locale: "en_US",
@@ -123,7 +123,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TechOn – Innovative Electronics & Smart Tech Accessories",
+    title: "TechOn – Power Banks, Wall chargers, Car Chargers. Smaller, Cooler, Faster. High-performance charging solutions | tech-on.net",
     description:
       "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics. Since 2015, AyyanTech delivers quality B2B tech solutions worldwide.",
     images: ["/Unknown-18.png"],
