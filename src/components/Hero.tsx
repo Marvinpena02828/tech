@@ -70,17 +70,11 @@ export default function HeroBanner({ banners }: HeroProps) {
   }
 
   return (
-    <section className="relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[650px] w-full overflow-hidden bg-black">
-      {/* Carousel - Images and Videos */}
-      {banners.map((banner, index) => (
-        <React.Fragment key={banner.id}>
-          {/* MOBILE - Video if available, else image */}
-          <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 lg:hidden flex items-center justify-center ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
-            style={{ backgroundColor: "rgb(0, 0, 0)" }}
-          >
+    <section className="relative w-full overflow-hidden">
+      {/* MOBILE: Dynamic height based on image */}
+      <div className="lg:hidden relative w-full bg-white">
+        {banners.map((banner, index) => (
+          <React.Fragment key={banner.id}>
             {banner.mobile_video ? (
               <video
                 src={banner.mobile_video}
@@ -88,138 +82,202 @@ export default function HeroBanner({ banners }: HeroProps) {
                 muted
                 loop
                 playsInline
-                className="w-full h-full object-contain"
+                className={`w-full h-auto block transition-opacity duration-1000 ${
+                  index === currentIndex ? "opacity-100" : "opacity-0 absolute"
+                }`}
               />
             ) : banner.mobile_banner ? (
               <Image
                 src={banner.mobile_banner}
                 alt={`Mobile Banner ${index + 1}`}
-                fill
-                sizes="100vw"
-                className="object-contain"
+                width={600}
+                height={800}
+                className={`w-full h-auto block transition-opacity duration-1000 ${
+                  index === currentIndex ? "opacity-100" : "opacity-0 absolute"
+                }`}
                 priority={index === 0}
                 quality={75}
                 unoptimized
               />
             ) : null}
-          </div>
 
-          {/* TABLET - Video if available, else image */}
-          <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden md:flex lg:hidden items-center justify-center ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
-            style={{ backgroundColor: "rgb(0, 0, 0)" }}
-          >
-            {banner.desktop_video ? (
-              <video
-                src={banner.desktop_video}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-full object-cover"
-              />
-            ) : banner.desktop_banner ? (
-              <Image
-                src={banner.desktop_banner}
-                alt={`Tablet Banner ${index + 1}`}
-                fill
-                sizes="100vw"
-                className="object-cover"
-                priority={index === 0}
-                quality={85}
-                unoptimized
-              />
-            ) : null}
-          </div>
+            {/* Heading Overlay Mobile */}
+            {(banner.heading_line1 ||
+              banner.heading_line2 ||
+              banner.heading_line3) && (
+              <div
+                className={`absolute inset-0 z-20 flex items-start text-center transition-opacity duration-1000 ${
+                  index === currentIndex ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <div className="container mx-auto px-4 w-full h-full">
+                  <div className="max-w-3xl space-y-1 h-full pt-10 pb-16 flex flex-col justify-start">
+                    {banner.heading_line1 && (
+                      <div
+                        className="leading-tight"
+                        style={{
+                          color: banner.line1_color || "#ffffff",
+                          fontSize: `clamp(16px, 6vw, 32px)`,
+                          ...parseFontSetting(banner.line1_font_family),
+                          textShadow:
+                            "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
+                        }}
+                        dangerouslySetInnerHTML={{ __html: banner.heading_line1 }}
+                      />
+                    )}
+                    {banner.heading_line2 && (
+                      <div
+                        className="leading-tight mt-2"
+                        style={{
+                          color: banner.line2_color || "#ffffff",
+                          fontSize: `clamp(14px, 5vw, 28px)`,
+                          ...parseFontSetting(banner.line2_font_family),
+                          textShadow:
+                            "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
+                        }}
+                        dangerouslySetInnerHTML={{ __html: banner.heading_line2 }}
+                      />
+                    )}
+                    {banner.heading_line3 && (
+                      <div
+                        className="leading-tight mt-4"
+                        style={{
+                          color: banner.line3_color || "#ffffff",
+                          fontSize: `clamp(12px, 4vw, 24px)`,
+                          ...parseFontSetting(banner.line3_font_family),
+                          textShadow:
+                            "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
+                        }}
+                        dangerouslySetInnerHTML={{ __html: banner.heading_line3 }}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
 
-          {/* DESKTOP - Video if available, else image */}
-          <div
-            className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden lg:flex items-center justify-center ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
-            style={{ backgroundColor: "rgb(0, 0, 0)" }}
-          >
-            {banner.desktop_video ? (
-              <video
-                src={banner.desktop_video}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-full object-cover"
-              />
-            ) : banner.desktop_banner ? (
-              <Image
-                src={banner.desktop_banner}
-                alt={`Desktop Banner ${index + 1}`}
-                fill
-                sizes="100vw"
-                className="object-cover"
-                priority={index === 0}
-                quality={100}
-                unoptimized
-              />
-            ) : null}
-          </div>
-
-          {/* 3-Line Banner Heading Overlay */}
-          {(banner.heading_line1 ||
-            banner.heading_line2 ||
-            banner.heading_line3) && (
+      {/* DESKTOP/TABLET: Fixed heights with proper aspect ratio */}
+      <div className="hidden lg:block relative h-[700px] w-full overflow-hidden bg-black">
+        {banners.map((banner, index) => (
+          <React.Fragment key={banner.id}>
+            {/* Tablet */}
             <div
-              className={`absolute bottom-0 inset-0 z-20 flex items-start lg:items-center text-center lg:text-left transition-opacity duration-1000 ${
+              className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden md:block lg:hidden ${
                 index === currentIndex ? "opacity-100" : "opacity-0"
               }`}
             >
-              <div className="container mx-auto px-4 md:px-8 lg:px-16 h-full">
-                <div className="max-w-3xl space-y-1 lg:space-y-2 h-full pt-10 pb-16 lg:py-16 flex flex-col justify-start lg:justify-center">
-                  {banner.heading_line1 && (
-                    <div
-                      className="leading-tight"
-                      style={{
-                        color: banner.line1_color || "#ffffff",
-                        fontSize: `clamp(20px, 8vw, ${Number(banner.line1_font_size) * 0.6 || "48"}px)`,
-                        ...parseFontSetting(banner.line1_font_family),
-                        textShadow:
-                          "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: banner.heading_line1 }}
-                    />
-                  )}
-                  {banner.heading_line2 && (
-                    <div
-                      className="leading-tight mt-2"
-                      style={{
-                        color: banner.line2_color || "#ffffff",
-                        fontSize: `clamp(20px, 7vw, ${Number(banner.line2_font_size) * 0.6 || "48"}px)`,
-                        ...parseFontSetting(banner.line2_font_family),
-                        textShadow:
-                          "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: banner.heading_line2 }}
-                    />
-                  )}
-                  {banner.heading_line3 && (
-                    <div
-                      className="leading-tight mt-6 md:mt-10"
-                      style={{
-                        color: banner.line3_color || "#ffffff",
-                        fontSize: `clamp(18px, 6vw, ${Number(banner.line3_font_size) * 0.6 || "48"}px)`,
-                        ...parseFontSetting(banner.line3_font_family),
-                        textShadow:
-                          "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: banner.heading_line3 }}
-                    />
-                  )}
+              {banner.desktop_video ? (
+                <video
+                  src={banner.desktop_video}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : banner.desktop_banner ? (
+                <Image
+                  src={banner.desktop_banner}
+                  alt={`Tablet Banner ${index + 1}`}
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                  priority={index === 0}
+                  quality={85}
+                  unoptimized
+                />
+              ) : null}
+            </div>
+
+            {/* Desktop */}
+            <div
+              className={`absolute inset-0 z-0 transition-opacity duration-1000 hidden lg:block ${
+                index === currentIndex ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              {banner.desktop_video ? (
+                <video
+                  src={banner.desktop_video}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : banner.desktop_banner ? (
+                <Image
+                  src={banner.desktop_banner}
+                  alt={`Desktop Banner ${index + 1}`}
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                  priority={index === 0}
+                  quality={100}
+                  unoptimized
+                />
+              ) : null}
+            </div>
+
+            {/* Desktop Heading Overlay */}
+            {(banner.heading_line1 ||
+              banner.heading_line2 ||
+              banner.heading_line3) && (
+              <div
+                className={`absolute inset-0 z-20 hidden lg:flex items-center text-left transition-opacity duration-1000 ${
+                  index === currentIndex ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <div className="container mx-auto px-4 md:px-8 lg:px-16 h-full">
+                  <div className="max-w-3xl space-y-2 h-full py-16 flex flex-col justify-center">
+                    {banner.heading_line1 && (
+                      <div
+                        className="leading-tight"
+                        style={{
+                          color: banner.line1_color || "#ffffff",
+                          fontSize: `clamp(32px, 8vw, 64px)`,
+                          ...parseFontSetting(banner.line1_font_family),
+                          textShadow:
+                            "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
+                        }}
+                        dangerouslySetInnerHTML={{ __html: banner.heading_line1 }}
+                      />
+                    )}
+                    {banner.heading_line2 && (
+                      <div
+                        className="leading-tight"
+                        style={{
+                          color: banner.line2_color || "#ffffff",
+                          fontSize: `clamp(28px, 7vw, 56px)`,
+                          ...parseFontSetting(banner.line2_font_family),
+                          textShadow:
+                            "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
+                        }}
+                        dangerouslySetInnerHTML={{ __html: banner.heading_line2 }}
+                      />
+                    )}
+                    {banner.heading_line3 && (
+                      <div
+                        className="leading-tight mt-4"
+                        style={{
+                          color: banner.line3_color || "#ffffff",
+                          fontSize: `clamp(20px, 6vw, 48px)`,
+                          ...parseFontSetting(banner.line3_font_family),
+                          textShadow:
+                            "2px 2px 8px rgba(0,0,0,0.8), 0 0 25px rgba(0,0,0,0.5)",
+                        }}
+                        dangerouslySetInnerHTML={{ __html: banner.heading_line3 }}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </React.Fragment>
-      ))}
+            )}
+          </React.Fragment>
+        ))}
+      </div>
 
       {/* Dots Navigation */}
       {banners.length > 1 && (
