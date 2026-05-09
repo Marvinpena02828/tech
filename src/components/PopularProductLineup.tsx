@@ -312,16 +312,17 @@ export default function PopularProductLineup() {
       {/* View All Button */}
       <Link
         href="/products"
-        className="flex justify-center mt-6 md:mt-8 px-8 md:px-12 py-2.5 md:py-3 w-fit mx-auto rounded-full transition-all text-sm md:text-base bg-red-600 text-white border-2 border-red-600"
+        className="flex justify-center mt-6 md:mt-8 px-8 md:px-12 py-2.5 md:py-3 button-animation w-fit mx-auto rounded-full transition-colors text-sm md:text-base text-gray-900 border-2 border-gray-900"
+        style={{ backgroundColor: "white" }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "white";
-          e.currentTarget.style.color = "#e40014";
-          e.currentTarget.style.borderColor = "#e40014";
-        }}
-        onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = "#e40014";
           e.currentTarget.style.color = "white";
           e.currentTarget.style.borderColor = "#e40014";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "white";
+          e.currentTarget.style.color = "#111827";
+          e.currentTarget.style.borderColor = "#111827";
         }}
       >
         View All
