@@ -159,7 +159,7 @@ export default function ProductCategory({
 
             <div className="overflow-visible flex-1 relative px-2 lg:px-4">
               <div
-                className={`flex items-center justify-center gap-0 lg:gap-1 xl:gap-2 transition-transform duration-500 ease-in-out`}
+                className={`flex items-center justify-center gap-1 lg:gap-2 xl:gap-3 transition-transform duration-500 ease-in-out`}
                 style={{
                   transform: showDesktopNavigation
                     ? `translateX(-${
