@@ -182,8 +182,8 @@ export default function ProductCategory({
                         minWidth: `${100 / desktopItemsToShow}%`,
                       }}
                     >
-                      {/* Responsive oval for category display - bigger with minimal gap */}
-                      <div className="w-44 h-[24rem] lg:w-56 lg:h-[30rem] xl:w-64 xl:h-[34rem] 2xl:w-72 2xl:h-[38rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-2 lg:mb-3 xl:mb-4 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                      {/* Responsive oval for category display - balanced size with minimal gap */}
+                      <div className="w-36 h-[20rem] lg:w-44 lg:h-[25rem] xl:w-52 xl:h-[29rem] 2xl:w-60 2xl:h-[33rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-2 lg:mb-3 xl:mb-4 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
                         <AppImage
                           src={getImageUrl(cat.image_link)}
                           alt={cat.title}
