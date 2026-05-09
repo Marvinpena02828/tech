@@ -136,12 +136,12 @@ export default function ProductCategory({
       ref={ref as React.RefObject<HTMLElement>}
       className="w-full py-20 bg-white flex flex-col items-center overflow-hidden mt-2"
     >
-      <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
-        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>Explore by Category</h2>
+      <div style={{ width: "100%", margin: "0", padding: "0", marginBottom: "3rem" }}>
+        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827", paddingLeft: "1rem", paddingRight: "1rem" }}>Explore by Category</h2>
 
         {/* Desktop View */}
         <div className="hidden container lg:block w-full mt-12">
-          <div className="flex items-center justify-center gap-3 lg:gap-4 xl:gap-8 2xl:gap-12 w-full px-2 lg:px-4">
+          <div className="flex items-center justify-center gap-3 lg:gap-4 xl:gap-8 2xl:gap-12 w-full px-4 lg:px-8">
             {showDesktopNavigation && (
               <button
                 onClick={handleDesktopPrev}
@@ -153,7 +153,7 @@ export default function ProductCategory({
                 }`}
                 aria-label="Previous categories"
               >
-                <ChevronLeft size={48} className="lg:size-12 xl:size-14" />
+                <ChevronLeft size={20} className="lg:size-6" />
               </button>
             )}
 
@@ -214,7 +214,7 @@ export default function ProductCategory({
                 }`}
                 aria-label="Next categories"
               >
-                <ChevronRight size={48} className="lg:size-12 xl:size-14" />
+                <ChevronRight size={20} className="lg:size-6" />
               </button>
             )}
           </div>
