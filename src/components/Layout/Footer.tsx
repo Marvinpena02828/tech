@@ -351,7 +351,9 @@ export default function Footer() {
           <li key={category.id} className="category-item">
   <Link
     href={`/products?category=${category.id}`}
-    className="text-sm text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
+    className="text-sm text-white text-opacity-90 transition-all duration-300 font-arial"
+    onMouseEnter={(e) => (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+    onMouseLeave={(e) => (e.currentTarget.style.color = "")}
   >
     {category.title}
   </Link>
@@ -374,7 +376,9 @@ export default function Footer() {
                   >
                     <Link
                       href={link.href}
-                      className="text-sm text-white text-opacity-90 hover:text-yellow-300 transition-all duration-300 font-arial"
+                      className="text-sm text-white text-opacity-90 transition-all duration-300 font-arial"
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "")}
                     >
                       {link.label}
                     </Link>
