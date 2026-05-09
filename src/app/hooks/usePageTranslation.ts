@@ -24,38 +24,6 @@ export const usePageTranslation = () => {
     return /[\u4E00-\u9FFF\u3040-\u309F\uAC00-\uD7AF]/.test(text);
   };
 
-  // Split mixed language text into parts
-  const splitMixedText = (text: string) => {
-    const parts: { text: string; isCJK: boolean }[] = [];
-    let current = "";
-    let currentIsCJK = false;
-
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const isCJKChar = /[\u4E00-\u9FFF\u3040-\u309F\uAC00-\uD7AF]/.test(char);
-
-      if (i === 0) {
-        currentIsCJK = isCJKChar;
-      }
-
-      if (isCJKChar === currentIsCJK) {
-        current += char;
-      } else {
-        if (current.trim()) {
-          parts.push({ text: current, isCJK: currentIsCJK });
-        }
-        current = char;
-        currentIsCJK = isCJKChar;
-      }
-    }
-
-    if (current.trim()) {
-      parts.push({ text: current, isCJK: currentIsCJK });
-    }
-
-    return parts;
-  };
-
   const translateText = async (text: string, targetLang: string): Promise<string> => {
     if (!text || targetLang === "en") return text;
 
@@ -70,72 +38,12 @@ export const usePageTranslation = () => {
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        // If text is very long, split into sentences
-        let textToTranslate = text;
-        if (text.length > 500) {
-          // Split by sentences (., !, ?)
-          const sentences = text.split(/([.!?])\s+/);
-          const chunks: string[] = [];
-          let current = "";
-
-          for (let i = 0; i < sentences.length; i += 2) {
-            const sentence = sentences[i] + (sentences[i + 1] || "");
-            if ((current + sentence).length < 400) {
-              current += sentence + " ";
-            } else {
-              if (current) chunks.push(current.trim());
-              current = sentence + " ";
-            }
-          }
-          if (current) chunks.push(current.trim());
-
-          console.log(`Translating ${chunks.length} chunks (attempt ${attempt + 1})`);
-
-          // Translate each chunk and rejoin
-          const translatedChunks = await Promise.all(
-            chunks.map(async (chunk, idx) => {
-              // Add delay between chunks
-              await new Promise((resolve) =>
-                setTimeout(resolve, idx * 100)
-              );
-
-              try {
-                const response = await fetch("/api/translate", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    text: chunk,
-                    targetLanguage: LANG_MAP[targetLang] || targetLang,
-                  }),
-                });
-
-                if (!response.ok) {
-                  console.warn(`Chunk ${idx} failed with status ${response.status}`);
-                  return chunk;
-                }
-
-                const data = await response.json();
-                return data.translatedText || chunk;
-              } catch (error) {
-                console.warn(`Chunk ${idx} error:`, error);
-                return chunk;
-              }
-            })
-          );
-
-          const translated = translatedChunks.join(" ");
-          if (translated !== text) {
-            localStorage.setItem(cacheKey, translated);
-          }
-          return translated;
-        }
-
-        // Short text - translate directly
+        // Send FULL text to backend - let backend handle chunking
         const response = await fetch("/api/translate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            text: textToTranslate,
+            text: text,
             targetLanguage: LANG_MAP[targetLang] || targetLang,
           }),
         });
@@ -156,7 +64,7 @@ export const usePageTranslation = () => {
       } catch (error) {
         lastError = error;
         console.error(`Translation attempt ${attempt + 1} failed:`, error);
-        
+
         // Wait before retrying
         if (attempt < maxRetries - 1) {
           await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
@@ -166,23 +74,6 @@ export const usePageTranslation = () => {
 
     console.error(`Translation failed after ${maxRetries} attempts:`, lastError);
     return text;
-  };
-
-  // Translate mixed language text intelligently
-  const translateMixedText = async (text: string, targetLanguage: string) => {
-    // Don't translate if target is English
-    if (targetLanguage === "en") return text;
-
-    const parts = splitMixedText(text);
-    
-    const translated = await Promise.all(
-      parts.map(async (part) => {
-        // Translate all parts (both English and CJK)
-        return await translateText(part.text, targetLanguage);
-      })
-    );
-
-    return translated.join("");
   };
 
   // Recursively translate all text in element and children
@@ -196,7 +87,7 @@ export const usePageTranslation = () => {
         if (node.nodeType === 3) {
           const text = node.textContent?.trim();
           if (text && text.length > 2) {
-            const translated = await translateMixedText(text, targetLanguage);
+            const translated = await translateText(text, targetLanguage);
             if (translated !== text) {
               node.textContent = translated;
             }
