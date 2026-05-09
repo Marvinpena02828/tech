@@ -159,7 +159,7 @@ export default function ProductCategory({
 
             <div className="overflow-visible flex-1 relative px-2 lg:px-4">
               <div
-                className={`flex items-center justify-center gap-2 lg:gap-3 xl:gap-6 transition-transform duration-500 ease-in-out`}
+                className={`flex items-center justify-center gap-0 lg:gap-1 xl:gap-2 transition-transform duration-500 ease-in-out`}
                 style={{
                   transform: showDesktopNavigation
                     ? `translateX(-${
@@ -182,8 +182,8 @@ export default function ProductCategory({
                         minWidth: `${100 / desktopItemsToShow}%`,
                       }}
                     >
-                      {/* Responsive oval for category display - even smaller on lg */}
-                      <div className="w-32 h-[18rem] lg:w-40 lg:h-[22rem] xl:w-48 xl:h-[26rem] 2xl:w-56 2xl:h-[28rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-2 lg:mb-3 xl:mb-4 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                      {/* Responsive oval for category display - bigger with minimal gap */}
+                      <div className="w-44 h-[24rem] lg:w-56 lg:h-[30rem] xl:w-64 xl:h-[34rem] 2xl:w-72 2xl:h-[38rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-2 lg:mb-3 xl:mb-4 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
                         <AppImage
                           src={getImageUrl(cat.image_link)}
                           alt={cat.title}
