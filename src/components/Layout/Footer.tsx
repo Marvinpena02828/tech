@@ -492,10 +492,8 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="w-full max-w-7xl mx-auto">
-          <div className="border-t border-white border-opacity-30 my-8" />
-        </div>
+        {/* Divider - FIXED: Full width with increased opacity */}
+        <div className="w-full border-t border-white border-opacity-50 my-8" />
 
         {/* Bottom Section */}
         <div
