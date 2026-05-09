@@ -69,7 +69,11 @@ export async function POST(request: NextRequest) {
     console.log("[TRANSLATE] LibreTranslate response:", response.status);
 
     if (!response.ok) {
-      console.error("[TRANSLATE] Failed:", response.status, response.statusText);
+      console.error(
+        "[TRANSLATE] Failed:",
+        response.status,
+        response.statusText
+      );
       return NextResponse.json(
         { error: "Translation failed", translatedText: text },
         { status: response.status }
