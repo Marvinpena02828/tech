@@ -311,7 +311,7 @@ export default function Footer() {
         )}
 
         {/* Main Footer Content */}
-        <div className="w-full max-w-7xl mx-auto mb-16">
+        <div className="w-full max-w-7xl mx-auto mb-20">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12">
             
             {/* Column 1: Brand Section */}
