@@ -400,12 +400,10 @@ export default function Header({ logos }: HeaderProps) {
               <Link
                 href="/"
                 onClick={() => setLastClickedRoute("/")}
-                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
-                  isPathActive("/")
-                    ? "font-bold"
-                    : "text-white hover:text-red-500"
-                }`}
+                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 text-white`}
                 style={isPathActive("/") ? { color: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => !isPathActive("/") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => !isPathActive("/") && (e.currentTarget.style.color = "")}
                 suppressHydrationWarning
               >
                 HOME
@@ -421,12 +419,10 @@ export default function Header({ logos }: HeaderProps) {
                 <Link
                   href="/products"
                   onClick={() => setLastClickedRoute("/products")}
-                  className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 flex items-center space-x-1 whitespace-nowrap shrink-0 ${
-                    isPathActive("/products")
-                      ? "font-bold"
-                      : "text-white hover:text-red-500"
-                  }`}
+                  className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 flex items-center space-x-1 whitespace-nowrap shrink-0 text-white`}
                   style={isPathActive("/products") ? { color: "rgb(229, 222, 219)" } : {}}
+                  onMouseEnter={(e) => !isPathActive("/products") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                  onMouseLeave={(e) => !isPathActive("/products") && (e.currentTarget.style.color = "")}
                   aria-expanded={isMegaMenuOpen}
                   aria-label="Products menu"
                 >
@@ -443,12 +439,10 @@ export default function Header({ logos }: HeaderProps) {
               <Link
                 href="/about"
                 onClick={() => setLastClickedRoute("/about")}
-                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
-                  isPathActive("/about")
-                    ? "font-bold"
-                    : "text-white hover:text-red-500"
-                }`}
+                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 text-white`}
                 style={isPathActive("/about") ? { color: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => !isPathActive("/about") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => !isPathActive("/about") && (e.currentTarget.style.color = "")}
                 suppressHydrationWarning
               >
                 ABOUT US
@@ -457,12 +451,10 @@ export default function Header({ logos }: HeaderProps) {
               <Link
                 href="/news"
                 onClick={() => setLastClickedRoute("/news")}
-                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
-                  isPathActive("/news")
-                    ? "font-bold"
-                    : "text-white hover:text-red-500"
-                }`}
+                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 text-white`}
                 style={isPathActive("/news") ? { color: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => !isPathActive("/news") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => !isPathActive("/news") && (e.currentTarget.style.color = "")}
                 suppressHydrationWarning
               >
                 NEWS
@@ -471,12 +463,10 @@ export default function Header({ logos }: HeaderProps) {
               <Link
                 href="/contact"
                 onClick={() => setLastClickedRoute("/contact")}
-                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 ${
-                  isPathActive("/contact")
-                    ? "font-bold"
-                    : "text-white hover:text-red-500"
-                }`}
+                className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 text-white`}
                 style={isPathActive("/contact") ? { color: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => !isPathActive("/contact") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => !isPathActive("/contact") && (e.currentTarget.style.color = "")}
                 suppressHydrationWarning
               >
                 CONTACT US
@@ -655,12 +645,10 @@ export default function Header({ logos }: HeaderProps) {
         <nav className="flex flex-col p-6 space-y-6 overflow-y-auto h-full">
           <Link
             href="/"
-            className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover ${
-              isPathActive("/")
-                ? "font-bold"
-                : "text-gray-900 hover:text-red-500"
-            }`}
+            className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover text-gray-900`}
             style={isPathActive("/") ? { color: "rgb(229, 222, 219)" } : {}}
+            onMouseEnter={(e) => !isPathActive("/") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+            onMouseLeave={(e) => !isPathActive("/") && (e.currentTarget.style.color = "")}
             onClick={() => {
               setLastClickedRoute("/");
               setIsMobileMenuOpen(false);
@@ -673,12 +661,10 @@ export default function Header({ logos }: HeaderProps) {
           <div className="border-b border-white">
             <button
               onClick={() => setIsMobileDropdownOpen(!isMobileDropdownOpen)}
-              className={`w-full text-lg font-medium transition-colors py-3 flex items-center justify-between border-b border-primary-blue/30 nav-link-hover ${
-                isPathActive("/products")
-                  ? "font-bold"
-                  : "text-gray-900 hover:text-red-500"
-              }`}
+              className={`w-full text-lg font-medium transition-colors py-3 flex items-center justify-between border-b border-primary-blue/30 nav-link-hover text-gray-900`}
               style={isPathActive("/products") ? { color: "rgb(229, 222, 219)" } : {}}
+              onMouseEnter={(e) => !isPathActive("/products") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+              onMouseLeave={(e) => !isPathActive("/products") && (e.currentTarget.style.color = "")}
               disabled={isTranslating}
             >
               <span>PRODUCTS</span>
@@ -774,12 +760,10 @@ export default function Header({ logos }: HeaderProps) {
 
           <Link
             href="/about"
-            className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover ${
-              isPathActive("/about")
-                ? "font-bold"
-                : "text-gray-900 hover:text-red-500"
-            }`}
+            className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover text-gray-900`}
             style={isPathActive("/about") ? { color: "rgb(229, 222, 219)" } : {}}
+            onMouseEnter={(e) => !isPathActive("/about") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+            onMouseLeave={(e) => !isPathActive("/about") && (e.currentTarget.style.color = "")}
             onClick={() => {
               setLastClickedRoute("/about");
               setIsMobileMenuOpen(false);
@@ -789,12 +773,10 @@ export default function Header({ logos }: HeaderProps) {
           </Link>
           <Link
             href="/news"
-            className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover ${
-              isPathActive("/news")
-                ? "font-bold"
-                : "text-gray-900 hover:text-red-500"
-            }`}
+            className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover text-gray-900`}
             style={isPathActive("/news") ? { color: "rgb(229, 222, 219)" } : {}}
+            onMouseEnter={(e) => !isPathActive("/news") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+            onMouseLeave={(e) => !isPathActive("/news") && (e.currentTarget.style.color = "")}
             onClick={() => {
               setLastClickedRoute("/news");
               setIsMobileMenuOpen(false);
@@ -804,12 +786,10 @@ export default function Header({ logos }: HeaderProps) {
           </Link>
           <Link
             href="/contact"
-            className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover ${
-              isPathActive("/contact")
-                ? "font-bold"
-                : "text-gray-900 hover:text-red-500"
-            }`}
+            className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover text-gray-900`}
             style={isPathActive("/contact") ? { color: "rgb(229, 222, 219)" } : {}}
+            onMouseEnter={(e) => !isPathActive("/contact") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+            onMouseLeave={(e) => !isPathActive("/contact") && (e.currentTarget.style.color = "")}
             onClick={() => {
               setLastClickedRoute("/contact");
               setIsMobileMenuOpen(false);
@@ -870,96 +850,80 @@ export default function Header({ logos }: HeaderProps) {
               <button
                 onClick={() => changeLanguage("en", "English")}
                 disabled={isTranslating}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
-                  selectedLanguage === "English"
-                    ? "bg-gray-300 font-semibold "
-                    : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
-                }`}
-                style={selectedLanguage === "English" ? { color: "rgb(229, 222, 219)" } : {}}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
+                style={selectedLanguage === "English" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => selectedLanguage !== "English" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => selectedLanguage !== "English" && (e.currentTarget.style.color = "")}
               >
                 English
               </button>
               <button
                 onClick={() => changeLanguage("zh", "中文")}
                 disabled={isTranslating}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
-                  selectedLanguage === "中文"
-                    ? "bg-gray-300 font-semibold "
-                    : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
-                }`}
-                style={selectedLanguage === "中文" ? { color: "rgb(229, 222, 219)" } : {}}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
+                style={selectedLanguage === "中文" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => selectedLanguage !== "中文" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => selectedLanguage !== "中文" && (e.currentTarget.style.color = "")}
               >
                 中文 (Chinese)
               </button>
               <button
                 onClick={() => changeLanguage("ar", "العربية")}
                 disabled={isTranslating}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
-                  selectedLanguage === "العربية"
-                    ? "bg-gray-300 font-semibold "
-                    : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
-                }`}
-                style={selectedLanguage === "العربية" ? { color: "rgb(229, 222, 219)" } : {}}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
+                style={selectedLanguage === "العربية" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => selectedLanguage !== "العربية" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => selectedLanguage !== "العربية" && (e.currentTarget.style.color = "")}
               >
                 العربية (Arabic)
               </button>
               <button
                 onClick={() => changeLanguage("ru", "Русский")}
                 disabled={isTranslating}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
-                  selectedLanguage === "Русский"
-                    ? "bg-gray-300 font-semibold "
-                    : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
-                }`}
-                style={selectedLanguage === "Русский" ? { color: "rgb(229, 222, 219)" } : {}}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
+                style={selectedLanguage === "Русский" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => selectedLanguage !== "Русский" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => selectedLanguage !== "Русский" && (e.currentTarget.style.color = "")}
               >
                 Русский (Russian)
               </button>
               <button
                 onClick={() => changeLanguage("de", "Deutsch")}
                 disabled={isTranslating}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
-                  selectedLanguage === "Deutsch"
-                    ? "bg-gray-300 font-semibold "
-                    : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
-                }`}
-                style={selectedLanguage === "Deutsch" ? { color: "rgb(229, 222, 219)" } : {}}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
+                style={selectedLanguage === "Deutsch" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => selectedLanguage !== "Deutsch" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => selectedLanguage !== "Deutsch" && (e.currentTarget.style.color = "")}
               >
                 Deutsch (German)
               </button>
               <button
                 onClick={() => changeLanguage("ro", "Română")}
                 disabled={isTranslating}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
-                  selectedLanguage === "Română"
-                    ? "bg-gray-300 font-semibold "
-                    : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
-                }`}
-                style={selectedLanguage === "Română" ? { color: "rgb(229, 222, 219)" } : {}}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
+                style={selectedLanguage === "Română" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => selectedLanguage !== "Română" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => selectedLanguage !== "Română" && (e.currentTarget.style.color = "")}
               >
                 Română (Romanian)
               </button>
               <button
                 onClick={() => changeLanguage("es", "Español")}
                 disabled={isTranslating}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
-                  selectedLanguage === "Español"
-                    ? "bg-gray-300 font-semibold "
-                    : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
-                }`}
-                style={selectedLanguage === "Español" ? { color: "rgb(229, 222, 219)" } : {}}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
+                style={selectedLanguage === "Español" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => selectedLanguage !== "Español" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => selectedLanguage !== "Español" && (e.currentTarget.style.color = "")}
               >
                 Español (Spanish)
               </button>
               <button
                 onClick={() => changeLanguage("fr", "Français")}
                 disabled={isTranslating}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 ${
-                  selectedLanguage === "Français"
-                    ? "bg-gray-300 font-semibold "
-                    : "bg-gray-300 text-primary-blue hover:bg-primary-blue"
-                }`}
-                style={selectedLanguage === "Français" ? { color: "rgb(229, 222, 219)" } : {}}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
+                style={selectedLanguage === "Français" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => selectedLanguage !== "Français" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => selectedLanguage !== "Français" && (e.currentTarget.style.color = "")}
               >
                 Français (French)
               </button>
