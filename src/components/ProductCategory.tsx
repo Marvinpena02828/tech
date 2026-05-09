@@ -136,203 +136,201 @@ export default function ProductCategory({
       ref={ref as React.RefObject<HTMLElement>}
       className="w-full py-20 bg-white flex flex-col items-center overflow-hidden mt-2"
     >
+      <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
+        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>Explore by Category</h2>
 
-       <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>Explore by Category</h2>
-
-
-      
-      {/* Desktop View */}
-      <div className="hidden container lg:block w-full mt-12">
-        <div className="flex items-center justify-center gap-12 xl:gap-16 w-full px-6">
-          {showDesktopNavigation && (
-            <button
-              onClick={handleDesktopPrev}
-              disabled={desktopStartIndex === 0}
-              className={`flex-shrink-0 text-black transition-all ${
-                desktopStartIndex === 0
-                  ? "opacity-30 cursor-not-allowed"
-                  : "hover:scale-110"
-              }`}
-              aria-label="Previous categories"
-            >
-              <ChevronLeft size={32} />
-            </button>
-          )}
-
-          <div className="overflow-visible flex-1 relative px-4">
-            <div
-              className={`flex items-center justify-center gap-8 xl:gap-10 transition-transform duration-500 ease-in-out`}
-              style={{
-                transform: showDesktopNavigation
-                  ? `translateX(-${
-                      desktopStartIndex * (100 / desktopItemsToShow)
-                    }%)`
-                  : "none",
-              }}
-            >
-              {(showDesktopNavigation
-                ? categories
-                : visibleDesktopCategories
-              ).map((cat, idx) => {
-                return (
-                  <Link
-                    href={`/products?category=${cat.id}`}
-                    key={idx}
-                    className="flex flex-col items-center group cursor-pointer flex-shrink-0"
-                    style={{
-                      width: `${100 / desktopItemsToShow}%`,
-                      minWidth: `${100 / desktopItemsToShow}%`,
-                    }}
-                  >
-                    {/* Properly sized oval for category display */}
-                    <div className="w-56 h-[28rem] xl:w-72 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
-                      <AppImage
-                        src={getImageUrl(cat.image_link)}
-                        alt={cat.title}
-                        fill
-                        className={`object-contain p-0 transition-transform duration-500`}
-                        unoptimized
-                      />
-                    </div>
-                    <h3 className="text-base xl:text-lg font-semibold text-gray-900 text-center font-display tracking-tight">
-                      {cat.title}
-                    </h3>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          {showDesktopNavigation && (
-            <button
-              onClick={handleDesktopNext}
-              disabled={
-                desktopStartIndex >= categories.length - desktopItemsToShow
-              }
-              className={`flex-shrink-0 text-black transition-all ${
-                desktopStartIndex >= categories.length - desktopItemsToShow
-                  ? "opacity-30 cursor-not-allowed"
-                  : "hover:scale-110"
-              }`}
-              aria-label="Next categories"
-            >
-              <ChevronRight size={32} />
-            </button>
-          )}
-        </div>
-
-        {showDesktopNavigation && (
-          <div className="text-center mt-8 text-sm text-gray-600 font-medium flex items-center gap-6 justify-center">
-            <span
-              onClick={handleDesktopPrev}
-              className="text-primary-blue cursor-pointer hover:underline"
-            >
-              Prev
-            </span>
-
-            {Array.from(
-              { length: Math.ceil(categories.length / desktopItemsToShow) },
-              (_, index) => (
-                <span
-                  key={index}
-                  onClick={() => handleDesktopGoToPage(index)}
-                  className={`cursor-pointer transition-colors ${
-                    index === desktopStartIndex / desktopItemsToShow
-                      ? "text-primary-blue font-semibold"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  {index + 1}
-                </span>
-              ),
+        {/* Desktop View */}
+        <div className="hidden container lg:block w-full mt-12">
+          <div className="flex items-center justify-center gap-12 xl:gap-16 w-full px-6">
+            {showDesktopNavigation && (
+              <button
+                onClick={handleDesktopPrev}
+                disabled={desktopStartIndex === 0}
+                className={`flex-shrink-0 text-black transition-all ${
+                  desktopStartIndex === 0
+                    ? "opacity-30 cursor-not-allowed"
+                    : "hover:scale-110"
+                }`}
+                aria-label="Previous categories"
+              >
+                <ChevronLeft size={32} />
+              </button>
             )}
 
-            <span
-              onClick={handleDesktopNext}
-              className="text-primary-blue cursor-pointer hover:underline"
-            >
-              Next
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Mobile/Tablet Horizontal Scroll */}
-      <div className="lg:hidden w-full px-6 pb-4 relative">
-        {/* Previous Button */}
-        <button
-          onClick={handleMobilePrev}
-          disabled={startIndex === 0}
-          className={`absolute left-5 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
-            startIndex === 0
-              ? "opacity-30 cursor-not-allowed"
-              : "hover:bg-gray-800 active:scale-95"
-          }`}
-          aria-label="Previous category"
-        >
-          <ChevronLeft size={20} />
-        </button>
-
-        {/* Next Button */}
-        <button
-          onClick={handleMobileNext}
-          disabled={startIndex >= categories.length - mobileItemsToShow}
-          className={`absolute right-5 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
-            startIndex >= categories.length - mobileItemsToShow
-              ? "opacity-30 cursor-not-allowed"
-              : "hover:bg-gray-800 active:scale-95"
-          }`}
-          aria-label="Next category"
-        >
-          <ChevronRight size={20} />
-        </button>
-
-        {/* Categories Carousel */}
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-6 px-4 overflow-hidden"
-          key={`carousel-${startIndex}`}
-        >
-          {visibleMobileCategories.map((cat, idx) => (
-            <Link
-              href={`/products?category=${cat.id}`}
-              key={`${startIndex}-${idx}`}
-              className={`flex flex-col items-center group cursor-pointer shrink-0 w-full transition-all duration-500 ${
-                isAnimating
-                  ? slideDirection === "right"
-                    ? "opacity-100 translate-x-0 animate-slideInRight"
-                    : "opacity-100 translate-x-0 animate-slideInLeft"
-                  : "opacity-100 translate-x-0"
-              } ${
-                isVisible && !isAnimating
-                  ? "opacity-100 translate-y-0"
-                  : isVisible
-                    ? ""
-                    : "opacity-0 translate-y-8"
-              }`}
-              style={{ transitionDelay: isAnimating ? `${idx * 50}ms` : "0ms" }}
-            >
-              {/* Larger oval for mobile image display */}
-              <div className="w-48 h-96 sm:w-56 sm:h-[28rem] md:w-64 md:h-[32rem] bg-[#E5E9EC] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300">
-                <AppImage
-                  src={getImageUrl(cat.image_link)}
-                  alt={cat.title}
-                  fill
-                  className={`object-contain p-0 transition-transform duration-500`}
-                  unoptimized
-                />
+            <div className="overflow-visible flex-1 relative px-4">
+              <div
+                className={`flex items-center justify-center gap-8 xl:gap-10 transition-transform duration-500 ease-in-out`}
+                style={{
+                  transform: showDesktopNavigation
+                    ? `translateX(-${
+                        desktopStartIndex * (100 / desktopItemsToShow)
+                      }%)`
+                    : "none",
+                }}
+              >
+                {(showDesktopNavigation
+                  ? categories
+                  : visibleDesktopCategories
+                ).map((cat, idx) => {
+                  return (
+                    <Link
+                      href={`/products?category=${cat.id}`}
+                      key={idx}
+                      className="flex flex-col items-center group cursor-pointer flex-shrink-0"
+                      style={{
+                        width: `${100 / desktopItemsToShow}%`,
+                        minWidth: `${100 / desktopItemsToShow}%`,
+                      }}
+                    >
+                      {/* Properly sized oval for category display */}
+                      <div className="w-56 h-[28rem] xl:w-72 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                        <AppImage
+                          src={getImageUrl(cat.image_link)}
+                          alt={cat.title}
+                          fill
+                          className={`object-contain p-0 transition-transform duration-500`}
+                          unoptimized
+                        />
+                      </div>
+                      <h3 className="text-base xl:text-lg font-semibold text-gray-900 text-center font-display tracking-tight">
+                        {cat.title}
+                      </h3>
+                    </Link>
+                  );
+                })}
               </div>
-              <h3 className="text-base md:text-lg font-semibold text-gray-900 text-center font-display tracking-tight">
-                {cat.title}
-              </h3>
-            </Link>
-          ))}
+            </div>
+
+            {showDesktopNavigation && (
+              <button
+                onClick={handleDesktopNext}
+                disabled={
+                  desktopStartIndex >= categories.length - desktopItemsToShow
+                }
+                className={`flex-shrink-0 text-black transition-all ${
+                  desktopStartIndex >= categories.length - desktopItemsToShow
+                    ? "opacity-30 cursor-not-allowed"
+                    : "hover:scale-110"
+                }`}
+                aria-label="Next categories"
+              >
+                <ChevronRight size={32} />
+              </button>
+            )}
+          </div>
+
+          {showDesktopNavigation && (
+            <div className="text-center mt-8 text-sm text-gray-600 font-medium flex items-center gap-6 justify-center">
+              <span
+                onClick={handleDesktopPrev}
+                className="text-primary-blue cursor-pointer hover:underline"
+              >
+                Prev
+              </span>
+
+              {Array.from(
+                { length: Math.ceil(categories.length / desktopItemsToShow) },
+                (_, index) => (
+                  <span
+                    key={index}
+                    onClick={() => handleDesktopGoToPage(index)}
+                    className={`cursor-pointer transition-colors ${
+                      index === desktopStartIndex / desktopItemsToShow
+                        ? "text-primary-blue font-semibold"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                ),
+              )}
+
+              <span
+                onClick={handleDesktopNext}
+                className="text-primary-blue cursor-pointer hover:underline"
+              >
+                Next
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Category Counter */}
-        <div className="text-center mt-3 text-xs text-gray-600 font-medium">
-          {startIndex + 1} / {categories.length}
+        {/* Mobile/Tablet Horizontal Scroll */}
+        <div className="lg:hidden w-full px-6 pb-4 relative">
+          {/* Previous Button */}
+          <button
+            onClick={handleMobilePrev}
+            disabled={startIndex === 0}
+            className={`absolute left-5 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
+              startIndex === 0
+                ? "opacity-30 cursor-not-allowed"
+                : "hover:bg-gray-800 active:scale-95"
+            }`}
+            aria-label="Previous category"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          {/* Next Button */}
+          <button
+            onClick={handleMobileNext}
+            disabled={startIndex >= categories.length - mobileItemsToShow}
+            className={`absolute right-5 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
+              startIndex >= categories.length - mobileItemsToShow
+                ? "opacity-30 cursor-not-allowed"
+                : "hover:bg-gray-800 active:scale-95"
+            }`}
+            aria-label="Next category"
+          >
+            <ChevronRight size={20} />
+          </button>
+
+          {/* Categories Carousel */}
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-6 px-4 overflow-hidden"
+            key={`carousel-${startIndex}`}
+          >
+            {visibleMobileCategories.map((cat, idx) => (
+              <Link
+                href={`/products?category=${cat.id}`}
+                key={`${startIndex}-${idx}`}
+                className={`flex flex-col items-center group cursor-pointer shrink-0 w-full transition-all duration-500 ${
+                  isAnimating
+                    ? slideDirection === "right"
+                      ? "opacity-100 translate-x-0 animate-slideInRight"
+                      : "opacity-100 translate-x-0 animate-slideInLeft"
+                    : "opacity-100 translate-x-0"
+                } ${
+                  isVisible && !isAnimating
+                    ? "opacity-100 translate-y-0"
+                    : isVisible
+                      ? ""
+                      : "opacity-0 translate-y-8"
+                }`}
+                style={{ transitionDelay: isAnimating ? `${idx * 50}ms` : "0ms" }}
+              >
+                {/* Larger oval for mobile image display */}
+                <div className="w-48 h-96 sm:w-56 sm:h-[28rem] md:w-64 md:h-[32rem] bg-[#E5E9EC] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300">
+                  <AppImage
+                    src={getImageUrl(cat.image_link)}
+                    alt={cat.title}
+                    fill
+                    className={`object-contain p-0 transition-transform duration-500`}
+                    unoptimized
+                  />
+                </div>
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 text-center font-display tracking-tight">
+                  {cat.title}
+                </h3>
+              </Link>
+            ))}
+          </div>
+
+          {/* Category Counter */}
+          <div className="text-center mt-3 text-xs text-gray-600 font-medium">
+            {startIndex + 1} / {categories.length}
+          </div>
         </div>
       </div>
     </section>
