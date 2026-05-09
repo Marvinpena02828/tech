@@ -491,7 +491,9 @@ export default function Header({ logos }: HeaderProps) {
                 >
                   <Search
                     size={25}
-                    className="text-white cursor-pointer hover:text-red-500 transition-all duration-300 hover:scale-110  nav-link-hover disabled:opacity-50"
+                    className="text-white cursor-pointer transition-all duration-300 hover:scale-110  nav-link-hover disabled:opacity-50"
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "")}
                   />
                 </button>
 
@@ -501,13 +503,19 @@ export default function Header({ logos }: HeaderProps) {
                     onClick={() =>
                       setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
                     }
-                    className="flex items-center space-x-2 hover:text-red-500 transition-all duration-300 disabled:opacity-50"
+                    className="flex items-center space-x-2 transition-all duration-300 disabled:opacity-50"
                     disabled={isTranslating}
                   >
-                    <Globe className="text-white hover:text-red-500 transition-colors" />
+                    <Globe 
+                      className="text-white transition-colors" 
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+                    />
                     <span
-                      className="text-white cursor-pointer hover:text-red-500 transition-all duration-300"
+                      className="text-white cursor-pointer transition-all duration-300"
                       suppressHydrationWarning
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "")}
                     >
                       {selectedLanguage} {isTranslating && "..."}
                     </span>
@@ -515,6 +523,8 @@ export default function Header({ logos }: HeaderProps) {
                       className={`text-white transition-transform duration-300 ${
                         isLanguageDropdownOpen ? "rotate-180" : ""
                       }`}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "")}
                     />
                   </button>
 
