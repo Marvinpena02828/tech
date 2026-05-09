@@ -153,13 +153,13 @@ export default function ProductCategory({
                 }`}
                 aria-label="Previous categories"
               >
-                <ChevronLeft size={20} className="lg:size-6" />
+                <ChevronLeft size={48} className="lg:size-12 xl:size-14" />
               </button>
             )}
 
-            <div className="overflow-visible flex-1 relative px-0 lg:px-2">
+            <div className="overflow-visible flex-1 relative px-0">
               <div
-                className={`flex items-center justify-center gap-3 lg:gap-4 xl:gap-5 transition-transform duration-500 ease-in-out`}
+                className={`flex items-center justify-center gap-2 lg:gap-2 xl:gap-3 transition-transform duration-500 ease-in-out`}
                 style={{
                   transform: showDesktopNavigation
                     ? `translateX(-${
@@ -214,7 +214,7 @@ export default function ProductCategory({
                 }`}
                 aria-label="Next categories"
               >
-                <ChevronRight size={20} className="lg:size-6" />
+                <ChevronRight size={48} className="lg:size-12 xl:size-14" />
               </button>
             )}
           </div>
