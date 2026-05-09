@@ -31,9 +31,41 @@ export default function ProductCategory({
   const [isDesktopAnimating, setIsDesktopAnimating] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [desktopItemsToShow, setDesktopItemsToShow] = useState(5);
+  const [containerWidth, setContainerWidth] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const mobileItemsToShow = 1;
-  const desktopItemsToShow = 5;
+
+  // Determine items to show based on viewport width
+  useEffect(() => {
+    const updateItemsToShow = () => {
+      if (typeof window === "undefined") return;
+
+      if (containerRef.current) {
+        const width = containerRef.current.offsetWidth;
+        setContainerWidth(width);
+
+        // Responsive breakpoints for desktop
+        if (width < 1024) {
+          // 1024px = lg breakpoint, small laptops
+          setDesktopItemsToShow(3);
+        } else if (width < 1280) {
+          // 1280px = xl breakpoint, medium laptops
+          setDesktopItemsToShow(4);
+        } else {
+          // Large screens
+          setDesktopItemsToShow(5);
+        }
+      }
+    };
+
+    updateItemsToShow();
+
+    // Listen to window resize
+    window.addEventListener("resize", updateItemsToShow);
+    return () => window.removeEventListener("resize", updateItemsToShow);
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -136,30 +168,32 @@ export default function ProductCategory({
       ref={ref as React.RefObject<HTMLElement>}
       className="w-full py-20 bg-white flex flex-col items-center overflow-hidden mt-2"
     >
-      <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
-        <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>Explore by Category</h2>
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 mb-12">
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-12">
+          Explore by Category
+        </h2>
 
-        {/* Desktop View */}
-        <div className="hidden container lg:block w-full mt-12">
-          <div className="flex items-center justify-center gap-12 xl:gap-16 w-full px-6">
+        {/* Desktop View - Responsive Grid */}
+        <div className="hidden lg:block w-full" ref={containerRef}>
+          <div className="flex items-center justify-between gap-4 lg:gap-6 xl:gap-8 w-full">
             {showDesktopNavigation && (
               <button
                 onClick={handleDesktopPrev}
                 disabled={desktopStartIndex === 0}
-                className={`flex-shrink-0 text-black transition-all ${
+                className={`flex-shrink-0 text-black transition-all duration-300 ${
                   desktopStartIndex === 0
                     ? "opacity-30 cursor-not-allowed"
-                    : "hover:scale-110"
+                    : "hover:scale-110 active:scale-95"
                 }`}
                 aria-label="Previous categories"
               >
-                <ChevronLeft size={32} />
+                <ChevronLeft size={28} />
               </button>
             )}
 
-            <div className="overflow-visible flex-1 relative px-4">
+            <div className="flex-1 overflow-hidden">
               <div
-                className={`flex items-center justify-center gap-8 xl:gap-10 transition-transform duration-500 ease-in-out`}
+                className="flex items-center justify-center gap-4 lg:gap-6 xl:gap-8 transition-transform duration-500 ease-in-out"
                 style={{
                   transform: showDesktopNavigation
                     ? `translateX(-${
@@ -172,27 +206,43 @@ export default function ProductCategory({
                   ? categories
                   : visibleDesktopCategories
                 ).map((cat, idx) => {
+                  // Responsive sizing based on items shown
+                  const imageHeight =
+                    desktopItemsToShow === 3
+                      ? "h-64 sm:h-72"
+                      : desktopItemsToShow === 4
+                        ? "h-72 sm:h-80"
+                        : "h-80 sm:h-96";
+                  const imageWidth =
+                    desktopItemsToShow === 3
+                      ? "w-40 sm:w-48"
+                      : desktopItemsToShow === 4
+                        ? "w-44 sm:w-52"
+                        : "w-48 sm:w-56";
+
                   return (
                     <Link
                       href={`/products?category=${cat.id}`}
                       key={idx}
-                      className="flex flex-col items-center group cursor-pointer flex-shrink-0"
+                      className="flex flex-col items-center group cursor-pointer flex-shrink-0 transition-all duration-300"
                       style={{
                         width: `${100 / desktopItemsToShow}%`,
                         minWidth: `${100 / desktopItemsToShow}%`,
                       }}
                     >
-                      {/* Properly sized oval for category display */}
-                      <div className="w-56 h-[28rem] xl:w-72 xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                      {/* Responsive oval container */}
+                      <div
+                        className={`${imageWidth} ${imageHeight} bg-gradient-to-br from-[#E5E9EC] to-[#D5DDE2] rounded-full mb-4 lg:mb-6 flex items-center justify-center relative overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group-hover:bg-white`}
+                      >
                         <AppImage
                           src={getImageUrl(cat.image_link)}
                           alt={cat.title}
                           fill
-                          className={`object-contain p-0 transition-transform duration-500`}
+                          className="object-contain p-2 sm:p-3 md:p-4 transition-transform duration-500 group-hover:scale-105"
                           unoptimized
                         />
                       </div>
-                      <h3 className="text-base xl:text-lg font-semibold text-gray-900 text-center font-display tracking-tight">
+                      <h3 className="text-sm lg:text-base font-semibold text-gray-900 text-center font-display tracking-tight px-2 line-clamp-2">
                         {cat.title}
                       </h3>
                     </Link>
@@ -207,61 +257,62 @@ export default function ProductCategory({
                 disabled={
                   desktopStartIndex >= categories.length - desktopItemsToShow
                 }
-                className={`flex-shrink-0 text-black transition-all ${
+                className={`flex-shrink-0 text-black transition-all duration-300 ${
                   desktopStartIndex >= categories.length - desktopItemsToShow
                     ? "opacity-30 cursor-not-allowed"
-                    : "hover:scale-110"
+                    : "hover:scale-110 active:scale-95"
                 }`}
                 aria-label="Next categories"
               >
-                <ChevronRight size={32} />
+                <ChevronRight size={28} />
               </button>
             )}
           </div>
 
+          {/* Pagination Controls */}
           {showDesktopNavigation && (
-            <div className="text-center mt-8 text-sm text-gray-600 font-medium flex items-center gap-6 justify-center">
-              <span
+            <div className="text-center mt-8 text-sm text-gray-600 font-medium flex items-center gap-4 justify-center flex-wrap">
+              <button
                 onClick={handleDesktopPrev}
-                className="text-primary-blue cursor-pointer hover:underline"
+                className="text-primary-blue hover:underline transition-colors active:opacity-75"
               >
                 Prev
-              </span>
+              </button>
 
               {Array.from(
                 { length: Math.ceil(categories.length / desktopItemsToShow) },
                 (_, index) => (
-                  <span
+                  <button
                     key={index}
                     onClick={() => handleDesktopGoToPage(index)}
-                    className={`cursor-pointer transition-colors ${
-                      index === desktopStartIndex / desktopItemsToShow
-                        ? "text-primary-blue font-semibold"
-                        : "text-gray-600 hover:text-gray-900"
+                    className={`px-2.5 py-1 rounded transition-colors text-sm ${
+                      index === Math.floor(desktopStartIndex / desktopItemsToShow)
+                        ? "text-primary-blue font-semibold bg-blue-50"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     }`}
                   >
                     {index + 1}
-                  </span>
+                  </button>
                 ),
               )}
 
-              <span
+              <button
                 onClick={handleDesktopNext}
-                className="text-primary-blue cursor-pointer hover:underline"
+                className="text-primary-blue hover:underline transition-colors active:opacity-75"
               >
                 Next
-              </span>
+              </button>
             </div>
           )}
         </div>
 
         {/* Mobile/Tablet Horizontal Scroll */}
-        <div className="lg:hidden w-full px-6 pb-4 relative">
+        <div className="lg:hidden w-full px-4 pb-4 relative">
           {/* Previous Button */}
           <button
             onClick={handleMobilePrev}
             disabled={startIndex === 0}
-            className={`absolute left-5 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
+            className={`absolute left-0 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
               startIndex === 0
                 ? "opacity-30 cursor-not-allowed"
                 : "hover:bg-gray-800 active:scale-95"
@@ -275,7 +326,7 @@ export default function ProductCategory({
           <button
             onClick={handleMobileNext}
             disabled={startIndex >= categories.length - mobileItemsToShow}
-            className={`absolute right-5 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
+            className={`absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-black text-white rounded-full z-10 transition-all touch-manipulation ${
               startIndex >= categories.length - mobileItemsToShow
                 ? "opacity-30 cursor-not-allowed"
                 : "hover:bg-gray-800 active:scale-95"
@@ -288,7 +339,7 @@ export default function ProductCategory({
           {/* Categories Carousel */}
           <div
             ref={scrollContainerRef}
-            className="flex gap-6 px-4 overflow-hidden"
+            className="flex gap-6 px-12 overflow-hidden"
             key={`carousel-${startIndex}`}
           >
             {visibleMobileCategories.map((cat, idx) => (
@@ -310,17 +361,17 @@ export default function ProductCategory({
                 }`}
                 style={{ transitionDelay: isAnimating ? `${idx * 50}ms` : "0ms" }}
               >
-                {/* Larger oval for mobile image display */}
-                <div className="w-48 h-96 sm:w-56 sm:h-[28rem] md:w-64 md:h-[32rem] bg-[#E5E9EC] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300">
+                {/* Mobile image display */}
+                <div className="w-44 h-80 sm:w-52 sm:h-96 bg-gradient-to-br from-[#E5E9EC] to-[#D5DDE2] rounded-full mb-6 flex items-center justify-center relative overflow-hidden shadow-md active:shadow-lg transition-all duration-300 group-hover:bg-white">
                   <AppImage
                     src={getImageUrl(cat.image_link)}
                     alt={cat.title}
                     fill
-                    className={`object-contain p-0 transition-transform duration-500`}
+                    className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
                     unoptimized
                   />
                 </div>
-                <h3 className="text-base md:text-lg font-semibold text-gray-900 text-center font-display tracking-tight">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 text-center font-display tracking-tight px-2 line-clamp-2">
                   {cat.title}
                 </h3>
               </Link>
@@ -328,7 +379,7 @@ export default function ProductCategory({
           </div>
 
           {/* Category Counter */}
-          <div className="text-center mt-3 text-xs text-gray-600 font-medium">
+          <div className="text-center mt-4 text-xs text-gray-600 font-medium">
             {startIndex + 1} / {categories.length}
           </div>
         </div>
