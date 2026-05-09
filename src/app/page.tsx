@@ -13,7 +13,8 @@ import { getAllBannersByPageType } from "./(private)/admin/banners/models/banner
  
 export const metadata: Metadata = {
   title:
-    "Techon – Innovative Electronics & Smart Tech Accessories | Official Site",
+    "Techon – Power Banks, Wall chargers, Car Chargers. Smaller, Cooler, Faster. 
+High-performance charging solutions | Official Site",
   description:
     "Techon (tech-on.net) is a leading B2B supplier of innovative smartphone accessories, smart electronics, and tech solutions. Established in 2015, AyyanTech delivers quality products worldwide.",
 };
