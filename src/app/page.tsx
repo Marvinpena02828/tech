@@ -10,11 +10,10 @@ import NewsHomeSection from "@/components/NewsHomeSection";
 import BusinessNeedsSection from "@/components/BusinessNeedsSection";
 import AchievementsSection from "@/components/AchievementsSection";
 import { getAllBannersByPageType } from "./(private)/admin/banners/models/banners-model";
- 
+
 export const metadata: Metadata = {
   title:
-    "Techon – Power Banks, Wall chargers, Car Chargers. Smaller, Cooler, Faster. 
-High-performance charging solutions | Official Site",
+    "Techon – Power Banks, Wall chargers, Car Chargers. Smaller, Cooler, Faster. High-performance charging solutions | Official Site",
   description:
     "Techon (tech-on.net) is a leading B2B supplier of innovative smartphone accessories, smart electronics, and tech solutions. Established in 2015, AyyanTech delivers quality products worldwide.",
 };
@@ -35,9 +34,8 @@ export default async function Home() {
         Techon – Innovative Electronics & Smart Tech Accessories
       </h1>
       <Hero banners={homepageBanners} />
-            <PopularProductLineup />
+      <PopularProductLineup />
       <FeatureSection featuredBanner={featuredBanner} />
-
       <AchievementsSection />
       <ProductCategory showDesktopNavigation={true} />
       <ServicesSection />
