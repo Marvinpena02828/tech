@@ -3,16 +3,13 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 import AppImage from "@/components/ui/AppImage";
 import { ProductBanner } from "@/lib/types";
 import Link from "next/link";
-
 interface FeatureSectionProps {
   featuredBanner?: ProductBanner[] | [];
 }
-
 export default function FeatureSection({
   featuredBanner,
 }: FeatureSectionProps) {
   const { ref } = useScrollReveal({ threshold: 0.2 });
-
   return (
     <section
       ref={ref as React.RefObject<HTMLElement>}
@@ -23,7 +20,6 @@ export default function FeatureSection({
           <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>
             Featured Products
           </h2>
-
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {featuredBanner?.map((banner, index) => (
@@ -71,7 +67,7 @@ export default function FeatureSection({
             ))}
           </div>
         </div>
-     
+      </div>
     </section>
   );
 }
