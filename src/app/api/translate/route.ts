@@ -1,9 +1,9 @@
-// src/app/api/translate/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || "https://libretranslate-production-d4e6.up.railway.app/";
+const LIBRETRANSLATE_URL = (
+  process.env.LIBRETRANSLATE_URL || "https://libretranslate-production-d4e6.up.railway.app"
+).replace(/\/$/, "");
 
-// Language code mapping for LibreTranslate
 const LANG_MAP: { [key: string]: string } = {
   en: "en",
   "zh-Hans": "zh",
@@ -15,6 +15,13 @@ const LANG_MAP: { [key: string]: string } = {
   es: "es",
   fr: "fr",
 };
+
+function detectSourceLanguage(text: string): string {
+  if (/[\u4E00-\u9FFF]/.test(text)) return "zh";
+  if (/[\u0600-\u06FF]/.test(text)) return "ar";
+  if (/[\u0400-\u04FF]/.test(text)) return "ru";
+  return "en";
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,11 +44,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ translatedText: text });
     }
 
+    const sourceLang = detectSourceLanguage(text);
     const targetLang = LANG_MAP[targetLanguage] || targetLanguage;
-
-    // Auto-detect source language
-    const hasChinese = /[\u4E00-\u9FFF]/.test(text);
-    const sourceLang = hasChinese ? "zh" : "en";
 
     console.log("[TRANSLATE] Calling LibreTranslate:", {
       url: LIBRETRANSLATE_URL,
@@ -50,17 +54,16 @@ export async function POST(request: NextRequest) {
       textLength: text.length,
     });
 
-    // Call self-hosted LibreTranslate
     const response = await fetch(`${LIBRETRANSLATE_URL}/translate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-    body: JSON.stringify({
-  q: text,
-  source: sourceLang,
-  target: targetLang,
-}),
+      body: JSON.stringify({
+        q: text,
+        source: sourceLang,
+        target: targetLang,
+      }),
     });
 
     console.log("[TRANSLATE] LibreTranslate response:", response.status);
