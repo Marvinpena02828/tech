@@ -21,7 +21,6 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
   const [error, setError] = useState<string | null>(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
-  // Load all data on mount - single consolidated effect for better performance
   useEffect(() => {
     const checkTouchDevice = () => {
       setIsTouchDevice(
@@ -33,7 +32,6 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
       try {
         checkTouchDevice();
 
-        // Load categories and featured items in parallel for faster loading
         const [cats, items] = await Promise.all([
           getPublicCategories(),
           getFeaturedItems(),
@@ -77,25 +75,19 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
     setHoveredCategory(category);
   }, []);
 
-  // Handle category click - allow navigation on both mobile and desktop
   const handleCategoryClick = useCallback(
     (e: React.MouseEvent, category: Category) => {
-      // Close the menu when clicking a category
       if (onClose) {
         onClose();
       }
-      // On touch devices, always navigate
       if (isTouchDevice) {
-        return; // Let the Link navigate naturally
+        return;
       }
-      // On desktop with hover, just update the preview (don't prevent navigation)
-      // Users can still click to navigate
       setHoveredCategory(category);
     },
     [isTouchDevice, onClose],
   );
 
-  // Show loading state
   if (loading) {
     return (
       <div
@@ -113,7 +105,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
       </div>
     );
   }
-  // Show error state
+
   if (error || !hoveredCategory || categories.length === 0) {
     return (
       <div
@@ -165,10 +157,8 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
         margin: "0 auto",
       }}
     >
-      {/* Container with max-width matching site layout */}
       <div className="mx-auto px-3 sm:px-4 md:px-6 lg:px-12 py-4 sm:py-6 lg:py-8">
         <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
-          {/* Left Column - Navigation List */}
           <div className="w-1/5">
             <nav className="space-y-1 overflow-y-auto scrollbar-thin overflow-x-hidden">
               {categories
@@ -213,10 +203,8 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
             </nav>
           </div>
 
-          {/* Right Column - Featured Section */}
           <div className="flex-1/2">
             <div className="h-full flex flex-col justify-between">
-              {/* Featured Items - Admin Manageable */}
               <div className="flex-1 mt-4">
                 {loading ? (
                   <div className="grid grid-cols-3 gap-4">
@@ -229,7 +217,6 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                   </div>
                 ) : (
                   (() => {
-                    // Filter items by current category and limit to 3
                     const categoryItems = featuredItems
                       .filter(
                         (item) =>
@@ -249,7 +236,6 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                             style={{ animationDelay: `${index * 100}ms` }}
                             onClick={onClose}
                           >
-                            {/* Image Container */}
                             <div className="relative w-full aspect-square animate-fadeInScale">
                               {item.product.images.length > 0 ? (
                                 <AppImage
@@ -277,8 +263,8 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                                 </div>
                               )}
                             </div>
-                            {/* Product Name Below */}
-                            <h6 className="text-xs  lg:text-sm font-regular text-gray-900 mt-1.5 sm:mt-2 text-center line-clamp-2 group-hover/featured:text-[#32375A] transition-colors ">
+                            {/* ✅ SPACING FIX: Changed mt-1.5 sm:mt-2 to mt-2.5 sm:mt-3.5 */}
+                            <h6 className="text-xs lg:text-sm font-regular text-gray-900 mt-2.5 sm:mt-3.5 text-center line-clamp-2 group-hover/featured:text-[#32375A] transition-colors">
                               {item.product.title}
                             </h6>
                           </Link>
@@ -298,8 +284,8 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                 )}
               </div>
 
-              {/* CTA Section */}
-              <div className="flex flex-col sm:flex-row items-center justify-start gap-6 pt-3 sm:pt-4">
+              {/* ✅ SPACING FIX: Changed pt-3 sm:pt-4 to pt-6 sm:pt-8, added mt-4 sm:mt-6 and border-t border-gray-200 */}
+              <div className="flex flex-col sm:flex-row items-center justify-start gap-6 pt-6 sm:pt-8 mt-4 sm:mt-6 border-t border-gray-200">
                 {categories
                   .filter(
                     (cat) => cat.parent_category_id === hoveredCategory.id,
@@ -338,5 +324,4 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
   );
 }
 
-// Memoize component to prevent unnecessary re-renders
 export default memo(ProductsMegaMenu);
