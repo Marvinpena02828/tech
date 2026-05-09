@@ -263,7 +263,6 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                                 </div>
                               )}
                             </div>
-                            {/* ✅ SPACING FIX: Changed mt-1.5 sm:mt-2 to mt-2.5 sm:mt-3.5 */}
                             <h6 className="text-xs lg:text-sm font-regular text-gray-900 mt-2.5 sm:mt-3.5 text-center line-clamp-2 group-hover/featured:text-[#32375A] transition-colors">
                               {item.product.title}
                             </h6>
@@ -284,8 +283,7 @@ function ProductsMegaMenu({ onClose }: ProductsMegaMenuProps = {}) {
                 )}
               </div>
 
-              {/* ✅ SPACING FIX: Changed pt-3 sm:pt-4 to pt-6 sm:pt-8, added mt-4 sm:mt-6 and border-t border-gray-200 */}
-              <div className="flex flex-col sm:flex-row items-center justify-start gap-6 pt-6 sm:pt-8 mt-4 sm:mt-6 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row items-center justify-start gap-6 pt-6 sm:pt-8 mt-4 sm:mt-6">
                 {categories
                   .filter(
                     (cat) => cat.parent_category_id === hoveredCategory.id,
