@@ -189,7 +189,7 @@ export default function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
         ref={dialogRef}
         className="fixed top-16 lg:top-20 left-0 right-0 bottom-0 z-9999 bg-white shadow-2xl animate-slide-down h-[90vh] overflow-y-hidden"
       >
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="container mx-auto px-4 pt-16 md:pt-20 pb-6 max-w-7xl">
           {/* Search Input Section */}
           <div className="relative mb-8">
             <input
