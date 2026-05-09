@@ -141,7 +141,7 @@ export default function ProductCategory({
 
         {/* Desktop View */}
         <div className="hidden container lg:block w-full mt-12">
-          <div className="flex items-center justify-center gap-6 lg:gap-8 xl:gap-12 2xl:gap-16 w-full px-3 lg:px-6">
+          <div className="flex items-center justify-center gap-3 lg:gap-4 xl:gap-8 2xl:gap-12 w-full px-2 lg:px-4">
             {showDesktopNavigation && (
               <button
                 onClick={handleDesktopPrev}
@@ -153,13 +153,13 @@ export default function ProductCategory({
                 }`}
                 aria-label="Previous categories"
               >
-                <ChevronLeft size={28} className="lg:size-8 xl:size-8" />
+                <ChevronLeft size={20} className="lg:size-6" />
               </button>
             )}
 
             <div className="overflow-visible flex-1 relative px-2 lg:px-4">
               <div
-                className={`flex items-center justify-center gap-4 lg:gap-6 xl:gap-8 transition-transform duration-500 ease-in-out`}
+                className={`flex items-center justify-center gap-2 lg:gap-3 xl:gap-6 transition-transform duration-500 ease-in-out`}
                 style={{
                   transform: showDesktopNavigation
                     ? `translateX(-${
@@ -182,8 +182,8 @@ export default function ProductCategory({
                         minWidth: `${100 / desktopItemsToShow}%`,
                       }}
                     >
-                      {/* Responsive oval for category display - smaller on lg, medium on xl */}
-                      <div className="w-40 h-[22rem] lg:w-48 lg:h-[26rem] xl:w-56 xl:h-[28rem] 2xl:w-72 2xl:h-[36rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-3 lg:mb-4 xl:mb-6 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
+                      {/* Responsive oval for category display - even smaller on lg */}
+                      <div className="w-32 h-[18rem] lg:w-40 lg:h-[22rem] xl:w-48 xl:h-[26rem] 2xl:w-56 2xl:h-[28rem] bg-[#E5E9EC] hover:bg-white rounded-full mb-2 lg:mb-3 xl:mb-4 flex items-center justify-center relative overflow-hidden hover:shadow-lg transition-all duration-300">
                         <AppImage
                           src={getImageUrl(cat.image_link)}
                           alt={cat.title}
@@ -192,7 +192,7 @@ export default function ProductCategory({
                           unoptimized
                         />
                       </div>
-                      <h3 className="text-xs lg:text-sm xl:text-base 2xl:text-lg font-semibold text-gray-900 text-center font-display tracking-tight px-2 line-clamp-2">
+                      <h3 className="text-[10px] lg:text-xs xl:text-sm 2xl:text-base font-semibold text-gray-900 text-center font-display tracking-tight px-1 line-clamp-2">
                         {cat.title}
                       </h3>
                     </Link>
@@ -214,13 +214,13 @@ export default function ProductCategory({
                 }`}
                 aria-label="Next categories"
               >
-                <ChevronRight size={28} className="lg:size-8 xl:size-8" />
+                <ChevronRight size={20} className="lg:size-6" />
               </button>
             )}
           </div>
 
           {showDesktopNavigation && (
-            <div className="text-center mt-6 lg:mt-8 text-xs lg:text-sm text-gray-600 font-medium flex items-center gap-4 lg:gap-6 justify-center flex-wrap">
+            <div className="text-center mt-4 lg:mt-6 text-[10px] lg:text-xs text-gray-600 font-medium flex items-center gap-2 lg:gap-4 justify-center flex-wrap">
               <span
                 onClick={handleDesktopPrev}
                 className="text-primary-blue cursor-pointer hover:underline"
