@@ -38,7 +38,7 @@ export default function FeatureSection({
                       banner?.mobile_banner ||
                       "/Images/featured-section/image2.avif"
                     }
-                    alt={banner?.item_title || "Featured Product"}
+                    alt="Featured Product"
                     fill
                     className="object-cover"
                     sizes="100vw"
@@ -54,7 +54,7 @@ export default function FeatureSection({
                       banner?.desktop_banner ||
                       "/Images/featured-section/image2.avif"
                     }
-                    alt={banner?.item_title || "Featured Product"}
+                    alt="Featured Product"
                     fill
                     className="object-cover"
                     priority
