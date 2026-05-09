@@ -140,14 +140,6 @@ export default function ProductCategory({
        <div style={{ maxWidth: "1280px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem", marginBottom: "3rem" }}>
           <h2 style={{ fontSize: "2rem", fontWeight: "bold", textAlign: "center", color: "#111827" }}>Explore by Category</h2>
 
-    <div style={{ 
-            width: "4rem", 
-            height: "0.25rem", 
-            background: "linear-gradient(to right, rgb(59, 130, 246), rgb(6, 182, 212))", 
-            margin: "1rem auto 0",
-            borderRadius: "9999px"
-          }} />
-        </div>
 
       
       {/* Desktop View */}
