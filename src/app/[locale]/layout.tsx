@@ -45,7 +45,7 @@ const montserrat = Montserrat({
 });
 
 const neuropol = localFont({
-  src: "../../public/fonts/Neuropol.otf",
+  src: "../../../public/fonts/Neuropol.otf",
   variable: "--font-neuropol",
   display: "swap",
   weight: "400",
