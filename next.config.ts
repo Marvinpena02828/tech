@@ -6,12 +6,22 @@ const nextConfig: NextConfig = {
   compress: true,
   turbopack: {},
   
+  // Disable problematic middleware file tracing
+  experimental: {
+    middlewareSourceMaps: false,
+  },
+  
   images: {
+    // Only optimize local images from /public directory
+    // External images (Google Drive, Supabase) are served unoptimized via AppImage
+    // This prevents Vercel Image Transformation costs for external sources
     localPatterns: [
       {
+        // This allows images from 'public' folder
         pathname: "/**",
       },
     ],
+    // Allow external image domains for proxy fallback
     remotePatterns: [
       {
         protocol: "https",
