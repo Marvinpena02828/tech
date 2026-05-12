@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Mail } from "lucide-react";
-import ContactBanner from "@/app/contact/components/ContactBanner";
+import ContactBanner from "@/contact/components/ContactBanner";
 import ContactForm from "./components/ContactForm";
 import { getContactInfo } from "@/actions/contactInfo";
 import { getAddresses } from "@/actions/address";
