@@ -141,21 +141,22 @@ export default function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
     setIsSearching(true);
 
     // Debounce search - wait 500ms after user stops typing
-    debounceTimerRef.current = setTimeout(async () => {
-      try {
-        const result = await searchProducts(searchQuery);
-        if (result.success && result.data) {
-          setSearchResults(result.data);
-        } else {
-          setSearchResults([]);
-        }
-      } catch (error) {
-        console.error("Search error:", error);
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 500);
+debounceTimerRef.current = setTimeout(async () => {
+  try {
+    // const result = await searchProducts(searchQuery); // TODO: Function doesn't exist yet
+    // if (result.success && result.data) {
+    //   setSearchResults(result.data);
+    // } else {
+    //   setSearchResults([]);
+    // }
+    setSearchResults([]); // Show no results for now
+  } catch (error) {
+    console.error("Search error:", error);
+    setSearchResults([]);
+  } finally {
+    setIsSearching(false);
+  }
+}, 500);
 
     // Cleanup on unmount
     return () => {
