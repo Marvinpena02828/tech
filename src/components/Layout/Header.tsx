@@ -5,7 +5,7 @@ import { ChevronDown, Menu, X, Search, Globe } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import ProductsMegaMenu from "../ProductsMegaMenu";
 import SearchDialog from "../SearchDialog";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useParams } from "next/navigation";
 import { getPublicCategories } from "@/app/(private)/admin/categories/models/categories-model";
 import { Category } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
@@ -79,6 +79,17 @@ const LANGUAGE_MAP: { [key: string]: string } = {
   Français: "fr",
 };
 
+const LANGUAGE_NAME_MAP: { [key: string]: string } = {
+  en: "English",
+  zh: "中文",
+  ar: "العربية",
+  ru: "Русский",
+  de: "Deutsch",
+  ro: "Română",
+  es: "Español",
+  fr: "Français",
+};
+
 export default function Header({ logos }: HeaderProps) {
   const [promoBar, setPromoBar] = useState<PromotionalBar | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -102,6 +113,8 @@ export default function Header({ logos }: HeaderProps) {
 
   const currentPath = usePathname();
   const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
 
   // Use translation hook
   const { translatePage, isTranslating } = usePageTranslation();
@@ -112,10 +125,11 @@ export default function Header({ logos }: HeaderProps) {
 
   // Helper function to check if a path is active
   const isPathActive = (href: string): boolean => {
+    const normalizedPath = currentPath.replace(`/${locale}`, "") || "/";
     if (href === "/") {
-      return currentPath === "/";
+      return normalizedPath === "/";
     }
-    return currentPath.startsWith(href);
+    return normalizedPath.startsWith(href);
   };
 
   // Fetch promotional bar
@@ -139,8 +153,8 @@ export default function Header({ logos }: HeaderProps) {
     fetchPromo();
   }, []);
 
-  // ✅ FIXED: Simple language change with proper async handling
-  const changeLanguage = async (languageCode: string, languageName: string) => {
+  // ✅ UPDATED: Language change with i18n routing
+  const changeLanguage = (newLocale: string, languageName: string) => {
     // Don't allow changing if already translating
     if (isTranslating) return;
 
@@ -148,45 +162,19 @@ export default function Header({ logos }: HeaderProps) {
     setIsLanguageDropdownOpen(false);
 
     if (typeof window !== "undefined") {
-      // Save to localStorage with the SAME KEY as translation hook uses
-      localStorage.setItem("currentLanguage", languageCode);
-      localStorage.setItem("preferredLanguage", languageCode);
-      localStorage.setItem("preferredLanguageName", languageName);
+      // Get current path without locale
+      const pathWithoutLocale = currentPath.replace(`/${locale}`, "") || "/";
 
-      // Trigger translation and wait for it to complete
-      if (languageCode === "en") {
-        // Reset to English - reload page
-        window.location.reload();
-      } else {
-        // Translate to selected language
-        await translatePage(languageCode);
-      }
+      // Navigate to new locale
+      router.push(`/${newLocale}${pathWithoutLocale}`);
     }
   };
 
-  // Load saved language preference on mount and sync with translation hook
+  // Load saved language preference on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Use the same localStorage key as translation hook
-      const savedLanguage = localStorage.getItem("currentLanguage");
-      
-      // Map language code to language name
-      const languageNameMap: { [key: string]: string } = {
-        en: "English",
-        zh: "中文",
-        ar: "العربية",
-        ru: "Русский",
-        de: "Deutsch",
-        ro: "Română",
-        es: "Español",
-        fr: "Français",
-      };
-
-      if (savedLanguage && languageNameMap[savedLanguage]) {
-        setSelectedLanguage(languageNameMap[savedLanguage]);
-      }
-    }
-  }, []);
+    // Update selected language based on current locale param
+    setSelectedLanguage(LANGUAGE_NAME_MAP[locale] || "English");
+  }, [locale]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -295,15 +283,17 @@ export default function Header({ logos }: HeaderProps) {
   const handleLogoClick = () => {
     setLastClickedRoute("/");
 
+    const pathWithoutLocale = currentPath.replace(`/${locale}`, "") || "/";
+
     // If already on home page, just scroll to top
-    if (currentPath === "/") {
+    if (pathWithoutLocale === "/") {
       window.scrollTo({
         top: 0,
         behavior: "smooth",
       });
     } else {
       // Navigate to home, then scroll to top after navigation completes
-      router.push("/");
+      router.push(`/${locale}/`);
       setTimeout(() => {
         window.scrollTo({
           top: 0,
@@ -319,7 +309,7 @@ export default function Header({ logos }: HeaderProps) {
       <div
         className={`w-full fixed left-0 right-0 z-40 transition-transform duration-300 ${
           showHeader ? "translate-y-0" : "-translate-y-full"
-        } ${currentPath.startsWith("/admin") ? "hidden" : ""}`}
+        } ${currentPath.startsWith(`/${locale}/admin`) ? "hidden" : ""}`}
       >
         {/* PROMO BAR - ALWAYS VISIBLE WHEN SHOWING */}
         {promoBar?.is_active && (
@@ -379,7 +369,7 @@ export default function Header({ logos }: HeaderProps) {
                 {mainLogo ? (
                   <img
                     src={mainLogo}
-                    alt="AyyanTech Logo"
+                    alt="TechOn Logo"
                     className="h-7 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                     loading="eager"
                   />
@@ -398,7 +388,7 @@ export default function Header({ logos }: HeaderProps) {
               }`}
             >
               <Link
-                href="/"
+                href={`/${locale}/`}
                 onClick={() => setLastClickedRoute("/")}
                 className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 text-white`}
                 style={isPathActive("/") ? { color: "rgb(229, 222, 219)" } : {}}
@@ -417,7 +407,7 @@ export default function Header({ logos }: HeaderProps) {
                 onMouseLeave={handleMenuLeave}
               >
                 <Link
-                  href="/products"
+                  href={`/${locale}/products`}
                   onClick={() => setLastClickedRoute("/products")}
                   className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 flex items-center space-x-1 whitespace-nowrap shrink-0 text-white`}
                   style={isPathActive("/products") ? { color: "rgb(229, 222, 219)" } : {}}
@@ -437,7 +427,7 @@ export default function Header({ logos }: HeaderProps) {
               </div>
 
               <Link
-                href="/about"
+                href={`/${locale}/about`}
                 onClick={() => setLastClickedRoute("/about")}
                 className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 text-white`}
                 style={isPathActive("/about") ? { color: "rgb(229, 222, 219)" } : {}}
@@ -449,7 +439,7 @@ export default function Header({ logos }: HeaderProps) {
               </Link>
 
               <Link
-                href="/news"
+                href={`/${locale}/news`}
                 onClick={() => setLastClickedRoute("/news")}
                 className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 text-white`}
                 style={isPathActive("/news") ? { color: "rgb(229, 222, 219)" } : {}}
@@ -461,7 +451,7 @@ export default function Header({ logos }: HeaderProps) {
               </Link>
 
               <Link
-                href="/contact"
+                href={`/${locale}/contact`}
                 onClick={() => setLastClickedRoute("/contact")}
                 className={`font-medium text-sm uppercase tracking-wide transition-all duration-300 whitespace-nowrap shrink-0 text-white`}
                 style={isPathActive("/contact") ? { color: "rgb(229, 222, 219)" } : {}}
@@ -517,7 +507,7 @@ export default function Header({ logos }: HeaderProps) {
                       onMouseEnter={(e) => (e.currentTarget.style.color = "rgb(229, 222, 219)")}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "")}
                     >
-                      {selectedLanguage} {isTranslating && "..."}
+                      {selectedLanguage}
                     </span>
                     <ChevronDown
                       className={`text-white transition-transform duration-300 ${
@@ -535,7 +525,7 @@ export default function Header({ logos }: HeaderProps) {
                         onClick={() => changeLanguage("en", "English")}
                         disabled={isTranslating}
                         className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
-                          selectedLanguage === "English"
+                          locale === "en"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
                         }`}
@@ -546,7 +536,7 @@ export default function Header({ logos }: HeaderProps) {
                         onClick={() => changeLanguage("zh", "中文")}
                         disabled={isTranslating}
                         className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
-                          selectedLanguage === "中文"
+                          locale === "zh"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
                         }`}
@@ -557,7 +547,7 @@ export default function Header({ logos }: HeaderProps) {
                         onClick={() => changeLanguage("ar", "العربية")}
                         disabled={isTranslating}
                         className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
-                          selectedLanguage === "العربية"
+                          locale === "ar"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
                         }`}
@@ -568,7 +558,7 @@ export default function Header({ logos }: HeaderProps) {
                         onClick={() => changeLanguage("ru", "Русский")}
                         disabled={isTranslating}
                         className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
-                          selectedLanguage === "Русский"
+                          locale === "ru"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
                         }`}
@@ -579,7 +569,7 @@ export default function Header({ logos }: HeaderProps) {
                         onClick={() => changeLanguage("de", "Deutsch")}
                         disabled={isTranslating}
                         className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
-                          selectedLanguage === "Deutsch"
+                          locale === "de"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
                         }`}
@@ -590,7 +580,7 @@ export default function Header({ logos }: HeaderProps) {
                         onClick={() => changeLanguage("ro", "Română")}
                         disabled={isTranslating}
                         className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
-                          selectedLanguage === "Română"
+                          locale === "ro"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
                         }`}
@@ -601,7 +591,7 @@ export default function Header({ logos }: HeaderProps) {
                         onClick={() => changeLanguage("es", "Español")}
                         disabled={isTranslating}
                         className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 ${
-                          selectedLanguage === "Español"
+                          locale === "es"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
                         }`}
@@ -612,7 +602,7 @@ export default function Header({ logos }: HeaderProps) {
                         onClick={() => changeLanguage("fr", "Français")}
                         disabled={isTranslating}
                         className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors rounded-b-lg disabled:opacity-50 ${
-                          selectedLanguage === "Français"
+                          locale === "fr"
                             ? "bg-gray-50 font-semibold text-red-500"
                             : "text-gray-700"
                         }`}
@@ -654,7 +644,7 @@ export default function Header({ logos }: HeaderProps) {
       >
         <nav className="flex flex-col p-6 space-y-6 overflow-y-auto h-full">
           <Link
-            href="/"
+            href={`/${locale}/`}
             className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover text-gray-900`}
             style={isPathActive("/") ? { color: "rgb(229, 222, 219)" } : {}}
             onMouseEnter={(e) => !isPathActive("/") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
@@ -701,7 +691,7 @@ export default function Header({ logos }: HeaderProps) {
                         {/* Parent Category */}
                         <div className="flex items-center justify-between">
                           <Link
-                            href={`/products?category=${category.id}`}
+                            href={`/${locale}/products?category=${category.id}`}
                             className="flex-1 text-gray-900 text-base hover:text-red-500 transition-colors py-2 nav-link-hover"
                             onClick={() => {
                               setIsMobileMenuOpen(false);
@@ -747,7 +737,7 @@ export default function Header({ logos }: HeaderProps) {
                               {childCategories.map((childCategory) => (
                                 <Link
                                   key={childCategory.id}
-                                  href={`/products?category=${childCategory.id}`}
+                                  href={`/${locale}/products?category=${childCategory.id}`}
                                   className="block text-gray-700 text-sm hover:text-red-500 transition-colors py-2 nav-link-hover"
                                   onClick={() => {
                                     setIsMobileMenuOpen(false);
@@ -769,7 +759,7 @@ export default function Header({ logos }: HeaderProps) {
           </div>
 
           <Link
-            href="/about"
+            href={`/${locale}/about`}
             className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover text-gray-900`}
             style={isPathActive("/about") ? { color: "rgb(229, 222, 219)" } : {}}
             onMouseEnter={(e) => !isPathActive("/about") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
@@ -782,7 +772,7 @@ export default function Header({ logos }: HeaderProps) {
             ABOUT US
           </Link>
           <Link
-            href="/news"
+            href={`/${locale}/news`}
             className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover text-gray-900`}
             style={isPathActive("/news") ? { color: "rgb(229, 222, 219)" } : {}}
             onMouseEnter={(e) => !isPathActive("/news") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
@@ -795,7 +785,7 @@ export default function Header({ logos }: HeaderProps) {
             NEWS
           </Link>
           <Link
-            href="/contact"
+            href={`/${locale}/contact`}
             className={`text-lg font-medium transition-colors py-3 border-b border-primary-blue/30 nav-link-hover text-gray-900`}
             style={isPathActive("/contact") ? { color: "rgb(229, 222, 219)" } : {}}
             onMouseEnter={(e) => !isPathActive("/contact") && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
@@ -847,23 +837,23 @@ export default function Header({ logos }: HeaderProps) {
               disabled={isTranslating}
             >
               <Search size={20} />
-              <span>Search {isTranslating && "..."}</span>
+              <span>Search</span>
             </button>
           </div>
 
           {/* Mobile Language Selector */}
           <div className="pt-4 border-t border-gray-900/30">
             <h4 className="text-gray-900 text-sm font-bold mb-3 uppercase tracking-wider">
-              Language {isTranslating && "..."}
+              Language
             </h4>
             <div className="space-y-2">
               <button
                 onClick={() => changeLanguage("en", "English")}
                 disabled={isTranslating}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
-                style={selectedLanguage === "English" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
-                onMouseEnter={(e) => selectedLanguage !== "English" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
-                onMouseLeave={(e) => selectedLanguage !== "English" && (e.currentTarget.style.color = "")}
+                style={locale === "en" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => locale !== "en" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => locale !== "en" && (e.currentTarget.style.color = "")}
               >
                 English
               </button>
@@ -871,9 +861,9 @@ export default function Header({ logos }: HeaderProps) {
                 onClick={() => changeLanguage("zh", "中文")}
                 disabled={isTranslating}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
-                style={selectedLanguage === "中文" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
-                onMouseEnter={(e) => selectedLanguage !== "中文" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
-                onMouseLeave={(e) => selectedLanguage !== "中文" && (e.currentTarget.style.color = "")}
+                style={locale === "zh" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => locale !== "zh" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => locale !== "zh" && (e.currentTarget.style.color = "")}
               >
                 中文 (Chinese)
               </button>
@@ -881,9 +871,9 @@ export default function Header({ logos }: HeaderProps) {
                 onClick={() => changeLanguage("ar", "العربية")}
                 disabled={isTranslating}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
-                style={selectedLanguage === "العربية" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
-                onMouseEnter={(e) => selectedLanguage !== "العربية" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
-                onMouseLeave={(e) => selectedLanguage !== "العربية" && (e.currentTarget.style.color = "")}
+                style={locale === "ar" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => locale !== "ar" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => locale !== "ar" && (e.currentTarget.style.color = "")}
               >
                 العربية (Arabic)
               </button>
@@ -891,9 +881,9 @@ export default function Header({ logos }: HeaderProps) {
                 onClick={() => changeLanguage("ru", "Русский")}
                 disabled={isTranslating}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
-                style={selectedLanguage === "Русский" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
-                onMouseEnter={(e) => selectedLanguage !== "Русский" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
-                onMouseLeave={(e) => selectedLanguage !== "Русский" && (e.currentTarget.style.color = "")}
+                style={locale === "ru" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => locale !== "ru" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => locale !== "ru" && (e.currentTarget.style.color = "")}
               >
                 Русский (Russian)
               </button>
@@ -901,9 +891,9 @@ export default function Header({ logos }: HeaderProps) {
                 onClick={() => changeLanguage("de", "Deutsch")}
                 disabled={isTranslating}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
-                style={selectedLanguage === "Deutsch" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
-                onMouseEnter={(e) => selectedLanguage !== "Deutsch" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
-                onMouseLeave={(e) => selectedLanguage !== "Deutsch" && (e.currentTarget.style.color = "")}
+                style={locale === "de" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => locale !== "de" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => locale !== "de" && (e.currentTarget.style.color = "")}
               >
                 Deutsch (German)
               </button>
@@ -911,9 +901,9 @@ export default function Header({ logos }: HeaderProps) {
                 onClick={() => changeLanguage("ro", "Română")}
                 disabled={isTranslating}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
-                style={selectedLanguage === "Română" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
-                onMouseEnter={(e) => selectedLanguage !== "Română" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
-                onMouseLeave={(e) => selectedLanguage !== "Română" && (e.currentTarget.style.color = "")}
+                style={locale === "ro" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => locale !== "ro" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => locale !== "ro" && (e.currentTarget.style.color = "")}
               >
                 Română (Romanian)
               </button>
@@ -921,9 +911,9 @@ export default function Header({ logos }: HeaderProps) {
                 onClick={() => changeLanguage("es", "Español")}
                 disabled={isTranslating}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
-                style={selectedLanguage === "Español" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
-                onMouseEnter={(e) => selectedLanguage !== "Español" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
-                onMouseLeave={(e) => selectedLanguage !== "Español" && (e.currentTarget.style.color = "")}
+                style={locale === "es" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => locale !== "es" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => locale !== "es" && (e.currentTarget.style.color = "")}
               >
                 Español (Spanish)
               </button>
@@ -931,9 +921,9 @@ export default function Header({ logos }: HeaderProps) {
                 onClick={() => changeLanguage("fr", "Français")}
                 disabled={isTranslating}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 bg-gray-300 text-primary-blue hover:bg-primary-blue`}
-                style={selectedLanguage === "Français" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
-                onMouseEnter={(e) => selectedLanguage !== "Français" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
-                onMouseLeave={(e) => selectedLanguage !== "Français" && (e.currentTarget.style.color = "")}
+                style={locale === "fr" ? { color: "rgb(229, 222, 219)", backgroundColor: "rgb(229, 222, 219)" } : {}}
+                onMouseEnter={(e) => locale !== "fr" && (e.currentTarget.style.color = "rgb(229, 222, 219)")}
+                onMouseLeave={(e) => locale !== "fr" && (e.currentTarget.style.color = "")}
               >
                 Français (French)
               </button>
@@ -980,7 +970,7 @@ export default function Header({ logos }: HeaderProps) {
           promoBar?.is_active
             ? "h-[calc(64px+30px)] md:h-[calc(80px+30px)] lg:h-[calc(80px+30px)]"
             : "h-16 md:h-20 lg:h-20"
-        } ${currentPath.startsWith("/admin") ? "hidden" : ""}`}
+        } ${currentPath.startsWith(`/${locale}/admin`) ? "hidden" : ""}`}
         aria-hidden="true"
       />
     </>
