@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Hero from "@/components/Hero";
 import PopularProductLineup from "@/components/PopularProductLineup";
-import FeatureSection from "../components/FeatureSection";
+import FeatureSection from "@/components/FeatureSection";
 import ProductCategory from "@/components/ProductCategory";
 import ServicesSection from "@/components/ServicesSection";
 import Certificates from "@/components/Certificates";
