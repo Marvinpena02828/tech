@@ -14,9 +14,10 @@ import { getAllBannersByPageType } from "./(private)/admin/banners/models/banner
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-  const locale = params?.locale || "en";
+  const { locale } = await params;
+  const finalLocale = locale || "en";
 
   const metadataMap = {
     en: {
@@ -36,13 +37,13 @@ export async function generateMetadata({
     },
   };
 
-  const currentMeta = metadataMap[locale as keyof typeof metadataMap] || metadataMap.en;
+  const currentMeta = metadataMap[finalLocale as keyof typeof metadataMap] || metadataMap.en;
 
   return {
     title: currentMeta.title,
     description: currentMeta.description,
     alternates: {
-      canonical: `https://tech-on.net/${locale}`,
+      canonical: `https://tech-on.net/${finalLocale}`,
       languages: {
         en: "https://tech-on.net/en",
         zh: "https://tech-on.net/zh",
@@ -55,8 +56,11 @@ export async function generateMetadata({
 export default async function Home({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  const finalLocale = locale || "en";
+
   const homepageBannersResult = await getAllBannersByPageType("homepage");
   const homepageBanners = homepageBannersResult.success
     ? homepageBannersResult.data
@@ -65,8 +69,6 @@ export default async function Home({
   const featuredBanner = featuredBannerResult.success
     ? featuredBannerResult.data
     : [];
-
-  const locale = params?.locale || "en";
 
   // SEO structured data
   const schemaData = {
@@ -78,7 +80,7 @@ export default async function Home({
   return (
     <main className="min-h-screen w-full">
       <h1 className="sr-only">
-        {schemaData[locale as keyof typeof schemaData] || schemaData.en}
+        {schemaData[finalLocale as keyof typeof schemaData] || schemaData.en}
       </h1>
       <Hero banners={homepageBanners} />
       <PopularProductLineup />
