@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   compress: true,
   turbopack: {}, // Add this to use Turbopack instead of webpack
   
+  // Fix middleware.js.nft.json issue
+  outputFileTracingIncludes: {
+    '/': ['./middleware.ts'],
+  },
+  
   images: {
     // Only optimize local images from /public directory
     // External images (Google Drive, Supabase) are served unoptimized via AppImage
