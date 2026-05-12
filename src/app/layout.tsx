@@ -15,7 +15,6 @@ import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
 import TranslationProvider from "@/components/providers/TranslationProvider";
 import { createClient } from "@/lib/supabase/server";
-import { generateMetadata as generateI18nMetadata } from "@/lib/seo-metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -83,9 +82,10 @@ async function getLogos() {
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-  const locale = params?.locale || "en";
+  const { locale } = await params;
+  const finalLocale = locale || "en";
 
   // Base metadata for all locales
   const baseMetadata = {
@@ -122,7 +122,7 @@ export async function generateMetadata({
     },
   };
 
-  const currentMeta = baseMetadata[locale as keyof typeof baseMetadata] || baseMetadata.en;
+  const currentMeta = baseMetadata[finalLocale as keyof typeof baseMetadata] || baseMetadata.en;
 
   return {
     title: {
@@ -148,7 +148,7 @@ export async function generateMetadata({
     openGraph: {
       title: currentMeta.ogTitle,
       description: currentMeta.ogDescription,
-      url: `https://tech-on.net/${locale}`,
+      url: `https://tech-on.net/${finalLocale}`,
       siteName: "TechOn",
       images: [
         {
@@ -169,7 +169,7 @@ export async function generateMetadata({
       site: "@TechOn",
     },
     alternates: {
-      canonical: `https://tech-on.net/${locale}`,
+      canonical: `https://tech-on.net/${finalLocale}`,
       languages: {
         en: "https://tech-on.net/en",
         zh: "https://tech-on.net/zh",
@@ -203,13 +203,14 @@ export default async function RootLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
-  const locale = params?.locale || "en";
+  const { locale } = await params;
+  const finalLocale = locale || "en";
   const logos = await getLogos();
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-scroll-behavior="smooth">
+    <html lang={finalLocale} dir={finalLocale === "ar" ? "rtl" : "ltr"} data-scroll-behavior="smooth">
       <head>
         {/* Hreflang tags for SEO */}
         <link rel="alternate" hrefLang="en" href="https://tech-on.net/en" />
@@ -233,9 +234,9 @@ export default async function RootLayout({
               url: "https://tech-on.net",
               logo: logos.main || "https://tech-on.net/techon.png",
               description:
-                locale === "en"
+                finalLocale === "en"
                   ? "TechOn is a professional supplier of smart, reliable and innovative smartphone accessories and electronics since 2015."
-                  : locale === "zh"
+                  : finalLocale === "zh"
                     ? "TechOn是一个专业的智能、可靠和创新的智能手机配件和电子产品供应商。"
                     : "TechOn هو مورد احترافي لملحقات الهواتف الذكية والمنتجات الإلكترونية.",
               foundingDate: "2015",
@@ -251,7 +252,7 @@ export default async function RootLayout({
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer service",
-                url: `https://tech-on.net/${locale}/contact`,
+                url: `https://tech-on.net/${finalLocale}/contact`,
               },
             }),
           }}
@@ -266,12 +267,12 @@ export default async function RootLayout({
               name: "TechOn",
               alternateName: "TechOn",
               url: "https://tech-on.net",
-              inLanguage: locale,
+              inLanguage: finalLocale,
               potentialAction: {
                 "@type": "SearchAction",
                 target: {
                   "@type": "EntryPoint",
-                  urlTemplate: `https://tech-on.net/${locale}/products?search={search_term_string}`,
+                  urlTemplate: `https://tech-on.net/${finalLocale}/products?search={search_term_string}`,
                 },
                 "query-input": "required name=search_term_string",
               },
@@ -290,12 +291,12 @@ export default async function RootLayout({
                   "@type": "ListItem",
                   position: 1,
                   name:
-                    locale === "en"
+                    finalLocale === "en"
                       ? "TechOn Home"
-                      : locale === "zh"
+                      : finalLocale === "zh"
                         ? "TechOn首页"
                         : "TechOn الصفحة الرئيسية",
-                  item: `https://tech-on.net/${locale}`,
+                  item: `https://tech-on.net/${finalLocale}`,
                 },
               ],
             }),
