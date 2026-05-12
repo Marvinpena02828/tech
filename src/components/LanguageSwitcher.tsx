@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { useTranslation } from '@/hooks/useTranslation';
+// import { useTranslation } from '@/hooks/useTranslation'; // TODO: Hook doesn't exist yet
 
 type Language = 'en' | 'zh' | 'ar';
 
