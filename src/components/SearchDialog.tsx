@@ -7,7 +7,7 @@ import { Category } from "@/lib/types";
 import { FeaturedItem } from "@/types/megaMenu";
 import Link from "next/link";
 import { getFeaturedItems } from "@/app/(private)/admin/featured/models/featured-model";
-import { searchProducts } from "@/actions/searchProducts";
+// import { searchProducts } from "@/actions/searchProducts"; // TODO: File doesn't exist yet
 import { usePathname } from "next/navigation";
 
 interface SearchDialogProps {
