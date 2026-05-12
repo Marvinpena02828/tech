@@ -6,12 +6,6 @@ const nextConfig: NextConfig = {
   compress: true,
   turbopack: {}, // Add this to use Turbopack instead of webpack
   
-  // i18n configuration
-  i18n: {
-    locales: ["en", "zh", "ar"],
-    defaultLocale: "en",
-  },
-  
   images: {
     // Only optimize local images from /public directory
     // External images (Google Drive, Supabase) are served unoptimized via AppImage
