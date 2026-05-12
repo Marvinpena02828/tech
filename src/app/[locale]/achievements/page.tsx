@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import React from "react";
-import Banner from "./components/Banner";
-import ListOfAchievments from "./components/ListOfAchievments";
+import Banner from "./Components/Banner";
+import ListOfAchievments from "./Components/ListOfAchievments";
 
 export const metadata: Metadata = {
   title: "TechOn Achievements – Awards & Milestones",
