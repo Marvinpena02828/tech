@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import Footer from "@/components/Layout/Footer";
 import Banner from "./components/Banner";
 import ProductsClient from "./components/ProductsClient";
-import { getBannersByPageType } from "../(private)/admin/banners/models/banners-model";
+import { getBannersByPageType } from "@/app/(private)/admin/banners/models/banners-model";
 import { getPublicProductsPageData } from "@/features/products";
 
 export const metadata: Metadata = {
