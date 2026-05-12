@@ -4,24 +4,14 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   compress: true,
-  turbopack: {}, // Add this to use Turbopack instead of webpack
-  
-  // Fix middleware.js.nft.json issue
-  outputFileTracingIncludes: {
-    '/': ['./middleware.ts'],
-  },
+  turbopack: {},
   
   images: {
-    // Only optimize local images from /public directory
-    // External images (Google Drive, Supabase) are served unoptimized via AppImage
-    // This prevents Vercel Image Transformation costs for external sources
     localPatterns: [
       {
-        // This allows images from 'public' folder
         pathname: "/**",
       },
     ],
-    // Allow external image domains for proxy fallback
     remotePatterns: [
       {
         protocol: "https",
