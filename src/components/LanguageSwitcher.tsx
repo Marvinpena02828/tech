@@ -13,9 +13,10 @@ const LANGUAGES: { code: Language; label: string }[] = [
 
 export function LanguageSwitcher() {
   const router = useRouter();
-  const params = useParams();
-  const currentPath = params?.locale;
-  const { locale } = useTranslation();
+ const params = useParams();
+const currentPath = params?.locale;
+const locale = params?.locale; // Use locale from params instead
+// const { locale } = useTranslation(); // TODO: Hook doesn't exist yet
 
   const handleLanguageChange = (newLocale: Language) => {
     if (newLocale === locale) return;
