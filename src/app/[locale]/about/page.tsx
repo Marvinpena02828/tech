@@ -6,8 +6,8 @@ import ProductCategory from "@/components/ProductCategory";
 import CompanyProfile from "@/app/about/components/CompanyProfile";
 import Image from "next/image";
 import Certificates from "@/components/Certificates"; // Already updated to CMS-driven
-import { isSectionVisible } from "../(private)/admin/settings/models/section-settings-model";
-import { getMarketingPhotos } from "../(private)/admin/about-marketing/models/marketing-photos-model";
+import { isSectionVisible } from "@/app/(private)/admin/settings/models/section-settings-model";
+import { getMarketingPhotos } from "@/app/(private)/admin/about-marketing/models/marketing-photos-model";
 import { transformImageToProxy } from "@/lib/utils/image-proxy";
 
 export const metadata = {
