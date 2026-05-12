@@ -5,6 +5,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   turbopack: {}, // Add this to use Turbopack instead of webpack
+  
+  // i18n configuration
+  i18n: {
+    locales: ["en", "zh", "ar"],
+    defaultLocale: "en",
+  },
+  
   images: {
     // Only optimize local images from /public directory
     // External images (Google Drive, Supabase) are served unoptimized via AppImage
@@ -33,6 +40,7 @@ const nextConfig: NextConfig = {
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  
   async headers() {
     return [
       {
