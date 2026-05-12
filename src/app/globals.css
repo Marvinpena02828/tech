@@ -188,6 +188,23 @@
   font-display: swap;
 }
 
+/* i18n Language-Specific Fonts */
+@font-face {
+  font-family: "Noto Sans SC";
+  src: url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans Arabic";
+  src: url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;700&display=swap");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   /* --font-sans: "Arial", sans-serif; */
   --font-arial: "Arial", sans-serif;
@@ -199,6 +216,8 @@
   --font-myriad-condensed: "MyriadPro Condensed", sans-serif;
   --font-poppins: "Poppins", sans-serif;
   --font-play: "Play", sans-serif;
+  --font-noto-sc: "Noto Sans SC", sans-serif;
+  --font-noto-ar: "Noto Sans Arabic", sans-serif;
 
   --color-primary-blue: #171847;
 }
@@ -245,14 +264,121 @@ body {
 html {
   overflow-x: hidden;
   width: 100%;
-}
-
-/* Smooth Scrolling */
-html {
   scroll-behavior: smooth;
 }
 
-/* Floating Animation for Hero Products */
+/* ===== i18n RTL Support for Arabic ===== */
+html[lang="ar"] {
+  direction: rtl;
+  text-align: right;
+}
+
+html[lang="ar"] body {
+  direction: rtl;
+  font-family: var(--font-noto-ar), Arial, Helvetica, sans-serif;
+}
+
+html[lang="zh"] body {
+  font-family: var(--font-noto-sc), Arial, Helvetica, sans-serif;
+}
+
+html[lang="en"] body {
+  font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+}
+
+/* RTL Flex Direction Flip */
+html[lang="ar"] .flex {
+  flex-direction: row-reverse;
+}
+
+/* RTL Margin Utilities */
+html[lang="ar"] .ml-4 {
+  margin-left: 0;
+  margin-right: 1rem;
+}
+
+html[lang="ar"] .ml-6 {
+  margin-left: 0;
+  margin-right: 1.5rem;
+}
+
+html[lang="ar"] .ml-8 {
+  margin-left: 0;
+  margin-right: 2rem;
+}
+
+html[lang="ar"] .mr-4 {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+html[lang="ar"] .mr-6 {
+  margin-right: 0;
+  margin-left: 1.5rem;
+}
+
+html[lang="ar"] .mr-8 {
+  margin-right: 0;
+  margin-left: 2rem;
+}
+
+/* RTL Padding Utilities */
+html[lang="ar"] .pl-4 {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+html[lang="ar"] .pl-6 {
+  padding-left: 0;
+  padding-right: 1.5rem;
+}
+
+html[lang="ar"] .pl-8 {
+  padding-left: 0;
+  padding-right: 2rem;
+}
+
+html[lang="ar"] .pr-4 {
+  padding-right: 0;
+  padding-left: 1rem;
+}
+
+html[lang="ar"] .pr-6 {
+  padding-right: 0;
+  padding-left: 1.5rem;
+}
+
+html[lang="ar"] .pr-8 {
+  padding-right: 0;
+  padding-left: 2rem;
+}
+
+/* RTL Text Alignment */
+html[lang="ar"] .text-left {
+  text-align: right;
+}
+
+html[lang="ar"] .text-right {
+  text-align: left;
+}
+
+/* RTL Navigation */
+html[lang="ar"] nav {
+  flex-direction: row-reverse;
+}
+
+/* RTL Grid */
+html[lang="ar"] .grid {
+  direction: rtl;
+}
+
+/* Smooth transition for RTL */
+* {
+  transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  transition: direction 0.3s ease, text-align 0.3s ease;
+}
+
+/* ===== Floating Animation for Hero Products ===== */
 @keyframes float {
   0%,
   100% {
@@ -390,27 +516,6 @@ html {
   animation: slide-up 0.3s ease-out;
 }
 
-/* Smooth Easing for all transitions */
-* {
-  transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-/* Hide Scrollbar for Mobile Carousels */
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
-}
-
-/* Smooth Horizontal Scrolling */
-.scrollbar-hide {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
 /* Mega Menu Animations */
 @keyframes fadeInUp {
   0% {
@@ -493,6 +598,11 @@ html {
   margin-right: 8px;
 }
 
+html[lang="ar"] .description-content ul li strong {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
 /* Google Translate - Hide all UI elements */
 .goog-te-banner-frame.skiptranslate {
   display: none !important;
@@ -551,4 +661,8 @@ body {
   box-sizing: border-box;
   z-index: 40;
   flex-shrink: 0;
+}
+
+html[lang="ar"] .promo-bar {
+  direction: rtl;
 }
