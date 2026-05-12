@@ -1,9 +1,9 @@
-import HeroBanner from "@/app/about/components/HeroBanner";
-import CompanyAchievements from "@/app/about/components/CompanyAchievements";
-import TimelineSection from "@/app/about/components/TimelineSection";
-import GlobalMarketing from "@/app/about/components/GlobalMarketing";
+import HeroBanner from "@/components/about/HeroBanner";
+import CompanyAchievements from "@/components/about/CompanyAchievements";
+import TimelineSection from "@/components/about/TimelineSection";
+import GlobalMarketing from "@/components/about/GlobalMarketing";
 import ProductCategory from "@/components/ProductCategory";
-import CompanyProfile from "@/app/about/components/CompanyProfile";
+import CompanyProfile from "@/components/about/CompanyProfile";
 import Image from "next/image";
 import Certificates from "@/components/Certificates"; // Already updated to CMS-driven
 import { isSectionVisible } from "@/app/(private)/admin/settings/models/section-settings-model";
