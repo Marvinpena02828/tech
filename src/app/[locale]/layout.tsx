@@ -8,7 +8,7 @@ import {
   Montserrat,
 } from "next/font/google";
 import localFont from "next/font/local";
-import "./globals.css";
+import "../globals.css";
 import FloatingContactButtons from "@/components/FloatingContactButtons";
 import { Providers } from "@/components/Providers";
 import Header from "@/components/Layout/Header";
